@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO Meta Tags -->
+  <title>Occasions — Véhicules & Pièces à vendre | ClinikAuto Scionzier 74950</title>
+  <meta name="description" content="Retrouvez les véhicules et pièces d'occasion proposés par ClinikAuto à Scionzier (74950). Annonces vérifiées par votre garagiste de confiance." />
+  <meta name="keywords" content="voiture occasion Scionzier, pièces occasion 74950, vente auto ClinikAuto, occasion Haute-Savoie" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.clinikauto.fr/occasions.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Occasions ClinikAuto — Véhicules & Pièces à vendre" />
+  <meta property="og:description" content="Véhicules et pièces d'occasion vérifiés par ClinikAuto à Scionzier." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/occasions.css" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo" aria-label="ClinikAuto - Accueil">
+        <img src="images/logo.jpg" alt="Logo ClinikAuto" width="80" height="80" />
+      </a>
+      <nav class="nav" id="nav" aria-label="Navigation principale">
+        <ul class="nav__list">
+          <li><a href="index.html#apropos" class="nav__link">À propos</a></li>
+          <li><a href="index.html#services" class="nav__link">Services</a></li>
+          <li><a href="index.html#tarifs" class="nav__link">Tarifs</a></li>
+          <li><a href="index.html#galerie" class="nav__link">Galerie</a></li>
+          <li><a href="index.html#temoignages" class="nav__link">Avis</a></li>
+          <li><a href="occasions.html" class="nav__link nav__link--active">Occasions</a></li>
+          <li><a href="index.html#contact" class="nav__link nav__link--cta">Contact</a></li>
+        </ul>
+      </nav>
+      <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========== HERO OCCASIONS ========== -->
+  <section class="occ-hero">
+    <div class="occ-hero__content">
+      <span class="section__label">Bonnes affaires</span>
+      <h1 class="occ-hero__title">Véhicules & Pièces<br><span>d'Occasion</span></h1>
+      <p>Toutes nos annonces sont vérifiées par nos mécaniciens. Achetez en toute confiance !</p>
+    </div>
+  </section>
+
+  <!-- ========== FILTRES ========== -->
+  <div class="occ-filtres">
+    <div class="container">
+      <div class="occ-filtres__inner">
+        <button class="filtre-btn active" data-filtre="tous">
+          <i class="fa-solid fa-border-all"></i> Tout voir
+        </button>
+        <button class="filtre-btn" data-filtre="voiture">
+          <i class="fa-solid fa-car"></i> Véhicules
+        </button>
+        <button class="filtre-btn" data-filtre="piece">
+          <i class="fa-solid fa-gears"></i> Pièces détachées
+        </button>
+        <div class="occ-filtres__search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" placeholder="Rechercher une annonce..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ANNONCES ========== -->
+  <section class="occ-annonces">
+    <div class="container">
+      <div class="occ-annonces__header">
+        <p id="compteur">Chargement des annonces...</p>
+      </div>
+      <div class="occ-grid" id="occGrid">
+        <!-- Les annonces sont injectées par occasions.js -->
+      </div>
+      <div class="occ-empty" id="occEmpty" style="display:none;">
+        <i class="fa-solid fa-car-burst"></i>
+        <p>Aucune annonce disponible pour le moment.</p>
+        <span>Revenez bientôt ou contactez-nous directement !</span>
+        <a href="index.html#contact" class="btn btn--primary">Nous contacter</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== MODAL DETAIL ========== -->
+  <div class="occ-modal" id="occModal" role="dialog" aria-modal="true" style="display:none;">
+    <div class="occ-modal__overlay" id="modalOverlay"></div>
+    <div class="occ-modal__box">
+      <button class="occ-modal__close" id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+      <div class="occ-modal__content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL RÉSERVATION ========== -->
+  <div class="occ-modal" id="modalReservation" role="dialog" aria-modal="true" style="display:none;">
+    <div class="occ-modal__overlay" onclick="fermerReservation()"></div>
+    <div class="occ-modal__box occ-modal__box--reserv">
+      <button class="occ-modal__close" onclick="fermerReservation()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="reservationContent"></div>
+    </div>
+  </div>
+
+  <!-- ========== CTA CONTACT ========== -->
+  <section class="occ-cta">
+    <div class="container">
+      <div class="occ-cta__inner">
+        <div>
+          <h2>Vous ne trouvez pas ce que vous cherchez ?</h2>
+          <p>Contactez-nous, nous pouvons vous aider à trouver la pièce ou le véhicule qu'il vous faut.</p>
+        </div>
+        <div class="occ-cta__btns">
+          <a href="tel:+33620185627" class="btn btn--primary"><i class="fa-solid fa-phone"></i> 06 20 18 56 27</a>
+          <a href="index.html#contact" class="btn btn--outline">Envoyer un message</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <img src="images/logo.jpg" alt="ClinikAuto" width="60" height="60" />
+          <p>Votre garage de confiance en Haute-Savoie.</p>
+        </div>
+        <div class="footer__links">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html#apropos">À propos</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#tarifs">Tarifs</a></li>
+            <li><a href="occasions.html">Occasions</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h4>Contact</h4>
+          <p><i class="fa-solid fa-location-dot"></i> 118 Clos des Teppes, 74950 Scionzier</p>
+          <p><i class="fa-solid fa-phone"></i> <a href="tel:+33620185627">06 20 18 56 27</a></p>
+          <p><i class="fa-solid fa-envelope"></i> <a href="mailto:clinikauto74@gmail.com">clinikauto74@gmail.com</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2025 ClinikAuto — Tous droits réservés | 118 Clos des Teppes, 74950 Scionzier</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/occasions.js"></script>
+</body>
+</html>
