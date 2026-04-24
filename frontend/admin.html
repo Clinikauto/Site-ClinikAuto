@@ -21,9 +21,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .navbar h1 {
             font-size: 24px;
+        }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .navbar-admin-badge {
+            background: #d32f2f;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
         }
         .logout-btn {
             background: #ff6b6b;
@@ -42,47 +58,90 @@
             margin: 30px auto;
             padding: 20px;
         }
-        .header {
+        /* Onglets */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: #333; }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        /* Stats */
+        .header-card {
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
         }
-        .header h2 {
+        .header-card h2 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
         }
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
         }
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 18px;
             border-radius: 10px;
             text-align: center;
         }
+        .stat-card.red { background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); }
+        .stat-card.green { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
         .stat-card h3 {
-            font-size: 32px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 6px;
         }
-        .stat-card p {
-            font-size: 14px;
-        }
-        .appointments-section {
+        .stat-card p { font-size: 13px; }
+        /* Sections */
+        .section-card {
             background: white;
-            padding: 20px;
+            padding: 24px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .appointments-section h3 {
+        .section-card h3 {
             color: #333;
             margin-bottom: 20px;
+            font-size: 18px;
         }
+        /* Recherche */
+        .search-bar {
+            margin-bottom: 16px;
+        }
+        .search-bar input {
+            width: 100%;
+            max-width: 380px;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .search-bar input:focus { border-color: #667eea; }
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -93,55 +152,40 @@
             padding: 12px;
             text-align: left;
             font-weight: bold;
+            font-size: 13px;
+            white-space: nowrap;
         }
         table td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+            padding: 11px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            vertical-align: middle;
         }
-        table tr:hover {
-            background: #f9f9f9;
-        }
+        table tr:hover td { background: #f9f9f9; }
         .badge {
             display: inline-block;
-            padding: 5px 10px;
+            padding: 4px 10px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
+            white-space: nowrap;
         }
-        .badge-pending {
-            background: #ffc107;
-            color: #333;
-        }
-        .badge-confirmed {
-            background: #28a745;
-            color: white;
-        }
-        .badge-cancelled {
-            background: #dc3545;
-            color: white;
-        }
+        .badge-pending  { background: #ffc107; color: #333; }
+        .badge-confirmed { background: #28a745; color: white; }
+        .badge-cancelled { background: #dc3545; color: white; }
         .action-btn {
             padding: 5px 10px;
-            margin: 5px;
+            margin: 2px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
+            white-space: nowrap;
         }
-        .btn-confirm {
-            background: #28a745;
-            color: white;
-        }
-        .btn-confirm:hover {
-            background: #218838;
-        }
-        .btn-cancel {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-cancel:hover {
-            background: #c82333;
-        }
+        .btn-confirm { background: #28a745; color: white; }
+        .btn-confirm:hover { background: #218838; }
+        .btn-cancel  { background: #dc3545; color: white; }
+        .btn-cancel:hover  { background: #c82333; }
         .no-data {
             text-align: center;
             padding: 40px;
@@ -152,207 +196,245 @@
             padding: 20px;
             color: #667eea;
         }
+        /* Email cell */
+        .email-cell { font-weight: 600; color: #333; }
+        /* Counters */
+        .rdv-count { font-weight: bold; color: #667eea; }
+        /* Overflow table wrapper */
+        .table-wrapper { overflow-x: auto; }
 
-        /* Mobile responsive */
-        @media (max-width: 1024px) {
-            .container {
-                padding: 15px;
-            }
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
+        /* Mobile */
         @media (max-width: 768px) {
-            .navbar {
-                padding: 10px 15px;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .navbar h1 {
-                font-size: 18px;
-            }
-            .logout-btn {
-                width: 100%;
-            }
-            .container {
-                padding: 10px;
-            }
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            .stat-card h3 {
-                font-size: 24px;
-            }
-            table {
-                font-size: 12px;
-            }
-            table th, table td {
-                padding: 8px;
-            }
-            .action-btn {
-                padding: 3px 6px;
-                font-size: 10px;
-            }
+            .navbar { padding: 10px 15px; }
+            .navbar h1 { font-size: 18px; }
+            .logout-btn, .navbar-right { width: 100%; }
+            .container { padding: 10px; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .stat-card h3 { font-size: 22px; }
+            .tab-btn { padding: 10px 14px; font-size: 13px; }
         }
-
         @media (max-width: 480px) {
-            .navbar h1 {
-                font-size: 16px;
-            }
-            .header h2 {
-                font-size: 16px;
-            }
-            .stat-card {
-                padding: 15px;
-            }
-            .stat-card h3 {
-                font-size: 20px;
-            }
-            table th, table td {
-                padding: 5px;
-                font-size: 10px;
-            }
-            .action-btn {
-                padding: 3px 5px;
-                font-size: 9px;
-                margin: 2px;
-            }
-            .badge {
-                font-size: 10px;
-            }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .tab-btn { padding: 8px 10px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <h1>🚗 Clinik Auto - Admin</h1>
-        <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        <h1>🚗 Clinik Auto — Admin</h1>
+        <div class="navbar-right">
+            <span class="navbar-admin-badge" id="adminBadge">🔑 Admin connecté</span>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
     </div>
 
     <div class="container">
-        <div class="header">
-            <h2>📊 Tableau de bord administrateur</h2>
+        <!-- STATS GLOBALES -->
+        <div class="header-card">
+            <h2>📊 Tableau de bord</h2>
             <div class="stats">
                 <div class="stat-card">
-                    <h3 id="totalAppointments">0</h3>
+                    <h3 id="statClients">0</h3>
+                    <p>Clients inscrits</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="statTotal">0</h3>
                     <p>RDV au total</p>
                 </div>
-                <div class="stat-card">
-                    <h3 id="pendingAppointments">0</h3>
+                <div class="stat-card" style="background:linear-gradient(135deg,#ffc107 0%,#e0a800 100%);color:#333">
+                    <h3 id="statPending">0</h3>
                     <p>En attente</p>
                 </div>
-                <div class="stat-card">
-                    <h3 id="confirmedAppointments">0</h3>
+                <div class="stat-card green">
+                    <h3 id="statConfirmed">0</h3>
                     <p>Confirmés</p>
+                </div>
+                <div class="stat-card red">
+                    <h3 id="statCancelled">0</h3>
+                    <p>Annulés</p>
                 </div>
             </div>
         </div>
 
-        <div class="appointments-section">
-            <h3>📅 Liste des rendez-vous</h3>
-            <div id="appointmentsContainer" class="loading">
-                Chargement des rendez-vous...
+        <!-- ONGLETS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('rdv', this)">📅 Rendez-vous</button>
+            <button class="tab-btn" onclick="switchTab('clients', this)">👥 Clients</button>
+        </div>
+
+        <!-- ONGLET RDV -->
+        <div class="tab-panel active" id="panelRdv">
+            <div class="section-card">
+                <h3>📅 Liste des rendez-vous</h3>
+                <div class="search-bar">
+                    <input type="text" id="rdvSearch" placeholder="🔍 Filtrer par client, service, date..." oninput="filterRdv()" />
+                </div>
+                <div class="table-wrapper">
+                    <div id="appointmentsContainer" class="loading">Chargement...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ONGLET CLIENTS -->
+        <div class="tab-panel" id="panelClients">
+            <div class="section-card">
+                <h3>👥 Base de données clients</h3>
+                <div class="search-bar">
+                    <input type="text" id="clientSearch" placeholder="🔍 Rechercher un client par email..." oninput="filterClients()" />
+                </div>
+                <div class="table-wrapper">
+                    <div id="clientsContainer" class="loading">Chargement...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem("user"));
-        const isAdmin = localStorage.getItem("isAdmin") === "true";
+        const adminToken = sessionStorage.getItem("adminToken");
 
-        if (!user || !isAdmin) {
+        if (!user || !adminToken) {
             window.location.href = "/login";
         }
 
+        document.getElementById("adminBadge").textContent = "🔑 " + (user ? user.email : "Admin");
+
+        const adminHeaders = {
+            "Content-Type": "application/json",
+            "x-admin-code": adminToken
+        };
+
+        let allAppointments = [];
+        let allClients = [];
+
+        // ===== ONGLETS =====
+        function switchTab(tab, btn) {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById(tab === "rdv" ? "panelRdv" : "panelClients").classList.add("active");
+        }
+
+        // ===== RENDEZ-VOUS =====
         async function loadAppointments() {
             try {
-                const response = await fetch("/all-appointments");
-                const appointments = await response.json();
+                const response = await fetch("/all-appointments", { headers: adminHeaders });
+                if (response.status === 401) { logout(); return; }
+                allAppointments = await response.json();
 
-                const container = document.getElementById("appointmentsContainer");
+                const total     = allAppointments.length;
+                const pending   = allAppointments.filter(a => a.status === "pending").length;
+                const confirmed = allAppointments.filter(a => a.status === "confirmed").length;
+                const cancelled = allAppointments.filter(a => a.status === "cancelled").length;
 
-                if (appointments.length === 0) {
-                    container.innerHTML = '<div class="no-data">Aucun rendez-vous pour le moment</div>';
-                    return;
-                }
+                document.getElementById("statTotal").textContent     = total;
+                document.getElementById("statPending").textContent   = pending;
+                document.getElementById("statConfirmed").textContent = confirmed;
+                document.getElementById("statCancelled").textContent = cancelled;
 
-                const total = appointments.length;
-                const pending = appointments.filter(a => a.status !== "confirmed").length;
-                const confirmed = appointments.filter(a => a.status === "confirmed").length;
-
-                document.getElementById("totalAppointments").textContent = total;
-                document.getElementById("pendingAppointments").textContent = pending;
-                document.getElementById("confirmedAppointments").textContent = confirmed;
-
-                let tableHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Client (ID)</th>
-                                <th>Service</th>
-                                <th>Date</th>
-                                <th>Heure</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                appointments.forEach(appointment => {
-                    const status = appointment.status || "pending";
-                    const badgeClass = status === "confirmed" ? "badge-confirmed" : 
-                                      status === "cancelled" ? "badge-cancelled" : "badge-pending";
-                    const statusText = status === "confirmed" ? "Confirmé" : 
-                                      status === "cancelled" ? "Annulé" : "En attente";
-
-                    tableHTML += `
-                        <tr>
-                            <td>#${appointment.id}</td>
-                            <td>Client ${appointment.user_id}</td>
-                            <td>${appointment.service}</td>
-                            <td>${appointment.date}</td>
-                            <td>${appointment.time}</td>
-                            <td><span class="badge ${badgeClass}">${statusText}</span></td>
-                            <td>
-                                ${status !== "confirmed" ? `<button class="action-btn btn-confirm" onclick="confirmAppointment(${appointment.id})">✓ Valider</button>` : ''}
-                                ${status !== "cancelled" ? `<button class="action-btn btn-cancel" onclick="cancelAppointment(${appointment.id})">✕ Annuler</button>` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                tableHTML += `
-                        </tbody>
-                    </table>
-                `;
-
-                container.innerHTML = tableHTML;
-
+                renderAppointments(allAppointments);
             } catch (error) {
-                document.getElementById("appointmentsContainer").innerHTML = 
+                document.getElementById("appointmentsContainer").innerHTML =
                     '<div class="no-data">❌ Erreur lors du chargement des rendez-vous</div>';
                 console.error("Erreur:", error);
             }
         }
 
-        async function confirmAppointment(appointmentId) {
-            try {
-                const response = await fetch(`/appointment/${appointmentId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ status: "confirmed" })
-                });
+        function renderAppointments(data) {
+            const container = document.getElementById("appointmentsContainer");
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data">Aucun rendez-vous pour le moment</div>';
+                return;
+            }
 
+            const table = document.createElement("table");
+            const thead = document.createElement("thead");
+            thead.innerHTML = `<tr>
+                <th>ID</th><th>Client</th><th>Service</th><th>Date</th><th>Heure</th><th>Statut</th><th>Actions</th>
+            </tr>`;
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            data.forEach(appt => {
+                const status      = appt.status || "pending";
+                const badgeClass  = status === "confirmed" ? "badge-confirmed" : status === "cancelled" ? "badge-cancelled" : "badge-pending";
+                const statusText  = status === "confirmed" ? "Confirmé" : status === "cancelled" ? "Annulé" : "En attente";
+                const clientLabel = appt.client_email || ("Client #" + appt.user_id);
+
+                const tr = document.createElement("tr");
+
+                const tdId = document.createElement("td");
+                tdId.textContent = "#" + appt.id;
+
+                const tdClient = document.createElement("td");
+                tdClient.className = "email-cell";
+                tdClient.textContent = clientLabel;
+
+                const tdService = document.createElement("td");
+                tdService.textContent = appt.service;
+
+                const tdDate = document.createElement("td");
+                tdDate.textContent = appt.date;
+
+                const tdTime = document.createElement("td");
+                tdTime.textContent = appt.time;
+
+                const tdStatus = document.createElement("td");
+                const badge = document.createElement("span");
+                badge.className = "badge " + badgeClass;
+                badge.textContent = statusText;
+                tdStatus.appendChild(badge);
+
+                const tdActions = document.createElement("td");
+                if (status !== "confirmed") {
+                    const btnOk = document.createElement("button");
+                    btnOk.className = "action-btn btn-confirm";
+                    btnOk.textContent = "✓ Valider";
+                    btnOk.onclick = () => updateAppointment(appt.id, "confirmed");
+                    tdActions.appendChild(btnOk);
+                }
+                if (status !== "cancelled") {
+                    const btnCancel = document.createElement("button");
+                    btnCancel.className = "action-btn btn-cancel";
+                    btnCancel.textContent = "✕ Annuler";
+                    btnCancel.onclick = () => updateAppointment(appt.id, "cancelled");
+                    tdActions.appendChild(btnCancel);
+                }
+
+                tr.append(tdId, tdClient, tdService, tdDate, tdTime, tdStatus, tdActions);
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            container.textContent = "";
+            container.appendChild(table);
+        }
+
+        function filterRdv() {
+            const q = document.getElementById("rdvSearch").value.toLowerCase();
+            if (!q) { renderAppointments(allAppointments); return; }
+            renderAppointments(allAppointments.filter(a =>
+                (a.client_email || "").toLowerCase().includes(q) ||
+                (a.service || "").toLowerCase().includes(q) ||
+                (a.date || "").includes(q) ||
+                String(a.id).includes(q)
+            ));
+        }
+
+        async function updateAppointment(id, status) {
+            const label = status === "confirmed" ? "confirmer" : "annuler";
+            if (!confirm("Voulez-vous " + label + " ce rendez-vous ?")) return;
+            try {
+                const response = await fetch("/appointment/" + id, {
+                    method: "PUT",
+                    headers: adminHeaders,
+                    body: JSON.stringify({ status })
+                });
                 if (response.ok) {
-                    alert("✅ Rendez-vous confirmé !");
-                    loadAppointments();
+                    await loadAppointments();
+                    await loadClients();
                 } else {
-                    alert("❌ Erreur lors de la confirmation");
+                    alert("❌ Erreur lors de la mise à jour");
                 }
             } catch (error) {
                 alert("❌ Erreur de connexion");
@@ -360,38 +442,118 @@
             }
         }
 
-        async function cancelAppointment(appointmentId) {
-            if (confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
-                try {
-                    const response = await fetch(`/appointment/${appointmentId}`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ status: "cancelled" })
-                    });
+        // ===== CLIENTS =====
+        async function loadClients() {
+            try {
+                const response = await fetch("/admin/clients", { headers: adminHeaders });
+                if (response.status === 401) { logout(); return; }
+                allClients = await response.json();
 
-                    if (response.ok) {
-                        alert("✅ Rendez-vous annulé !");
-                        loadAppointments();
-                    } else {
-                        alert("❌ Erreur lors de l'annulation");
-                    }
-                } catch (error) {
-                    alert("❌ Erreur de connexion");
-                    console.error("Erreur:", error);
-                }
+                document.getElementById("statClients").textContent = allClients.length;
+                renderClients(allClients);
+            } catch (error) {
+                document.getElementById("clientsContainer").innerHTML =
+                    '<div class="no-data">❌ Erreur lors du chargement des clients</div>';
+                console.error("Erreur:", error);
             }
+        }
+
+        function renderClients(data) {
+            const container = document.getElementById("clientsContainer");
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data">Aucun client inscrit pour le moment</div>';
+                return;
+            }
+
+            const table = document.createElement("table");
+            const thead = document.createElement("thead");
+            thead.innerHTML = `<tr>
+                <th>ID</th><th>Email</th><th>RDV total</th><th>Confirmés</th><th>En attente</th><th>Annulés</th><th>Voir RDV</th>
+            </tr>`;
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            data.forEach(client => {
+                const tr = document.createElement("tr");
+
+                const tdId = document.createElement("td");
+                tdId.textContent = "#" + client.id;
+
+                const tdEmail = document.createElement("td");
+                tdEmail.className = "email-cell";
+                tdEmail.textContent = client.email;
+
+                const tdTotal = document.createElement("td");
+                tdTotal.className = "rdv-count";
+                tdTotal.textContent = client.total_rdv || 0;
+
+                const tdConfirmed = document.createElement("td");
+                const badgeOk = document.createElement("span");
+                badgeOk.className = "badge badge-confirmed";
+                badgeOk.textContent = client.rdv_confirmes || 0;
+                tdConfirmed.appendChild(badgeOk);
+
+                const tdPending = document.createElement("td");
+                const badgePend = document.createElement("span");
+                badgePend.className = "badge badge-pending";
+                badgePend.textContent = client.rdv_en_attente || 0;
+                tdPending.appendChild(badgePend);
+
+                const tdCancelled = document.createElement("td");
+                const badgeCanc = document.createElement("span");
+                badgeCanc.className = "badge badge-cancelled";
+                badgeCanc.textContent = client.rdv_annules || 0;
+                tdCancelled.appendChild(badgeCanc);
+
+                const tdAction = document.createElement("td");
+                if (client.total_rdv > 0) {
+                    const btn = document.createElement("button");
+                    btn.className = "action-btn btn-confirm";
+                    btn.textContent = "🔍 Voir";
+                    btn.onclick = () => showClientRdv(client.id, client.email);
+                    tdAction.appendChild(btn);
+                } else {
+                    tdAction.textContent = "—";
+                    tdAction.style.color = "#ccc";
+                }
+
+                tr.append(tdId, tdEmail, tdTotal, tdConfirmed, tdPending, tdCancelled, tdAction);
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            container.textContent = "";
+            container.appendChild(table);
+        }
+
+        function filterClients() {
+            const q = document.getElementById("clientSearch").value.toLowerCase();
+            if (!q) { renderClients(allClients); return; }
+            renderClients(allClients.filter(c => c.email.toLowerCase().includes(q)));
+        }
+
+        function showClientRdv(userId, email) {
+            const clientRdv = allAppointments.filter(a => a.user_id === userId);
+            // Basculer sur l'onglet RDV et filtrer par email
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".tab-btn")[0].classList.add("active");
+            document.getElementById("panelRdv").classList.add("active");
+            document.getElementById("rdvSearch").value = email;
+            filterRdv();
         }
 
         function logout() {
             localStorage.removeItem("user");
             localStorage.removeItem("isAdmin");
+            sessionStorage.removeItem("adminToken");
             window.location.href = "/login";
         }
 
+        // Chargement initial
         loadAppointments();
-        setInterval(loadAppointments, 10000);
+        loadClients();
+        setInterval(() => { loadAppointments(); loadClients(); }, 30000);
     </script>
 </body>
 </html>

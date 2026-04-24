@@ -3,6 +3,7 @@ const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 app.use(cors());
@@ -36,6 +37,18 @@ CREATE TABLE IF NOT EXISTS appointments (
 
 // Horaires disponibles
 const availableHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
+
+// Code administrateur
+const ADMIN_CODE = process.env.ADMIN_CODE || "clinikauto2025";
+
+// Limiteur de requêtes pour les routes admin (30 req/minute par IP)
+const adminLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Trop de requêtes, réessayez dans une minute." }
+});
 
 // Route test - REDIRECTION VERS LOGIN
 app.get("/", (req, res) => {
@@ -131,10 +144,43 @@ app.get("/appointments/:user_id", (req, res) => {
     );
 });
 
-// Route pour voir TOUS les rendez-vous (admin)
-app.get("/all-appointments", (req, res) => {
+// Middleware de vérification du code admin (header x-admin-code)
+function requireAdmin(req, res, next) {
+    const code = req.headers["x-admin-code"];
+    if (!code || code !== ADMIN_CODE) {
+        return res.status(401).json({ error: "Accès non autorisé" });
+    }
+    next();
+}
+
+// Route pour voir TOUS les rendez-vous (admin) — avec email client via JOIN
+app.get("/all-appointments", adminLimiter, requireAdmin, (req, res) => {
     db.all(
-        "SELECT * FROM appointments ORDER BY date DESC",
+        `SELECT appointments.*, users.email AS client_email
+         FROM appointments
+         LEFT JOIN users ON appointments.user_id = users.id
+         ORDER BY appointments.date DESC`,
+        (err, rows) => {
+            if (err) {
+                return res.status(400).json({ error: "Erreur" });
+            }
+            res.json(rows);
+        }
+    );
+});
+
+// Route pour voir tous les clients (admin) — sans mot de passe
+app.get("/admin/clients", adminLimiter, requireAdmin, (req, res) => {
+    db.all(
+        `SELECT users.id, users.email,
+                COUNT(appointments.id) AS total_rdv,
+                SUM(CASE WHEN appointments.status = 'confirmed' THEN 1 ELSE 0 END) AS rdv_confirmes,
+                SUM(CASE WHEN appointments.status = 'pending' THEN 1 ELSE 0 END) AS rdv_en_attente,
+                SUM(CASE WHEN appointments.status = 'cancelled' THEN 1 ELSE 0 END) AS rdv_annules
+         FROM users
+         LEFT JOIN appointments ON users.id = appointments.user_id
+         GROUP BY users.id
+         ORDER BY users.id ASC`,
         (err, rows) => {
             if (err) {
                 return res.status(400).json({ error: "Erreur" });
@@ -232,10 +278,16 @@ app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/register.html"));
 });
 
-// Route admin-login — vérification du code administrateur
-const ADMIN_CODE = process.env.ADMIN_CODE || "clinikauto2025";
+// Route admin-login — vérification du code administrateur (5 tentatives/minute max)
+const loginLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Trop de tentatives, réessayez dans une minute." }
+});
 
-app.post("/admin-login", (req, res) => {
+app.post("/admin-login", loginLimiter, (req, res) => {
     const { code } = req.body;
     if (code === ADMIN_CODE) {
         res.json({ success: true });

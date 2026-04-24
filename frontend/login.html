@@ -218,9 +218,11 @@
                             });
                             if (adminRes.ok) {
                                 localStorage.setItem("isAdmin", "true");
+                                sessionStorage.setItem("adminToken", adminCodeInput.value.trim());
                                 setTimeout(() => { window.location.href = "/admin"; }, 1500);
                             } else {
                                 localStorage.removeItem("isAdmin");
+                                sessionStorage.removeItem("adminToken");
                                 setTimeout(() => { window.location.href = "/dashboard"; }, 1500);
                             }
                         } catch {
