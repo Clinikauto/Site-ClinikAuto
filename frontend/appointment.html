@@ -295,7 +295,7 @@
 <body>
     <div class="navbar">
         <h1>🚗 Clinik Auto</h1>
-        <a href="http://localhost:3000/dashboard" class="back-btn">← Retour</a>
+        <a href="/dashboard" class="back-btn">← Retour</a>
     </div>
 
     <div class="container">
@@ -348,7 +348,7 @@
         const user = JSON.parse(localStorage.getItem("user"));
 
         if (!user) {
-            window.location.href = "http://localhost:3000/login";
+            window.location.href = "/login";
         }
 
         let currentDate = new Date();
@@ -446,7 +446,7 @@
 
         async function loadAvailableTimes(date) {
             try {
-                const response = await fetch(`http://localhost:3000/available-times/${date}`);
+                const response = await fetch(`/available-times/${date}`);
                 const data = await response.json();
 
                 const timesContainer = document.getElementById("timesContainer");
@@ -519,7 +519,7 @@
             }
 
             try {
-                const response = await fetch("http://localhost:3000/appointment", {
+                const response = await fetch("/appointment", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -540,7 +540,7 @@
                     document.getElementById("appointmentForm").reset();
                     
                     setTimeout(() => {
-                        window.location.href = "http://localhost:3000/dashboard";
+                        window.location.href = "/dashboard";
                     }, 2000);
                 } else {
                     messageDiv.textContent = "❌ " + data.error;

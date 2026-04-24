@@ -152,20 +152,48 @@
         </form>
         <div class="message" id="message"></div>
         <div class="signup-link">
-            Pas encore inscrit ? <a href="http://localhost:3000/register">S'inscrire ici</a>
+            Pas encore inscrit ? <a href="/register">S'inscrire ici</a>
         </div>
     </div>
 
     <script>
+        // Détecter ?admin=1 dans l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("admin") === "1") {
+            const adminGroup = document.createElement("div");
+            adminGroup.className = "form-group";
+            adminGroup.id = "adminCodeGroup";
+
+            const label = document.createElement("label");
+            label.setAttribute("for", "adminCode");
+            label.textContent = "Code administrateur :";
+
+            const input = document.createElement("input");
+            input.type = "password";
+            input.id = "adminCode";
+            input.name = "adminCode";
+            input.placeholder = "Code admin (optionnel)";
+
+            adminGroup.appendChild(label);
+            adminGroup.appendChild(input);
+            const submitBtn = document.querySelector("#loginForm button[type=submit]");
+            if (submitBtn) {
+                document.getElementById("loginForm").insertBefore(adminGroup, submitBtn);
+            } else {
+                document.getElementById("loginForm").appendChild(adminGroup);
+            }
+        }
+
         document.getElementById("loginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const messageDiv = document.getElementById("message");
+            const adminCodeInput = document.getElementById("adminCode");
 
             try {
-                const response = await fetch("http://localhost:3000/login", {
+                const response = await fetch("/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -178,12 +206,31 @@
                 if (response.ok) {
                     messageDiv.textContent = "✅ Connexion réussie ! Bienvenue " + data.user.email;
                     messageDiv.className = "message success show";
-                    
+
                     localStorage.setItem("user", JSON.stringify(data.user));
-                    
-                    setTimeout(() => {
-                        window.location.href = "http://localhost:3000/dashboard";
-                    }, 2000);
+
+                    if (adminCodeInput && adminCodeInput.value.trim() !== "") {
+                        try {
+                            const adminRes = await fetch("/admin-login", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ code: adminCodeInput.value.trim() })
+                            });
+                            if (adminRes.ok) {
+                                localStorage.setItem("isAdmin", "true");
+                                setTimeout(() => { window.location.href = "/admin"; }, 1500);
+                            } else {
+                                localStorage.removeItem("isAdmin");
+                                setTimeout(() => { window.location.href = "/dashboard"; }, 1500);
+                            }
+                        } catch {
+                            setTimeout(() => { window.location.href = "/dashboard"; }, 1500);
+                        }
+                    } else {
+                        setTimeout(() => {
+                            window.location.href = "/dashboard";
+                        }, 1500);
+                    }
                 } else {
                     messageDiv.textContent = "❌ " + data.error;
                     messageDiv.className = "message error show";

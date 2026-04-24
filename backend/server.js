@@ -211,7 +211,7 @@ app.get("/appointments-by-date/:date", (req, res) => {
 // Servir les fichiers frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Routes pour les pages HTML
+// Route pour les pages HTML
 app.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/login.html"));
 });
@@ -230,6 +230,18 @@ app.get("/appointment", (req, res) => {
 
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/register.html"));
+});
+
+// Route admin-login — vérification du code administrateur
+const ADMIN_CODE = process.env.ADMIN_CODE || "clinikauto2025";
+
+app.post("/admin-login", (req, res) => {
+    const { code } = req.body;
+    if (code === ADMIN_CODE) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ error: "Code administrateur invalide" });
+    }
 });
 
 // Lancement serveur

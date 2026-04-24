@@ -151,7 +151,7 @@
         <div class="message" id="message"></div>
         
         <div class="links">
-            <p>Déjà inscrit ? <a href="http://localhost:3000/login">Se connecter</a></p>
+            <p>Déjà inscrit ? <a href="/login">Se connecter</a></p>
         </div>
     </div>
 
@@ -179,7 +179,7 @@
             }
 
             try {
-                const response = await fetch("http://localhost:3000/register", {
+                const response = await fetch("/register", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -194,7 +194,7 @@
                     messageDiv.className = "message success show";
                     
                     setTimeout(() => {
-                        window.location.href = "http://localhost:3000/login";
+                        window.location.href = "/login";
                     }, 2000);
                 } else {
                     messageDiv.textContent = "❌ " + data.error;

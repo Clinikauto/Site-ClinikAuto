@@ -160,23 +160,28 @@
             <div class="service-card">
                 <h3>🔧 Réparation</h3>
                 <p>Entretien et réparation de votre véhicule</p>
-                <a href="http://localhost:3000/appointment" class="btn">Prendre RDV</a>
+                <a href="/appointment" class="btn">Prendre RDV</a>
             </div>
             <div class="service-card">
                 <h3>🧼 Lavage</h3>
                 <p>Nettoyage professionnel intérieur/extérieur</p>
-                <a href="http://localhost:3000/appointment" class="btn">Prendre RDV</a>
+                <a href="/appointment" class="btn">Prendre RDV</a>
             </div>
             <div class="service-card">
                 <h3>🛞 Pneus</h3>
                 <p>Vente et changement de pneus</p>
-                <a href="http://localhost:3000/appointment" class="btn">Prendre RDV</a>
+                <a href="/appointment" class="btn">Prendre RDV</a>
             </div>
             <div class="service-card">
                 <h3>⚡ Électricité</h3>
                 <p>Diagnostic et réparation électrique</p>
-                <a href="http://localhost:3000/appointment" class="btn">Prendre RDV</a>
+                <a href="/appointment" class="btn">Prendre RDV</a>
             </div>
+        </div>
+
+        <div class="appointments-history" style="margin-top: 30px;">
+          <h3 style="margin-bottom: 20px; color: #333;">📋 Mes rendez-vous</h3>
+          <div id="appointmentsList">Chargement...</div>
         </div>
     </div>
 
@@ -184,15 +189,94 @@
         const user = JSON.parse(localStorage.getItem("user"));
 
         if (!user) {
-            window.location.href = "http://localhost:3000/login";
+            window.location.href = "/login";
         }
 
         document.getElementById("userEmail").textContent = user.email;
 
         function logout() {
             localStorage.removeItem("user");
-            window.location.href = "http://localhost:3000/login";
+            window.location.href = "/login";
         }
+
+        async function loadMyAppointments() {
+            try {
+                if (!user || !user.id) {
+                    document.getElementById("appointmentsList").textContent = "";
+                    return;
+                }
+                const response = await fetch("/appointments/" + encodeURIComponent(user.id));
+                const appointments = await response.json();
+                const container = document.getElementById("appointmentsList");
+
+                if (!appointments || appointments.length === 0) {
+                    container.textContent = "";
+                    const p = document.createElement("p");
+                    p.style.cssText = "color:#999;text-align:center;padding:20px;";
+                    p.textContent = "Aucun rendez-vous pour le moment";
+                    container.appendChild(p);
+                    return;
+                }
+
+                const table = document.createElement("table");
+                table.style.cssText = "width:100%;border-collapse:collapse;";
+
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
+                headerRow.style.cssText = "background:#667eea;color:white;";
+                ["Service", "Date", "Heure", "Statut"].forEach(text => {
+                    const th = document.createElement("th");
+                    th.style.cssText = "padding:10px;text-align:left;";
+                    th.textContent = text;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                const tbody = document.createElement("tbody");
+                appointments.forEach(appt => {
+                    const status = appt.status || "pending";
+                    let badgeStyle = "background:#ffc107;color:#333;";
+                    let statusText = "En attente";
+                    if (status === "confirmed") { badgeStyle = "background:#28a745;color:white;"; statusText = "Confirmé"; }
+                    if (status === "cancelled") { badgeStyle = "background:#dc3545;color:white;"; statusText = "Annulé"; }
+
+                    const row = document.createElement("tr");
+                    row.style.cssText = "border-bottom:1px solid #eee;";
+
+                    [appt.service, appt.date, appt.time].forEach(val => {
+                        const td = document.createElement("td");
+                        td.style.cssText = "padding:10px;";
+                        td.textContent = val || "";
+                        row.appendChild(td);
+                    });
+
+                    const tdStatus = document.createElement("td");
+                    tdStatus.style.cssText = "padding:10px;";
+                    const badge = document.createElement("span");
+                    badge.style.cssText = "display:inline-block;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:bold;" + badgeStyle;
+                    badge.textContent = statusText;
+                    tdStatus.appendChild(badge);
+                    row.appendChild(tdStatus);
+
+                    tbody.appendChild(row);
+                });
+
+                table.appendChild(tbody);
+                container.textContent = "";
+                container.appendChild(table);
+            } catch (error) {
+                const container = document.getElementById("appointmentsList");
+                container.textContent = "";
+                const p = document.createElement("p");
+                p.style.cssText = "color:#dc3545;";
+                p.textContent = "Erreur lors du chargement des rendez-vous";
+                container.appendChild(p);
+                console.error("Erreur:", error);
+            }
+        }
+
+        loadMyAppointments();
     </script>
 </body>
 </html>

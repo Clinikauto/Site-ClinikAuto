@@ -259,14 +259,15 @@
 
     <script>
         const user = JSON.parse(localStorage.getItem("user"));
+        const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-        if (!user) {
-            window.location.href = "http://localhost:3000/login";
+        if (!user || !isAdmin) {
+            window.location.href = "/login";
         }
 
         async function loadAppointments() {
             try {
-                const response = await fetch("http://localhost:3000/all-appointments");
+                const response = await fetch("/all-appointments");
                 const appointments = await response.json();
 
                 const container = document.getElementById("appointmentsContainer");
@@ -339,7 +340,7 @@
 
         async function confirmAppointment(appointmentId) {
             try {
-                const response = await fetch(`http://localhost:3000/appointment/${appointmentId}`, {
+                const response = await fetch(`/appointment/${appointmentId}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json"
@@ -362,7 +363,7 @@
         async function cancelAppointment(appointmentId) {
             if (confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
                 try {
-                    const response = await fetch(`http://localhost:3000/appointment/${appointmentId}`, {
+                    const response = await fetch(`/appointment/${appointmentId}`, {
                         method: "PUT",
                         headers: {
                             "Content-Type": "application/json"
@@ -385,7 +386,8 @@
 
         function logout() {
             localStorage.removeItem("user");
-            window.location.href = "http://localhost:3000/login";
+            localStorage.removeItem("isAdmin");
+            window.location.href = "/login";
         }
 
         loadAppointments();
