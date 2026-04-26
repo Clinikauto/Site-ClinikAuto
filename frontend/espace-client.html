@@ -27,7 +27,7 @@
           <li><a href="index.html#apropos" class="nav__link">À propos</a></li>
           <li><a href="index.html#services" class="nav__link">Services</a></li>
           <li><a href="index.html#tarifs" class="nav__link">Tarifs</a></li>
-          <li><a href="occasions.html" class="nav__link">Occasions</a></li>
+          <li><a href="/occasions" class="nav__link">Occasions</a></li>
           <li><a href="index.html#contact" class="nav__link">Contact</a></li>
           <li><a href="espace-client.html" class="nav__link nav__link--cta nav__link--active">Mon espace</a></li>
         </ul>
@@ -66,27 +66,27 @@
           <label for="loginEmail">Email</label>
           <input type="email" id="loginEmail" placeholder="votre@email.fr" />
         </div>
-        <div class="ec-field" style="margin-top:12px">
+        <div class="ec-field mt-12">
           <label for="loginPwd">Mot de passe</label>
           <div class="pwd-input">
             <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter') seConnecter()" />
-            <button type="button" onclick="togglePwd('loginPwd', this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+            <button type="button" onclick="togglePwd('loginPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
           </div>
         </div>
-        <div class="ec-error" id="loginError" style="display:none">
+        <div class="ec-error is-hidden" id="loginError">
           <i class="fa-solid fa-circle-exclamation"></i>
           <span id="loginErrorMsg">Email ou mot de passe incorrect.</span>
         </div>
-        <button class="btn btn--primary btn--full" onclick="seConnecter()" style="margin-top:20px">
+        <button class="btn btn--primary btn--full mt-20" onclick="seConnecter()">
           <i class="fa-solid fa-right-to-bracket"></i> Se connecter
         </button>
-        <p style="text-align:center;margin-top:12px;font-size:0.85rem;color:var(--grey)">
-          <a href="#" onclick="motDePasseOublie()" style="color:var(--red)">Mot de passe oublié ?</a>
+        <p class="ec-muted-line">
+          <a href="#" onclick="motDePasseOublie()" class="ec-link-red">Mot de passe oublié ?</a>
         </p>
       </div>
 
       <!-- INSCRIPTION -->
-      <div id="panelRegister" style="display:none">
+      <div id="panelRegister" class="is-hidden">
         <p class="ec-auth__subtitle">Créez votre compte en quelques secondes.</p>
         <div class="ec-form-grid">
           <div class="ec-field">
@@ -110,17 +110,17 @@
             <input type="text" id="rAdresse" placeholder="Numéro, rue, code postal, ville" />
           </div>
           <div class="ec-field">
-            <label for="rPwd">Mot de passe * <small style="color:var(--grey);font-weight:400">(6 caractères min)</small></label>
+            <label for="rPwd">Mot de passe * <small class="ec-small-note">(6 caractères min)</small></label>
             <div class="pwd-input">
               <input type="password" id="rPwd" placeholder="••••••••" />
-              <button type="button" onclick="togglePwd('rPwd', this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+              <button type="button" onclick="togglePwd('rPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
             </div>
           </div>
           <div class="ec-field">
             <label for="rPwd2">Confirmer le mot de passe *</label>
             <div class="pwd-input">
               <input type="password" id="rPwd2" placeholder="••••••••" />
-              <button type="button" onclick="togglePwd('rPwd2', this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+              <button type="button" onclick="togglePwd('rPwd2', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
             </div>
           </div>
 
@@ -129,7 +129,7 @@
           </div>
           <div class="ec-field">
             <label for="rImmat">Immatriculation *</label>
-            <input type="text" id="rImmat" placeholder="AB-123-CD" style="text-transform:uppercase" />
+            <input type="text" id="rImmat" class="text-uppercase" placeholder="AB-123-CD" />
           </div>
           <div class="ec-field">
             <label for="rMarque">Marque *</label>
@@ -157,11 +157,11 @@
           </div>
         </div>
 
-        <div class="ec-error" id="registerError" style="display:none">
+        <div class="ec-error is-hidden" id="registerError">
           <i class="fa-solid fa-circle-exclamation"></i> <span id="registerErrorMsg"></span>
         </div>
 
-        <button class="btn btn--primary btn--full" onclick="sInscrire()" style="margin-top:20px">
+        <button class="btn btn--primary btn--full mt-20" onclick="sInscrire()">
           <i class="fa-solid fa-user-plus"></i> Créer mon compte
         </button>
         <p class="ec-notice">* Champs obligatoires</p>
@@ -170,7 +170,7 @@
   </div>
 
   <!-- ===== TABLEAU DE BORD ===== -->
-  <div class="ec-screen" id="screenDashboard" style="display:none">
+  <div class="ec-screen is-hidden" id="screenDashboard">
 
     <!-- HEADER DASHBOARD -->
     <div class="ec-dash-header">
@@ -180,7 +180,7 @@
             <h1>Bonjour, <span id="dashPrenom"></span> 👋</h1>
             <p>Bienvenue dans votre espace client ClinikAuto</p>
           </div>
-          <button class="btn btn--outline" style="color:var(--white);border-color:rgba(255,255,255,0.4)" onclick="seDeconnecter()">
+          <button class="btn btn--outline btn--outline-white" onclick="seDeconnecter()">
             <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
           </button>
         </div>
@@ -204,7 +204,7 @@
       <section class="ec-section">
         <div class="ec-section__header">
           <h2><i class="fa-solid fa-user"></i> Mes informations</h2>
-          <button class="btn btn--outline btn--sm" style="color:var(--dark);border-color:#ccc" id="btnEditInfos" onclick="toggleEditInfos()">
+          <button class="btn btn--outline btn--sm btn--outline-gray" id="btnEditInfos" onclick="toggleEditInfos()">
             <i class="fa-solid fa-pen"></i> Modifier
           </button>
         </div>
@@ -213,7 +213,7 @@
         <div class="ec-infos-display" id="infosDisplay"></div>
 
         <!-- Formulaire modification -->
-        <div class="ec-infos-form" id="infosForm" style="display:none">
+        <div class="ec-infos-form is-hidden" id="infosForm">
           <div class="ec-form-grid">
             <div class="ec-field">
               <label for="eNom">Nom *</label>
@@ -236,17 +236,17 @@
               <input type="text" id="eAdresse" />
             </div>
             <div class="ec-field">
-              <label for="eNewPwd">Nouveau mot de passe <small style="color:var(--grey);font-weight:400">(laisser vide = inchangé)</small></label>
+              <label for="eNewPwd">Nouveau mot de passe <small class="ec-small-note">(laisser vide = inchangé)</small></label>
               <div class="pwd-input">
                 <input type="password" id="eNewPwd" placeholder="••••••••" />
-                <button type="button" onclick="togglePwd('eNewPwd', this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+                <button type="button" onclick="togglePwd('eNewPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
               </div>
             </div>
             <div class="ec-field">
               <label for="eNewPwd2">Confirmer le nouveau mot de passe</label>
               <div class="pwd-input">
                 <input type="password" id="eNewPwd2" placeholder="••••••••" />
-                <button type="button" onclick="togglePwd('eNewPwd2', this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+                <button type="button" onclick="togglePwd('eNewPwd2', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
               </div>
             </div>
           </div>
@@ -254,7 +254,7 @@
             <button class="btn btn--primary btn--sm" onclick="sauvegarderInfos()">
               <i class="fa-solid fa-floppy-disk"></i> Enregistrer
             </button>
-            <button class="btn btn--sm" style="background:var(--light);color:var(--dark)" onclick="toggleEditInfos()">
+            <button class="btn btn--sm btn--light-dark" onclick="toggleEditInfos()">
               Annuler
             </button>
           </div>
@@ -270,7 +270,7 @@
           </div>
           <div class="ec-cta-rapide__btns">
             <a href="tel:+33620185627" class="btn btn--primary"><i class="fa-solid fa-phone"></i> 06 20 18 56 27</a>
-            <a href="index.html#contact" class="btn btn--outline" style="color:var(--dark);border-color:#ccc"><i class="fa-solid fa-envelope"></i> Nous écrire</a>
+            <a href="index.html#contact" class="btn btn--outline btn--outline-gray"><i class="fa-solid fa-envelope"></i> Nous écrire</a>
           </div>
         </div>
       </section>
@@ -279,16 +279,16 @@
   </div>
 
   <!-- ===== MODAL AJOUT VÉHICULE ===== -->
-  <div class="ec-modal" id="modalVehicule" style="display:none">
+  <div class="ec-modal is-hidden" id="modalVehicule">
     <div class="ec-modal__overlay" onclick="fermerModalVehicule()"></div>
     <div class="ec-modal__box">
-      <button class="ec-modal__close" onclick="fermerModalVehicule()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="ec-modal__close" onclick="fermerModalVehicule()" title="Fermer" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
       <h3 id="modalVehTitre"><i class="fa-solid fa-car"></i> Ajouter un véhicule</h3>
       <input type="hidden" id="modalVehId" />
       <div class="ec-form-grid">
         <div class="ec-field">
           <label for="vImmat">Immatriculation *</label>
-          <input type="text" id="vImmat" placeholder="AB-123-CD" style="text-transform:uppercase" />
+          <input type="text" id="vImmat" class="text-uppercase" placeholder="AB-123-CD" />
         </div>
         <div class="ec-field">
           <label for="vMarque">Marque *</label>
@@ -315,11 +315,11 @@
           <input type="number" id="vKm" placeholder="85000" />
         </div>
       </div>
-      <div class="ec-form-actions" style="margin-top:20px">
+      <div class="ec-form-actions mt-20">
         <button class="btn btn--primary" onclick="sauvegarderVehicule()">
           <i class="fa-solid fa-floppy-disk"></i> Enregistrer
         </button>
-        <button class="btn" style="background:var(--light);color:var(--dark)" onclick="fermerModalVehicule()">Annuler</button>
+        <button class="btn btn--light-dark" onclick="fermerModalVehicule()">Annuler</button>
       </div>
     </div>
   </div>
@@ -327,6 +327,7 @@
   <!-- Toast -->
   <div class="ec-toast" id="ecToast"></div>
 
+  <script src="js/analytics.js"></script>
   <script src="js/main.js"></script>
   <script src="js/espace-client.js"></script>
 </body>

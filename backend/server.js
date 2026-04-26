@@ -1,26 +1,110 @@
-const express = require("express");
+﻿const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+const ALLOWED_ORIGINS = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-// Base de données
-const db = new sqlite3.Database("./backend/database.db");
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Autorise les pages ouvertes en file:// (Origin: null) pour usage local.
+            if (!origin || origin === "null" || ALLOWED_ORIGINS.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("Origin not allowed by CORS"));
+        }
+    })
+);
+app.use(express.json({ limit: '30mb' }));
 
-// Création table utilisateurs
+// Base de donnees (chemin absolu basé sur __dirname)
+const dbPath = path.join(__dirname, 'database.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Erreur ouverture DB:', err);
+  } else {
+    console.log('Base ouverte:', dbPath);
+  }
+});
+
+// Activer les foreign keys
+db.run('PRAGMA foreign_keys = ON;');
+
+// Creation table utilisateurs
 db.run(`
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE,
-    password TEXT
+    password TEXT,
+    role TEXT DEFAULT 'client'
 )
 `);
 
-// Création table rendez-vous
+// Migration pour anciennes bases sans colonne role
+db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'client'", (err) => {
+    if (err && !String(err.message || "").includes("duplicate column name")) {
+        console.error("Erreur migration role:", err.message);
+    }
+});
+
+// Migration pour ajouter le prénom/nom admin
+db.run("ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''", (err) => {
+    if (err && !String(err.message || "").includes("duplicate column name")) {
+        console.error("Erreur migration name:", err.message);
+    }
+});
+
+// Table paramètres du site (clé/valeur)
+db.run(`
+CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+)
+`);
+
+// Fiches clients (admin: consultation/modification centralisée)
+db.serialize(() => {
+    db.run(`
+    CREATE TABLE IF NOT EXISTS client_profiles (
+        user_id INTEGER PRIMARY KEY,
+        nom TEXT DEFAULT '',
+        prenom TEXT DEFAULT '',
+        tel TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        adresse TEXT DEFAULT '',
+        vehicules TEXT DEFAULT '[]',
+        notes TEXT DEFAULT '',
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+    `);
+
+    // Initialiser les fiches pour les comptes existants (y compris anciens comptes déjà en base)
+    db.run(
+        `
+        INSERT INTO client_profiles (user_id, email)
+        SELECT u.id, u.email
+        FROM users u
+        WHERE u.role = 'client'
+          AND NOT EXISTS (SELECT 1 FROM client_profiles cp WHERE cp.user_id = u.id)
+        `,
+        (err) => {
+            if (err) {
+                console.error("Erreur initialisation client_profiles:", err.message);
+            }
+        }
+    );
+});
+
+// Creation table rendez-vous
 db.run(`
 CREATE TABLE IF NOT EXISTS appointments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,30 +118,276 @@ CREATE TABLE IF NOT EXISTS appointments (
 )
 `);
 
+db.run(`
+CREATE TABLE IF NOT EXISTS occasions (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    titre TEXT NOT NULL,
+    description TEXT NOT NULL,
+    prix TEXT DEFAULT '0',
+    statut TEXT DEFAULT 'disponible',
+    annee TEXT,
+    km TEXT,
+    carburant TEXT,
+    boite TEXT,
+    etat TEXT,
+    reference TEXT,
+    compatible TEXT,
+    photos TEXT,
+    image TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+`);
+
+db.run(`
+CREATE TABLE IF NOT EXISTS site_visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT,
+    page TEXT NOT NULL,
+    path TEXT NOT NULL,
+    visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+`);
+
+db.run(`
+CREATE TABLE IF NOT EXISTS site_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT,
+    name TEXT NOT NULL,
+    detail TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+`);
+
+// Normalise les doublons existants puis applique la contrainte d'unicité de créneau actif.
+db.serialize(() => {
+    db.run(
+        `
+        UPDATE appointments
+        SET status = 'cancelled'
+        WHERE status != 'cancelled'
+          AND id NOT IN (
+              SELECT MIN(id)
+              FROM appointments
+              WHERE status != 'cancelled'
+              GROUP BY date, time
+          )
+        `,
+        (cleanupErr) => {
+            if (cleanupErr) {
+                console.error("Erreur nettoyage doublons RDV:", cleanupErr.message);
+                return;
+            }
+
+            db.run(
+                `
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_appointments_slot_active
+                ON appointments(date, time)
+                WHERE status != 'cancelled'
+                `,
+                (indexErr) => {
+                    if (indexErr) {
+                        console.error("Erreur création index créneau unique:", indexErr.message);
+                        return;
+                    }
+                    console.log("Index de créneau unique actif prêt.");
+                }
+            );
+        }
+    );
+});
+
 // Horaires disponibles
 const availableHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
+const allowedStatuses = new Set(["pending", "confirmed", "cancelled"]);
+const allowedServices = new Set(["Réparation", "Lavage", "Pneus", "Électricité"]);
+
+function isValidEmail(email) {
+    return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidDate(date) {
+    return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date);
+}
+
+function safeJsonParse(value, fallback) {
+    try {
+        return value ? JSON.parse(value) : fallback;
+    } catch (_err) {
+        return fallback;
+    }
+}
+
+function splitDisplayName(fullName) {
+    const raw = String(fullName || "").trim().replace(/\s+/g, " ");
+    if (!raw) {
+        return { prenom: "", nom: "" };
+    }
+    const parts = raw.split(" ");
+    if (parts.length === 1) {
+        return { prenom: "", nom: parts[0] };
+    }
+    return {
+        prenom: parts.slice(0, -1).join(" "),
+        nom: parts[parts.length - 1]
+    };
+}
+
+function upsertClientProfile(userId, payload, callback) {
+    const nom = String(payload.nom || "").trim();
+    const prenom = String(payload.prenom || "").trim();
+    const tel = String(payload.tel || "").trim();
+    const email = String(payload.email || "").trim().toLowerCase();
+    const adresse = String(payload.adresse || "").trim();
+    const notes = String(payload.notes || "").trim();
+    const vehicules = JSON.stringify(Array.isArray(payload.vehicules) ? payload.vehicules : []);
+
+    db.run(
+        `
+        INSERT INTO client_profiles (user_id, nom, prenom, tel, email, adresse, vehicules, notes, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(user_id) DO UPDATE SET
+            nom = excluded.nom,
+            prenom = excluded.prenom,
+            tel = excluded.tel,
+            email = excluded.email,
+            adresse = excluded.adresse,
+            vehicules = excluded.vehicules,
+            notes = excluded.notes,
+            updated_at = CURRENT_TIMESTAMP
+        `,
+        [userId, nom, prenom, tel, email, adresse, vehicules, notes],
+        callback
+    );
+}
+
+function mapOccasionRow(row) {
+    return {
+        ...row,
+        photos: safeJsonParse(row.photos, []),
+        image: row.image || null
+    };
+}
+
+function signToken(user) {
+    return jwt.sign(
+        { id: user.id, email: user.email, role: user.role || "client", name: user.name || "" },
+        JWT_SECRET,
+        { expiresIn: "12h" }
+    );
+}
+
+function requireAuth(req, res, next) {
+    const authHeader = req.headers.authorization || "";
+    if (!authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Authentification requise" });
+    }
+
+    const token = authHeader.slice(7);
+    try {
+        req.user = jwt.verify(token, JWT_SECRET);
+        next();
+    } catch (_err) {
+        return res.status(401).json({ error: "Token invalide ou expiré" });
+    }
+}
+
+function requireAdmin(req, res, next) {
+    if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({ error: "Accès administrateur requis" });
+    }
+    next();
+}
+
+function ensureAdminFromEnv() {
+    const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || "";
+    const adminName = (process.env.ADMIN_NAME || "").trim();
+
+    if (!adminEmail || !adminPassword) {
+        console.warn("Bootstrap admin ignoré: définissez ADMIN_EMAIL et ADMIN_PASSWORD pour créer/mettre à jour un compte admin.");
+        return;
+    }
+    if (!isValidEmail(adminEmail) || adminPassword.length < 6) {
+        console.warn("Bootstrap admin ignoré: ADMIN_EMAIL ou ADMIN_PASSWORD invalide.");
+        return;
+    }
+
+    bcrypt.hash(adminPassword, 10)
+        .then((hash) => {
+            db.run(
+                `
+                INSERT INTO users (email, password, role, name)
+                VALUES (?, ?, 'admin', ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    password = excluded.password,
+                    role = 'admin',
+                    name = CASE WHEN excluded.name != '' THEN excluded.name ELSE name END
+                `,
+                [adminEmail, hash, adminName],
+                (err) => {
+                    if (err) {
+                        console.error("Erreur bootstrap admin:", err.message);
+                        return;
+                    }
+                    console.log("Compte admin prêt:", adminEmail, adminName ? `(${adminName})` : '');
+                }
+            );
+        })
+        .catch((err) => {
+            console.error("Erreur hash bootstrap admin:", err.message);
+        });
+}
+
+async function hashPassword(password) {
+    return bcrypt.hash(password, 10);
+}
 
 // Route test - REDIRECTION VERS LOGIN
 app.get("/", (req, res) => {
-    res.redirect("/login");
+    res.redirect("/index.html");
 });
 
 // Inscription - AVEC CRYPTAGE
 app.post("/register", async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
+    const safeName = typeof name === "string" ? name.trim() : "";
+
+    if (!isValidEmail(email)) {
+        return res.status(400).json({ error: "Email invalide" });
+    }
+    if (typeof password !== "string" || password.length < 6) {
+        return res.status(400).json({ error: "Mot de passe trop court (6 min)" });
+    }
 
     try {
-        // Crypter le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
 
         db.run(
-            "INSERT INTO users (email, password) VALUES (?, ?)",
-            [email, hashedPassword],
+            "INSERT INTO users (email, password, role, name) VALUES (?, ?, 'client', ?)",
+            [email.toLowerCase().trim(), hashedPassword, safeName],
             function (err) {
                 if (err) {
-                    return res.status(400).json({ error: "Utilisateur déjà existant" });
+                    return res.status(400).json({ error: "Utilisateur deja existant" });
                 }
-                res.json({ message: "Inscription réussie" });
+
+                const splitName = splitDisplayName(safeName);
+                upsertClientProfile(
+                    this.lastID,
+                    {
+                        nom: splitName.nom,
+                        prenom: splitName.prenom,
+                        email: email.toLowerCase().trim(),
+                        vehicules: []
+                    },
+                    (profileErr) => {
+                        if (profileErr) {
+                            console.error("Erreur création fiche client:", profileErr.message);
+                        }
+                        res.json({ message: "Inscription reussie" });
+                    }
+                );
             }
         );
     } catch (err) {
@@ -65,33 +395,86 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// Connexion - AVEC VÉRIFICATION CRYPTÉE
+// Vérifier l'existence d'un compte client (pour guider le parcours formulaire d'accueil)
+app.get("/client-account/exists", (req, res) => {
+    const email = String(req.query.email || "").trim().toLowerCase();
+    const nom = String(req.query.nom || "").trim().toLowerCase();
+
+    if (!email && !nom) {
+        return res.json({ exists: false });
+    }
+
+    const matchClauses = [];
+    const params = [];
+
+    if (email && isValidEmail(email)) {
+        matchClauses.push("LOWER(email) = ?");
+        params.push(email);
+    }
+
+    if (nom) {
+        matchClauses.push("LOWER(name) = ?");
+        params.push(nom);
+    }
+
+    if (matchClauses.length === 0) {
+        return res.json({ exists: false });
+    }
+
+    db.get(
+        `SELECT id FROM users WHERE role = 'client' AND (${matchClauses.join(" OR ")}) LIMIT 1`,
+        params,
+        (err, row) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur serveur" });
+            }
+            res.json({ exists: Boolean(row) });
+        }
+    );
+});
+
+// Connexion
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
+    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+
+    if (!isValidEmail(email) || typeof password !== "string") {
+        return res.status(400).json({ error: "Identifiants invalides" });
+    }
 
     try {
         db.get(
-            "SELECT * FROM users WHERE email = ?",
-            [email],
+            "SELECT id, email, password, role, name FROM users WHERE email = ?",
+            [normalizedEmail],
             async (err, row) => {
+                if (err) {
+                    return res.status(500).json({ error: "Erreur serveur" });
+                }
                 if (!row) {
                     return res.status(401).json({ error: "Identifiants invalides" });
                 }
 
-                // Comparer le mot de passe en clair avec le crypté
                 const passwordMatch = await bcrypt.compare(password, row.password);
 
                 if (!passwordMatch) {
                     return res.status(401).json({ error: "Identifiants invalides" });
                 }
 
-                // Renvoyer l'utilisateur SANS le mot de passe
+                // Verrouillage accès admin: seul l'email ADMIN_EMAIL peut ouvrir une session admin.
+                if (row.role === "admin" && adminEmail && normalizedEmail !== adminEmail) {
+                    return res.status(403).json({ error: "Accès administrateur non autorisé" });
+                }
+
                 const user = {
                     id: row.id,
-                    email: row.email
+                    email: row.email,
+                    role: row.role || "client",
+                    name: row.name || ""
                 };
+                const token = signToken(user);
 
-                res.json({ message: "Connexion OK", user });
+                res.json({ message: "Connexion OK", user, token });
             }
         );
     } catch (err) {
@@ -99,29 +482,86 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Route pour prendre un rendez-vous
-app.post("/appointment", (req, res) => {
-    const { user_id, service, date, time } = req.body;
+// Réinitialisation simple du mot de passe par email
+app.post("/forgot-password", async (req, res) => {
+    const { email, newPassword } = req.body || {};
+    const normalizedEmail = (email || "").toLowerCase().trim();
+    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+
+    if (!isValidEmail(email)) {
+        return res.status(400).json({ error: "Email invalide" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+        return res.status(400).json({ error: "Le nouveau mot de passe doit contenir au moins 8 caractères" });
+    }
+
+    // Le mot de passe admin doit rester piloté par les variables d'environnement.
+    if (adminEmail && normalizedEmail === adminEmail) {
+        return res.status(403).json({ error: "Réinitialisation admin désactivée depuis cette page" });
+    }
+
+    try {
+        const hashedPassword = await hashPassword(newPassword);
+
+        db.run(
+            "UPDATE users SET password = ? WHERE email = ?",
+            [hashedPassword, normalizedEmail],
+            function (err) {
+                if (err) {
+                    return res.status(500).json({ error: "Erreur serveur" });
+                }
+                if (!this.changes) {
+                    return res.status(404).json({ error: "Aucun compte trouvé pour cet email" });
+                }
+                res.json({ message: "Mot de passe réinitialisé" });
+            }
+        );
+    } catch (_err) {
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// Prendre un rendez-vous
+app.post("/appointment", requireAuth, (req, res) => {
+    const { service, date, time } = req.body;
+    const userId = req.user.id;
+
+    if (!allowedServices.has(service)) {
+        return res.status(400).json({ error: "Service invalide" });
+    }
+    if (!isValidDate(date) || !availableHours.includes(time)) {
+        return res.status(400).json({ error: "Date ou heure invalide" });
+    }
 
     db.run(
         "INSERT INTO appointments (user_id, service, date, time) VALUES (?, ?, ?, ?)",
-        [user_id, service, date, time],
+        [userId, service, date, time],
         function (err) {
             if (err) {
+                if (String(err.message || "").includes("UNIQUE constraint failed")) {
+                    return res.status(409).json({ error: "Ce créneau est déjà réservé" });
+                }
                 return res.status(400).json({ error: "Erreur lors de la prise de RDV" });
             }
-            res.json({ message: "Rendez-vous confirmé !", appointment_id: this.lastID });
+            res.json({ message: "Rendez-vous confirme !", appointment_id: this.lastID });
         }
     );
 });
 
-// Route pour voir ses rendez-vous
-app.get("/appointments/:user_id", (req, res) => {
-    const { user_id } = req.params;
+// Voir ses rendez-vous
+app.get("/appointments/:user_id", requireAuth, (req, res) => {
+    const userId = Number(req.params.user_id);
+
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+    if (req.user.role !== "admin" && req.user.id !== userId) {
+        return res.status(403).json({ error: "Accès refusé" });
+    }
 
     db.all(
         "SELECT * FROM appointments WHERE user_id = ? ORDER BY date DESC",
-        [user_id],
+        [userId],
         (err, rows) => {
             if (err) {
                 return res.status(400).json({ error: "Erreur" });
@@ -131,8 +571,8 @@ app.get("/appointments/:user_id", (req, res) => {
     );
 });
 
-// Route pour voir TOUS les rendez-vous (admin)
-app.get("/all-appointments", (req, res) => {
+// Voir tous les rendez-vous (admin)
+app.get("/all-appointments", requireAuth, requireAdmin, (req, res) => {
     db.all(
         "SELECT * FROM appointments ORDER BY date DESC",
         (err, rows) => {
@@ -144,30 +584,497 @@ app.get("/all-appointments", (req, res) => {
     );
 });
 
-// Route pour mettre à jour un rendez-vous (confirmer/annuler)
-app.put("/appointment/:id", (req, res) => {
+// Importer des rendez-vous en masse (admin)
+app.post("/admin/appointments/import", requireAuth, requireAdmin, (req, res) => {
+    const { appointments } = req.body;
+    if (!Array.isArray(appointments) || appointments.length === 0) {
+        return res.status(400).json({ error: "Aucun rendez-vous fourni" });
+    }
+
+    const MAX_IMPORT = 500;
+    const rows = appointments.slice(0, MAX_IMPORT);
+
+    // Collecter les emails uniques pour retrouver les user_id
+    const emails = [...new Set(rows.map((r) => (r.email || "").trim().toLowerCase()).filter(Boolean))];
+
+    const doInsert = (emailMap) => {
+        let remaining = rows.length;
+        let imported = 0;
+        const errors = [];
+
+        rows.forEach((row, idx) => {
+            const service = String(row.service || "").trim();
+            const date = String(row.date || "").trim();
+            const time = String(row.time || "").trim();
+            const status = ["pending", "confirmed", "cancelled"].includes(row.status) ? row.status : "pending";
+            const email = String(row.email || "").trim().toLowerCase();
+            const userId = emailMap[email] || null;
+
+            if (!service || !date || !time) {
+                errors.push({ ligne: idx + 1, raison: "Champs obligatoires manquants : service, date, heure" });
+                if (--remaining === 0) return res.json({ imported, errors });
+                return;
+            }
+
+            // Validation basique du format date (YYYY-MM-DD) et heure (HH:MM)
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+                errors.push({ ligne: idx + 1, raison: "Format date (YYYY-MM-DD) ou heure (HH:MM) invalide" });
+                if (--remaining === 0) return res.json({ imported, errors });
+                return;
+            }
+
+            db.run(
+                "INSERT OR IGNORE INTO appointments (user_id, service, date, time, status) VALUES (?, ?, ?, ?, ?)",
+                [userId, service, date, time, status],
+                function (err) {
+                    if (err) {
+                        errors.push({ ligne: idx + 1, raison: err.message });
+                    } else if (this.changes > 0) {
+                        imported++;
+                    }
+                    if (--remaining === 0) res.json({ imported, errors });
+                }
+            );
+        });
+    };
+
+    if (emails.length === 0) {
+        doInsert({});
+    } else {
+        const placeholders = emails.map(() => "?").join(",");
+        db.all(`SELECT id, email FROM users WHERE LOWER(email) IN (${placeholders})`, emails, (err, users) => {
+            const emailMap = {};
+            if (!err && users) users.forEach((u) => { emailMap[u.email.toLowerCase()] = u.id; });
+            doInsert(emailMap);
+        });
+    }
+});
+
+// Voir tous les comptes clients (admin)
+// Profil administrateur connecté
+app.get("/admin/profile", requireAuth, requireAdmin, (req, res) => {
+    db.get("SELECT id, email, role, name FROM users WHERE id = ?", [req.user.id], (err, row) => {
+        if (err || !row) return res.status(500).json({ error: "Erreur serveur" });
+        res.json({ id: row.id, email: row.email, role: row.role, name: row.name || "" });
+    });
+});
+
+// Mettre à jour le profil admin
+app.put("/admin/profile", requireAuth, requireAdmin, async (req, res) => {
+    const { name, email, password, currentPassword } = req.body || {};
+    const updates = [];
+    const params = [];
+
+    if (name !== undefined) {
+        if (typeof name !== "string" || name.trim().length < 2) {
+            return res.status(400).json({ error: "Prénom invalide (min. 2 caractères)" });
+        }
+        updates.push("name = ?");
+        params.push(name.trim());
+    }
+
+    if (email !== undefined) {
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: "Email invalide" });
+        }
+        updates.push("email = ?");
+        params.push(email.toLowerCase().trim());
+    }
+
+    if (password !== undefined) {
+        if (typeof password !== "string" || password.length < 8) {
+            return res.status(400).json({ error: "Mot de passe trop court (8 min)" });
+        }
+        if (!currentPassword) {
+            return res.status(400).json({ error: "Mot de passe actuel requis" });
+        }
+        try {
+            const row = await new Promise((resolve, reject) => {
+                db.get("SELECT password FROM users WHERE id = ?", [req.user.id], (err, r) => err ? reject(err) : resolve(r));
+            });
+            const match = await bcrypt.compare(currentPassword, row.password);
+            if (!match) return res.status(401).json({ error: "Mot de passe actuel incorrect" });
+            const hash = await bcrypt.hash(password, 10);
+            updates.push("password = ?");
+            params.push(hash);
+        } catch (err) {
+            return res.status(500).json({ error: "Erreur serveur" });
+        }
+    }
+
+    if (!updates.length) return res.status(400).json({ error: "Aucune modification fournie" });
+
+    params.push(req.user.id);
+    db.run(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`, params, function(err) {
+        if (err) {
+            if (String(err.message || "").includes("UNIQUE")) {
+                return res.status(409).json({ error: "Cet email est déjà utilisé" });
+            }
+            return res.status(500).json({ error: "Erreur mise à jour" });
+        }
+        res.json({ message: "Profil mis à jour" });
+    });
+});
+
+// Paramètres du site
+app.get("/admin/settings", requireAuth, requireAdmin, (_req, res) => {
+    db.all("SELECT key, value FROM site_settings", (err, rows) => {
+        if (err) return res.status(500).json({ error: "Erreur serveur" });
+        const settings = {};
+        (rows || []).forEach((r) => { settings[r.key] = r.value; });
+        res.json(settings);
+    });
+});
+
+app.put("/admin/settings", requireAuth, requireAdmin, (req, res) => {
+    const allowed = ['address', 'phone', 'email', 'hours_weekday', 'hours_saturday', 'hours_sunday', 'google_maps_url', 'facebook_url'];
+    const entries = Object.entries(req.body || {}).filter(([k]) => allowed.includes(k));
+    if (!entries.length) return res.status(400).json({ error: "Aucun paramètre valide" });
+    const stmt = db.prepare("INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value");
+    entries.forEach(([k, v]) => stmt.run([k, String(v || '').slice(0, 500)]));
+    stmt.finalize((err) => {
+        if (err) return res.status(500).json({ error: "Erreur sauvegarde" });
+        res.json({ message: "Paramètres sauvegardés" });
+    });
+});
+
+app.get("/admin/users", requireAuth, requireAdmin, (_req, res) => {
+    db.all(
+        `
+        SELECT
+            u.id,
+            u.email,
+            u.role,
+            u.name,
+            COUNT(a.id) AS appointments_count,
+            COALESCE(SUM(CASE WHEN a.status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_count,
+            COALESCE(SUM(CASE WHEN a.status = 'confirmed' THEN 1 ELSE 0 END), 0) AS confirmed_count,
+            COALESCE(SUM(CASE WHEN a.status = 'cancelled' THEN 1 ELSE 0 END), 0) AS cancelled_count,
+            MAX(a.created_at) AS last_appointment_at
+        FROM users u
+        LEFT JOIN appointments a ON a.user_id = u.id
+        GROUP BY u.id
+        ORDER BY CASE WHEN u.role = 'admin' THEN 0 ELSE 1 END, u.id DESC
+        `,
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors du chargement des utilisateurs" });
+            }
+            res.json(rows || []);
+        }
+    );
+});
+
+app.get("/admin/client-profiles", requireAuth, requireAdmin, (_req, res) => {
+    db.all(
+        `
+        SELECT
+            u.id AS user_id,
+            u.email AS account_email,
+            u.role,
+            u.name,
+            cp.nom,
+            cp.prenom,
+            cp.tel,
+            cp.email,
+            cp.adresse,
+            cp.notes,
+            cp.vehicules,
+            cp.updated_at
+        FROM users u
+        LEFT JOIN client_profiles cp ON cp.user_id = u.id
+        WHERE u.role = 'client'
+        ORDER BY u.id DESC
+        `,
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors du chargement des fiches clients" });
+            }
+            const mapped = (rows || []).map((row) => ({
+                user_id: row.user_id,
+                account_email: row.account_email,
+                role: row.role,
+                name: row.name || "",
+                nom: row.nom || "",
+                prenom: row.prenom || "",
+                tel: row.tel || "",
+                email: row.email || row.account_email || "",
+                adresse: row.adresse || "",
+                notes: row.notes || "",
+                vehicules: safeJsonParse(row.vehicules, []),
+                updated_at: row.updated_at || null
+            }));
+            res.json(mapped);
+        }
+    );
+});
+
+app.put("/admin/client-profiles/:userId", requireAuth, requireAdmin, (req, res) => {
+    const userId = Number(req.params.userId);
+    const body = req.body || {};
+
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+
+    const email = String(body.email || "").trim().toLowerCase();
+    if (email && !isValidEmail(email)) {
+        return res.status(400).json({ error: "Email invalide" });
+    }
+
+    const vehicules = Array.isArray(body.vehicules) ? body.vehicules : [];
+    if (vehicules.length > 20) {
+        return res.status(400).json({ error: "Trop de véhicules sur la fiche (max 20)" });
+    }
+
+    db.get("SELECT id, role, email FROM users WHERE id = ?", [userId], (findErr, userRow) => {
+        if (findErr) {
+            return res.status(500).json({ error: "Erreur serveur" });
+        }
+        if (!userRow) {
+            return res.status(404).json({ error: "Utilisateur introuvable" });
+        }
+        if (userRow.role !== "client") {
+            return res.status(403).json({ error: "Edition autorisée uniquement pour les fiches client" });
+        }
+
+        const nom = String(body.nom || "").trim();
+        const prenom = String(body.prenom || "").trim();
+        const fullName = [prenom, nom].filter(Boolean).join(" ").trim();
+        const finalEmail = email || String(userRow.email || "").toLowerCase();
+
+        upsertClientProfile(
+            userId,
+            {
+                nom,
+                prenom,
+                tel: body.tel,
+                email: finalEmail,
+                adresse: body.adresse,
+                vehicules,
+                notes: body.notes
+            },
+            (profileErr) => {
+                if (profileErr) {
+                    return res.status(500).json({ error: "Erreur mise à jour fiche client" });
+                }
+
+                const nameToStore = fullName || userRow.name || "";
+                db.run(
+                    "UPDATE users SET name = ?, email = ? WHERE id = ?",
+                    [nameToStore, finalEmail, userId],
+                    (updateErr) => {
+                        if (updateErr) {
+                            if (String(updateErr.message || "").includes("UNIQUE")) {
+                                return res.status(409).json({ error: "Cet email est déjà utilisé" });
+                            }
+                            return res.status(500).json({ error: "Erreur mise à jour compte utilisateur" });
+                        }
+                        res.json({ message: "Fiche client mise à jour" });
+                    }
+                );
+            }
+        );
+    });
+});
+
+// Profil du client connecté (accès strictement privé au compte courant)
+app.get("/me/profile", requireAuth, (req, res) => {
+    if (req.user.role !== "client") {
+        return res.status(403).json({ error: "Accès client requis" });
+    }
+
+    db.get(
+        `
+        SELECT
+            u.id AS user_id,
+            u.email AS account_email,
+            u.name,
+            cp.nom,
+            cp.prenom,
+            cp.tel,
+            cp.email,
+            cp.adresse,
+            cp.vehicules,
+            cp.updated_at
+        FROM users u
+        LEFT JOIN client_profiles cp ON cp.user_id = u.id
+        WHERE u.id = ?
+        LIMIT 1
+        `,
+        [req.user.id],
+        (err, row) => {
+            if (err || !row) {
+                return res.status(500).json({ error: "Erreur lors du chargement du profil" });
+            }
+
+            res.json({
+                user_id: row.user_id,
+                account_email: row.account_email,
+                name: row.name || "",
+                nom: row.nom || "",
+                prenom: row.prenom || "",
+                tel: row.tel || "",
+                email: row.email || row.account_email || "",
+                adresse: row.adresse || "",
+                vehicules: safeJsonParse(row.vehicules, []),
+                updated_at: row.updated_at || null
+            });
+        }
+    );
+});
+
+app.put("/me/profile", requireAuth, (req, res) => {
+    if (req.user.role !== "client") {
+        return res.status(403).json({ error: "Accès client requis" });
+    }
+
+    const body = req.body || {};
+    const email = String(body.email || "").trim().toLowerCase();
+    if (email && !isValidEmail(email)) {
+        return res.status(400).json({ error: "Email invalide" });
+    }
+
+    const vehicules = Array.isArray(body.vehicules) ? body.vehicules : [];
+    if (vehicules.length > 20) {
+        return res.status(400).json({ error: "Trop de véhicules (max 20)" });
+    }
+
+    db.get("SELECT id, email FROM users WHERE id = ?", [req.user.id], (findErr, userRow) => {
+        if (findErr || !userRow) {
+            return res.status(500).json({ error: "Erreur serveur" });
+        }
+
+        const nom = String(body.nom || "").trim();
+        const prenom = String(body.prenom || "").trim();
+        const fullName = [prenom, nom].filter(Boolean).join(" ").trim();
+        const finalEmail = email || String(userRow.email || "").toLowerCase();
+
+        upsertClientProfile(
+            req.user.id,
+            {
+                nom,
+                prenom,
+                tel: body.tel,
+                email: finalEmail,
+                adresse: body.adresse,
+                vehicules,
+                notes: ""
+            },
+            (profileErr) => {
+                if (profileErr) {
+                    return res.status(500).json({ error: "Erreur mise à jour profil" });
+                }
+
+                db.run(
+                    "UPDATE users SET name = ?, email = ? WHERE id = ?",
+                    [fullName || userRow.email, finalEmail, req.user.id],
+                    (updateErr) => {
+                        if (updateErr) {
+                            if (String(updateErr.message || "").includes("UNIQUE")) {
+                                return res.status(409).json({ error: "Cet email est déjà utilisé" });
+                            }
+                            return res.status(500).json({ error: "Erreur mise à jour compte" });
+                        }
+
+                        res.json({ message: "Profil client mis à jour" });
+                    }
+                );
+            }
+        );
+    });
+});
+
+// Supprimer un compte client (admin)
+app.delete("/admin/users/:id", requireAuth, requireAdmin, (req, res) => {
+    const userId = Number(req.params.id);
+
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+    if (req.user.id === userId) {
+        return res.status(400).json({ error: "Vous ne pouvez pas supprimer votre propre compte admin" });
+    }
+
+    db.get(
+        "SELECT id, role FROM users WHERE id = ?",
+        [userId],
+        (findErr, userRow) => {
+            if (findErr) {
+                return res.status(500).json({ error: "Erreur lors de la recherche du compte" });
+            }
+            if (!userRow) {
+                return res.status(404).json({ error: "Compte introuvable" });
+            }
+            if (userRow.role === "admin") {
+                return res.status(403).json({ error: "Suppression d'un compte admin interdite" });
+            }
+
+            db.serialize(() => {
+                db.run(
+                    "DELETE FROM appointments WHERE user_id = ?",
+                    [userId],
+                    (appointmentsErr) => {
+                        if (appointmentsErr) {
+                            return res.status(500).json({ error: "Erreur lors de la suppression des rendez-vous" });
+                        }
+
+                        db.run(
+                            "DELETE FROM client_profiles WHERE user_id = ?",
+                            [userId],
+                            (profileErr) => {
+                                if (profileErr) {
+                                    return res.status(500).json({ error: "Erreur lors de la suppression de la fiche client" });
+                                }
+
+                                db.run(
+                                    "DELETE FROM users WHERE id = ?",
+                                    [userId],
+                                    function (deleteErr) {
+                                        if (deleteErr) {
+                                            return res.status(500).json({ error: "Erreur lors de la suppression du compte" });
+                                        }
+                                        res.json({ message: "Compte client supprimé" });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            });
+        }
+    );
+});
+
+// Mettre a jour un rendez-vous
+app.put("/appointment/:id", requireAuth, requireAdmin, (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
+
+    if (!allowedStatuses.has(status)) {
+        return res.status(400).json({ error: "Statut invalide" });
+    }
 
     db.run(
         "UPDATE appointments SET status = ? WHERE id = ?",
         [status, id],
         function (err) {
             if (err) {
-                return res.status(400).json({ error: "Erreur lors de la mise à jour" });
+                return res.status(400).json({ error: "Erreur lors de la mise a jour" });
             }
-            res.json({ message: "Rendez-vous mis à jour" });
+            res.json({ message: "Rendez-vous mis a jour" });
         }
     );
 });
 
-// ============ NOUVELLES ROUTES CALENDRIER ============
-
-// Route pour obtenir les horaires disponibles d'une date
+// Disponibilites pour une date
 app.get("/available-times/:date", (req, res) => {
     const { date } = req.params;
 
-    // Récupérer les rendez-vous de cette date
+    if (!isValidDate(date)) {
+        return res.status(400).json({ error: "Date invalide" });
+    }
+
     db.all(
         "SELECT time FROM appointments WHERE date = ? AND status != 'cancelled'",
         [date],
@@ -176,10 +1083,7 @@ app.get("/available-times/:date", (req, res) => {
                 return res.status(400).json({ error: "Erreur" });
             }
 
-            // Créneaux pris
             const bookedTimes = rows.map(r => r.time);
-
-            // Créneaux disponibles
             const availableTimes = availableHours.filter(hour => !bookedTimes.includes(hour));
 
             res.json({
@@ -192,9 +1096,13 @@ app.get("/available-times/:date", (req, res) => {
     );
 });
 
-// Route pour obtenir les rendez-vous d'une date (pour le calendrier)
+// Rendez-vous par date
 app.get("/appointments-by-date/:date", (req, res) => {
     const { date } = req.params;
+
+    if (!isValidDate(date)) {
+        return res.status(400).json({ error: "Date invalide" });
+    }
 
     db.all(
         "SELECT * FROM appointments WHERE date = ? AND status != 'cancelled' ORDER BY time",
@@ -208,10 +1116,235 @@ app.get("/appointments-by-date/:date", (req, res) => {
     );
 });
 
-// Servir les fichiers frontend
+app.get("/occasions-data", (_req, res) => {
+    db.all(
+        "SELECT * FROM occasions ORDER BY datetime(created_at) DESC, id DESC",
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors du chargement des occasions" });
+            }
+            res.json((rows || []).map(mapOccasionRow));
+        }
+    );
+});
+
+app.post("/admin/occasions", requireAuth, requireAdmin, (req, res) => {
+    const {
+        id,
+        type,
+        titre,
+        description,
+        prix,
+        statut,
+        annee,
+        km,
+        carburant,
+        boite,
+        etat,
+        reference,
+        compatible,
+        photos,
+        image
+    } = req.body || {};
+
+    if (typeof id !== "string" || !id.trim()) {
+        return res.status(400).json({ error: "Identifiant d'occasion invalide" });
+    }
+    if (!["voiture", "piece"].includes(type)) {
+        return res.status(400).json({ error: "Type d'occasion invalide" });
+    }
+    if (typeof titre !== "string" || !titre.trim() || typeof description !== "string" || !description.trim()) {
+        return res.status(400).json({ error: "Titre et description sont obligatoires" });
+    }
+    if (!["disponible", "vendu"].includes(statut)) {
+        return res.status(400).json({ error: "Statut d'occasion invalide" });
+    }
+
+    db.run(
+        `
+        INSERT INTO occasions (
+            id, type, titre, description, prix, statut, annee, km, carburant, boite,
+            etat, reference, compatible, photos, image, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(id) DO UPDATE SET
+            type = excluded.type,
+            titre = excluded.titre,
+            description = excluded.description,
+            prix = excluded.prix,
+            statut = excluded.statut,
+            annee = excluded.annee,
+            km = excluded.km,
+            carburant = excluded.carburant,
+            boite = excluded.boite,
+            etat = excluded.etat,
+            reference = excluded.reference,
+            compatible = excluded.compatible,
+            photos = excluded.photos,
+            image = excluded.image,
+            updated_at = CURRENT_TIMESTAMP
+        `,
+        [
+            id.trim(),
+            type,
+            titre.trim(),
+            description.trim(),
+            String(prix || "0"),
+            statut,
+            annee || null,
+            km || null,
+            carburant || null,
+            boite || null,
+            etat || null,
+            reference || null,
+            compatible || null,
+            JSON.stringify(Array.isArray(photos) ? photos : []),
+            image || null
+        ],
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors de l'enregistrement de l'occasion" });
+            }
+
+            db.get("SELECT * FROM occasions WHERE id = ?", [id.trim()], (selectErr, row) => {
+                if (selectErr || !row) {
+                    return res.json({ message: "Occasion enregistrée" });
+                }
+                res.json(mapOccasionRow(row));
+            });
+        }
+    );
+});
+
+app.delete("/admin/occasions/:id", requireAuth, requireAdmin, (req, res) => {
+    db.run("DELETE FROM occasions WHERE id = ?", [req.params.id], function (err) {
+        if (err) {
+            return res.status(500).json({ error: "Erreur lors de la suppression de l'occasion" });
+        }
+        res.json({ message: "Occasion supprimée", deleted: this.changes || 0 });
+    });
+});
+
+app.post("/analytics/visit", (req, res) => {
+    const { sessionId, page, path: pagePath } = req.body || {};
+
+    if (typeof page !== "string" || !page.trim() || typeof pagePath !== "string" || !pagePath.trim()) {
+        return res.status(400).json({ error: "Données de visite invalides" });
+    }
+
+    db.run(
+        "INSERT INTO site_visits (session_id, page, path) VALUES (?, ?, ?)",
+        [typeof sessionId === "string" ? sessionId.slice(0, 120) : null, page.trim().slice(0, 120), pagePath.trim().slice(0, 255)],
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors de l'enregistrement de la visite" });
+            }
+            res.json({ ok: true });
+        }
+    );
+});
+
+app.post("/analytics/event", (req, res) => {
+    const { sessionId, name, detail } = req.body || {};
+
+    if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ error: "Nom d'événement invalide" });
+    }
+
+    db.run(
+        "INSERT INTO site_events (session_id, name, detail) VALUES (?, ?, ?)",
+        [
+            typeof sessionId === "string" ? sessionId.slice(0, 120) : null,
+            name.trim().slice(0, 120),
+            detail === undefined ? null : JSON.stringify(detail)
+        ],
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur lors de l'enregistrement de l'événement" });
+            }
+            res.json({ ok: true });
+        }
+    );
+});
+
+app.get("/admin/analytics", requireAuth, requireAdmin, (_req, res) => {
+    db.get(
+        "SELECT COUNT(*) AS totalViews, COUNT(DISTINCT session_id) AS sessions, MAX(visited_at) AS lastVisitAt FROM site_visits",
+        (summaryErr, summaryRow) => {
+            if (summaryErr) {
+                return res.status(500).json({ error: "Erreur lors du chargement des statistiques" });
+            }
+
+            db.all(
+                "SELECT page, COUNT(*) AS count FROM site_visits GROUP BY page ORDER BY count DESC",
+                (pagesErr, pageRows) => {
+                    if (pagesErr) {
+                        return res.status(500).json({ error: "Erreur lors du chargement des pages vues" });
+                    }
+
+                    db.all(
+                        "SELECT name, COUNT(*) AS count FROM site_events GROUP BY name ORDER BY count DESC",
+                        (eventsErr, eventRows) => {
+                            if (eventsErr) {
+                                return res.status(500).json({ error: "Erreur lors du chargement des événements" });
+                            }
+
+                            db.all(
+                                "SELECT page, path, visited_at AS at FROM site_visits ORDER BY datetime(visited_at) DESC LIMIT 10",
+                                (recentVisitsErr, recentVisitRows) => {
+                                    if (recentVisitsErr) {
+                                        return res.status(500).json({ error: "Erreur lors du chargement des visites récentes" });
+                                    }
+
+                                    db.all(
+                                        "SELECT name, detail, created_at AS at FROM site_events ORDER BY datetime(created_at) DESC LIMIT 10",
+                                        (recentEventsErr, recentEventRows) => {
+                                            if (recentEventsErr) {
+                                                return res.status(500).json({ error: "Erreur lors du chargement des événements récents" });
+                                            }
+
+                                            const pages = {};
+                                            (pageRows || []).forEach((row) => {
+                                                pages[row.page] = row.count;
+                                            });
+
+                                            const events = {};
+                                            (eventRows || []).forEach((row) => {
+                                                events[row.name] = row.count;
+                                            });
+
+                                            res.json({
+                                                totalViews: summaryRow?.totalViews || 0,
+                                                sessions: summaryRow?.sessions || 0,
+                                                lastVisitAt: summaryRow?.lastVisitAt || null,
+                                                pages,
+                                                events,
+                                                recentVisits: (recentVisitRows || []).map((row) => ({ page: row.page, path: row.path, at: row.at })),
+                                                recentEvents: (recentEventRows || []).map((row) => ({
+                                                    name: row.name,
+                                                    detail: safeJsonParse(row.detail, row.detail),
+                                                    at: row.at
+                                                }))
+                                            });
+                                        }
+                                    );
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+        }
+    );
+});
+
+// Servir frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Routes pour les pages HTML
+app.get("/index", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
 app.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/login.html"));
 });
@@ -228,11 +1361,24 @@ app.get("/appointment", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/appointment.html"));
 });
 
+app.get("/occasions", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/occasions.html"));
+});
+
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/register.html"));
 });
 
-// Lancement serveur
+// Start server
 app.listen(3000, () => {
-    console.log("Serveur lancé sur http://localhost:3000");
+    console.log("Serveur lance sur http://localhost:3000");
+    ensureAdminFromEnv();
+});
+
+// Proper DB close on exit
+process.on('SIGINT', () => {
+  console.log('Fermeture de la base de donnees...');
+  db.close(() => {
+    process.exit(0);
+  });
 });

@@ -232,6 +232,17 @@
         .message.show {
             display: block;
         }
+        .selected-date-display {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .times-empty {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #999;
+        }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
@@ -295,7 +306,7 @@
 <body>
     <div class="navbar">
         <h1>🚗 Clinik Auto</h1>
-        <a href="http://localhost:3000/dashboard" class="back-btn">← Retour</a>
+        <a href="dashboard.html" class="back-btn">← Retour</a>
     </div>
 
     <div class="container">
@@ -326,13 +337,13 @@
                 </div>
 
                 <input type="hidden" id="date" name="date" required>
-                <div id="selectedDateDisplay" style="text-align: center; color: #667eea; font-weight: bold; margin-bottom: 20px;"></div>
+                <div id="selectedDateDisplay" class="selected-date-display"></div>
 
                 <!-- HORAIRES -->
                 <div class="times">
                     <label>Horaires disponibles :</label>
                     <div class="times-grid" id="timesContainer">
-                        <p style="grid-column: 1/-1; text-align: center; color: #999;">Sélectionne d'abord une date</p>
+                        <p class="times-empty">Sélectionne d'abord une date</p>
                     </div>
                 </div>
 
@@ -344,16 +355,63 @@
         </div>
     </div>
 
+    <script src="js/analytics.js"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem("user"));
+        const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const token = localStorage.getItem("token");
 
-        if (!user) {
-            window.location.href = "http://localhost:3000/login";
+        if (!token) {
+            window.location.href = "login.html";
         }
 
         let currentDate = new Date();
         let selectedDate = null;
         let selectedTime = null;
+        let appointmentSubmitted = false;
+
+        function hasPendingAppointment() {
+            const service = document.getElementById("service").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+            return !appointmentSubmitted && Boolean(service || date || time);
+        }
+
+        function confirmLeaveAppointment() {
+            if (!hasPendingAppointment()) {
+                return true;
+            }
+            return window.confirm(
+                "Une réservation de rendez-vous est en cours et non validée.\\n\\n"
+                + "Confirmer pour quitter sans enregistrer."
+            );
+        }
+
+        document.querySelectorAll("a[href]").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                const href = link.getAttribute("href") || "";
+                if (!href || href.startsWith("#")) {
+                    return;
+                }
+                if (!confirmLeaveAppointment()) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        window.addEventListener("beforeunload", (event) => {
+            if (!hasPendingAppointment()) {
+                return;
+            }
+            event.preventDefault();
+            event.returnValue = "";
+        });
+
+        function toLocalDateString(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const day = String(dateObj.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
 
         function generateCalendar() {
             const year = currentDate.getFullYear();
@@ -390,10 +448,11 @@
 
             // Jours du mois actuel
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayCell = document.createElement("div");
                 const cellDate = new Date(year, month, day);
-                const dateStr = cellDate.toISOString().split('T')[0];
+                const dateStr = toLocalDateString(cellDate);
 
                 dayCell.className = "day-cell";
                 dayCell.textContent = day;
@@ -436,7 +495,8 @@
             document.getElementById("date").value = dateStr;
             document.getElementById("time").value = "";
 
-            const dateObj = new Date(dateStr + "T00:00:00");
+            const [year, month, day] = dateStr.split("-").map(Number);
+            const dateObj = new Date(year, month - 1, day);
             document.getElementById("selectedDateDisplay").textContent = 
                 "📅 " + dateObj.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -446,7 +506,7 @@
 
         async function loadAvailableTimes(date) {
             try {
-                const response = await fetch(`http://localhost:3000/available-times/${date}`);
+                const response = await fetch(`/available-times/${date}`);
                 const data = await response.json();
 
                 const timesContainer = document.getElementById("timesContainer");
@@ -519,13 +579,13 @@
             }
 
             try {
-                const response = await fetch("http://localhost:3000/appointment", {
+                const response = await fetch(API_BASE + "/appointment", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        user_id: user.id,
                         service,
                         date,
                         time
@@ -535,12 +595,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    appointmentSubmitted = true;
                     messageDiv.textContent = "✅ Rendez-vous confirmé ! RDV #" + data.appointment_id;
                     messageDiv.className = "message success show";
                     document.getElementById("appointmentForm").reset();
                     
                     setTimeout(() => {
-                        window.location.href = "http://localhost:3000/dashboard";
+                        window.location.href = "dashboard.html";
                     }, 2000);
                 } else {
                     messageDiv.textContent = "❌ " + data.error;

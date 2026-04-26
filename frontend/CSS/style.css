@@ -92,6 +92,7 @@ img { max-width: 100%; display: block; }
   top: 0; left: 0; right: 0;
   z-index: 1000;
   background: rgba(26,26,26,0.95);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-bottom: 2px solid var(--red);
   transition: all var(--transition);
@@ -611,6 +612,31 @@ img { max-width: 100%; display: block; }
 .form__group input:focus,
 .form__group textarea:focus { border-color: var(--red); }
 .form__notice { grid-column: 1 / -1; font-size: 0.8rem; color: var(--grey); }
+
+/* Utility classes — replacing inline styles */
+.req          { color: var(--red); }
+.req--bold    { color: var(--red); font-weight: 700; }
+.input--uppercase { text-transform: uppercase; }
+.horaires__caption {
+  text-align: left;
+  font-weight: 800;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: var(--dark);
+}
+.btn--white-red {
+  background: var(--white);
+  color: var(--red);
+}
+.tarifs__note {
+  text-align: center;
+  margin-top: 32px;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.9rem;
+}
+.form-block--mt { margin-top: 32px; }
+.map-wrap--mt   { margin-top: 32px; }
+.section--light { background: var(--light); }
 
 /* === FOOTER === */
 .footer {

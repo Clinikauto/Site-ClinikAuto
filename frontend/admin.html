@@ -3,393 +3,3221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Clinik Auto</title>
+    <title>Administration - ClinikAuto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        :root {
+            --red: #d32f2f;
+            --red-dark: #b71c1c;
+            --blue: #1565c0;
+            --blue-dark: #0d47a1;
+            --dark: #131821;
+            --panel: #1c2430;
+            --panel-soft: #232d3a;
+            --line: rgba(255, 255, 255, 0.08);
+            --text: #f4f7fb;
+            --muted: #a6b2c2;
+            --success: #1fa971;
+            --warning: #f7b731;
+            --danger: #ff6b6b;
+            --radius: 18px;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
+            font-family: 'Nunito', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(21, 101, 192, 0.28), transparent 28%),
+                radial-gradient(circle at top right, rgba(211, 47, 47, 0.18), transparent 30%),
+                linear-gradient(180deg, #0d1117 0%, #111827 100%);
+            min-height: 100vh;
         }
-        .navbar {
-            background: #333;
-            color: white;
-            padding: 15px 30px;
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            background: rgba(10, 14, 20, 0.86);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .topbar__inner,
+        .wrap {
+            width: min(1440px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .topbar__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand__logo {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(211, 47, 47, 0.25);
+        }
+
+        .brand__title {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1.5px;
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .brand__sub {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .topbar__actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn--primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--red) 0%, #f44336 100%);
+        }
+
+        .btn--secondary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue) 0%, #42a5f5 100%);
+        }
+
+        .btn--ghost {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--line);
+        }
+
+        .btn--danger {
+            color: #fff;
+            background: linear-gradient(135deg, #c62828 0%, #ef5350 100%);
+        }
+
+        .wrap {
+            padding: 28px 0 48px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(28, 36, 48, 0.98), rgba(24, 31, 41, 0.95));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            padding: 26px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            inset: auto -60px -60px auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(211, 47, 47, 0.22), transparent 70%);
+        }
+
+        .eyebrow {
+            color: #ffb4b4;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .hero-card h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            letter-spacing: 2px;
+            line-height: 0.95;
+            margin-bottom: 14px;
+        }
+
+        .hero-card p {
+            color: var(--muted);
+            max-width: 720px;
+            line-height: 1.7;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .admin-card {
+            padding: 26px;
+        }
+
+        .admin-card__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .admin-card__avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--red) 100%);
+            display: grid;
+            place-items: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+        }
+
+        .admin-card__list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .admin-card__list li {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+        }
+
+        .admin-card__list li strong {
+            color: var(--text);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+            cursor: pointer;
+            transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent, #90caf9);
+            box-shadow: 0 4px 18px rgba(144, 202, 249, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .stat-card__label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card__value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-card__value--red {
+            color: #ff8a80;
+        }
+
+        .stat-card__value--blue {
+            color: #90caf9;
+        }
+
+        .stat-card__value--green {
+            color: #86efac;
+        }
+
+        .stat-card__value--yellow {
+            color: #ffe082;
+        }
+
+        .stat-card small {
+            color: var(--muted);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+
+        .stack {
+            display: grid;
+            gap: 24px;
+        }
+
+        .section {
+            padding: 22px;
+        }
+
+        .section__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section__title {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .section__sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .progress-list,
+        .mini-list,
+        .cards-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .progress-item,
+        .mini-card,
+        .table-card,
+        .client-card,
+        .occasion-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+        }
+
+        .progress-item {
+            padding: 16px;
+        }
+
+        .progress-item__head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .navbar h1 {
-            font-size: 24px;
-        }
-        .logout-btn {
-            background: #ff6b6b;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .logout-btn:hover {
-            background: #ff5252;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 20px;
-        }
-        .header {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        .header h2 {
-            color: #333;
+            gap: 10px;
             margin-bottom: 10px;
         }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .stat-card h3 {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        .stat-card p {
-            font-size: 14px;
-        }
-        .appointments-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .appointments-section h3 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        table {
+
+        .progress-bar {
             width: 100%;
-            border-collapse: collapse;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 999px;
+            overflow: hidden;
         }
-        table th {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
+
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--red) 100%);
         }
-        table td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
         }
-        table tr:hover {
-            background: #f9f9f9;
+
+        .section-gap {
+            margin-top: 16px;
         }
-        .badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
+
+        .occasions-gap {
+            margin-top: 18px;
         }
-        .badge-pending {
-            background: #ffc107;
-            color: #333;
+
+        .mini-card {
+            padding: 16px;
         }
-        .badge-confirmed {
-            background: #28a745;
-            color: white;
+
+        .mini-card h4 {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
         }
-        .badge-cancelled {
-            background: #dc3545;
-            color: white;
+
+        .agenda-tools {
+            display: grid;
+            gap: 12px;
         }
-        .action-btn {
-            padding: 5px 10px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
+
+        .agenda-tools textarea,
+        .agenda-tools input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #10161f;
+            color: var(--text);
+            outline: none;
+        }
+
+        .agenda-tools textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .agenda-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .agenda-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .agenda-item {
+            padding: 16px;
+            border-radius: 16px;
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+        }
+
+        .agenda-item__head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .agenda-item__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .agenda-note {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        /* File import blocks */
+        .agenda-file-imports {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width: 600px) {
+            .agenda-file-imports { grid-template-columns: 1fr; }
+        }
+        .file-import-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .file-import-label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 18px 16px;
+            border: 2px dashed var(--line);
+            border-radius: 14px;
             cursor: pointer;
-            font-size: 12px;
+            transition: border-color .2s, background .2s;
+            background: #10161f;
         }
-        .btn-confirm {
-            background: #28a745;
-            color: white;
+        .file-import-label:hover {
+            border-color: var(--accent);
+            background: rgba(99,102,241,.07);
         }
-        .btn-confirm:hover {
-            background: #218838;
+        .file-import-label i {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 4px;
         }
-        .btn-cancel {
-            background: #dc3545;
-            color: white;
+        .file-import-title {
+            font-size: 0.95rem;
+            color: var(--text);
         }
-        .btn-cancel:hover {
-            background: #c82333;
+        .file-import-hint {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.4;
         }
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
+        .file-import-btn {
+            margin-top: 8px;
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            align-self: flex-start;
         }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
+        .file-import-hidden {
+            display: none;
+        }
+        .file-import-name {
+            font-size: 0.8rem;
+            color: var(--muted);
+            padding-left: 4px;
+        }
+        .file-import-name.loaded {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        /* Collapsible manual section */
+        .agenda-manual-toggle {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #10161f;
+            padding: 0;
+            overflow: hidden;
+        }
+        .agenda-manual-toggle summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--muted);
+            -webkit-user-select: none;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agenda-manual-toggle summary::-webkit-details-marker { display: none; }
+        .agenda-manual-toggle[open] summary {
+            border-bottom: 1px solid var(--line);
+            color: var(--text);
+        }
+        .agenda-manual-toggle textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            background: #10161f;
+            color: var(--text);
+            outline: none;
+            min-height: 120px;
+            resize: vertical;
+            border-radius: 0 0 12px 12px;
+            box-sizing: border-box;
         }
 
-        /* Mobile responsive */
-        @media (max-width: 1024px) {
-            .container {
-                padding: 15px;
-            }
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .mini-card strong {
+            font-size: 1.6rem;
         }
 
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 10px 15px;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .navbar h1 {
-                font-size: 18px;
-            }
-            .logout-btn {
-                width: 100%;
-            }
-            .container {
-                padding: 10px;
-            }
-            .stats {
+        /* Settings forms */
+        .settings-form {
+            display: grid;
+            gap: 16px;
+        }
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width: 640px) {
+            .settings-row { grid-template-columns: 1fr; }
+        }
+        .settings-row--pad {
+            padding: 14px 0 4px;
+        }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .field-group label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .field-group input {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #10161f;
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+        .field-group input:focus {
+            border-color: var(--accent);
+        }
+        .settings-pwd-toggle {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #10161f;
+            overflow: hidden;
+        }
+        .settings-pwd-toggle summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--muted);
+            -webkit-user-select: none;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-pwd-toggle summary::-webkit-details-marker { display: none; }
+        .settings-pwd-toggle[open] summary {
+            border-bottom: 1px solid var(--line);
+            color: var(--text);
+        }
+
+        .btn--settings-link {
+            margin-top: 14px;
+            width: 100%;
+        }
+
+        .traffic-list li,
+        .recent-list li {
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+        }
+
+        .traffic-list strong,
+        .recent-list strong {
+            color: var(--text);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .toolbar input,
+        .toolbar select,
+        .form-grid input,
+        .form-grid select,
+        .form-grid textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #10161f;
+            color: var(--text);
+            outline: none;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            flex: 1 1 220px;
+        }
+
+        .toolbar input::placeholder,
+        .form-grid input::placeholder,
+        .form-grid textarea::placeholder {
+            color: #738195;
+        }
+
+        .cards-list {
+            max-height: 640px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .client-card,
+        .occasion-card,
+        .table-card {
+            padding: 18px;
+        }
+
+        .client-card__head,
+        .occasion-card__head,
+        .table-card__head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .client-card__meta,
+        .occasion-card__meta,
+        .table-card__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .chip--admin {
+            background: rgba(21, 101, 192, 0.22);
+            color: #90caf9;
+        }
+
+        .chip--client {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .chip--pending {
+            background: rgba(247, 183, 49, 0.18);
+            color: #ffe082;
+        }
+
+        .chip--confirmed {
+            background: rgba(31, 169, 113, 0.18);
+            color: #86efac;
+        }
+
+        .chip--cancelled,
+        .chip--sold {
+            background: rgba(255, 107, 107, 0.18);
+            color: #ffab91;
+        }
+
+        .chip--available {
+            background: rgba(21, 101, 192, 0.18);
+            color: #90caf9;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .actions--compact {
+            margin-top: 10px;
+        }
+
+        .actions--toolbar {
+            gap: 8px;
+            margin-top: 0;
+        }
+
+        .u-hidden {
+            display: none;
+        }
+
+        .table-card--pending {
+            border-left: 4px solid #ff9800;
+        }
+
+        .table-card--confirmed {
+            border-left: 4px solid #4caf50;
+        }
+
+        .table-card--cancelled {
+            border-left: 4px solid #f44336;
+        }
+
+        .table-card__meta--muted {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .btn-inline {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .btn-inline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-inline--danger {
+            border-color: rgba(255, 107, 107, 0.3);
+            color: #ffb4b4;
+        }
+
+        .btn-inline--success {
+            border-color: rgba(31, 169, 113, 0.3);
+            color: #86efac;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        label small {
+            color: #ffb4b4;
+            font-weight: 700;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .empty {
+            padding: 22px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 16px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(5, 8, 12, 0.72);
+            z-index: 40;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal__box {
+            width: min(760px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            background: #121923;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .modal__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .modal__close {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 60;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(18, 25, 35, 0.96);
+            border: 1px solid var(--line);
+            color: var(--text);
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 1200px) {
+            .hero,
+            .content-grid {
                 grid-template-columns: 1fr;
             }
-            .stat-card h3 {
-                font-size: 24px;
-            }
-            table {
-                font-size: 12px;
-            }
-            table th, table td {
-                padding: 8px;
-            }
-            .action-btn {
-                padding: 3px 6px;
-                font-size: 10px;
+
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 480px) {
-            .navbar h1 {
-                font-size: 16px;
+        @media (max-width: 720px) {
+            .topbar__inner {
+                flex-direction: column;
+                align-items: stretch;
             }
-            .header h2 {
-                font-size: 16px;
+
+            .topbar__actions {
+                width: 100%;
             }
-            .stat-card {
-                padding: 15px;
+
+            .topbar__actions .btn {
+                flex: 1 1 auto;
+                justify-content: center;
             }
-            .stat-card h3 {
-                font-size: 20px;
+
+            .stats-grid,
+            .mini-grid,
+            .form-grid {
+                grid-template-columns: 1fr;
             }
-            table th, table td {
-                padding: 5px;
-                font-size: 10px;
+
+            .wrap,
+            .topbar__inner {
+                width: min(100% - 20px, 1440px);
             }
-            .action-btn {
-                padding: 3px 5px;
-                font-size: 9px;
-                margin: 2px;
-            }
-            .badge {
-                font-size: 10px;
-            }
+        }
+
+        /* === CHIP IMMATRICULATION === */
+        .chip--immat {
+            background: rgba(21, 101, 192, 0.22);
+            color: #90caf9;
+            font-family: monospace;
+            letter-spacing: 1.5px;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        /* === CALENDRIER AGENDA === */
+        .calendar-section {
+            margin-bottom: 28px;
+            padding: 24px 28px;
+        }
+        .calendar-section .section__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cal-nav__btn {
+            padding: 10px 14px;
+        }
+        .cal-month-label {
+            font-weight: 800;
+            font-size: 1.05rem;
+            min-width: 160px;
+            text-align: center;
+        }
+        .cal-day-headers {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .cal-day-headers span {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 0;
+        }
+        .cal-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .cal-cell {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            border: 1px solid var(--line);
+            background: #10161f;
+            transition: background 0.18s, border-color 0.18s;
+            font-size: 0.88rem;
+            font-weight: 700;
+            position: relative;
+            min-height: 46px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .cal-cell:hover { background: #1c2430; border-color: rgba(255,255,255,0.2); }
+        .cal-cell.other-month { opacity: 0.25; cursor: default; pointer-events: none; }
+        .cal-cell.today { border-color: var(--blue); color: #90caf9; }
+        .cal-cell.has-appts { border-color: rgba(211,47,47,0.55); }
+        .cal-cell.has-pending { border-color: rgba(255, 152, 0, 0.82); box-shadow: inset 0 0 0 1px rgba(255, 152, 0, 0.18); }
+            .cal-cell.has-confirmed { border-color: rgba(76, 175, 80, 0.8); box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.2); }
+            .cal-cell.has-cancelled { border-color: rgba(244, 67, 54, 0.82); box-shadow: inset 0 0 0 1px rgba(244, 67, 54, 0.2); }
+        .cal-cell.selected { background: var(--red); border-color: var(--red); color: white; }
+        .cal-cell__badge {
+            background: var(--warning);
+            color: #111;
+            border-radius: 50%;
+            width: 17px;
+            height: 17px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+        .cal-cell__status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: absolute;
+            left: 6px;
+            bottom: 5px;
+        }
+        .cal-cell__dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
+        }
+        .cal-cell__dot--pending { background: #ff9800; }
+        .cal-cell__dot--confirmed { background: #4caf50; }
+        .cal-cell__dot--cancelled { background: #f44336; }
+        .cal-cell.selected .cal-cell__badge { background: white; color: var(--red); }
+        .cal-cell.selected .cal-cell__dot { box-shadow: 0 0 0 1px rgba(255,255,255,0.45); }
+        .cal-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        .cal-legend__item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.02);
+        }
+        .cal-legend__dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
+        }
+        .cal-legend__dot--pending { background: #ff9800; }
+        .cal-legend__dot--confirmed { background: #4caf50; }
+        .cal-legend__dot--cancelled { background: #f44336; }
+        .cal-day-detail {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px solid var(--line);
+            padding-top: 18px;
+        }
+        .cal-day-detail__head {
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text);
+            text-transform: capitalize;
+        }
+        .cal-day-detail .cards-list {
+            max-height: 400px;
+        }
+        @media (max-width: 640px) {
+            .cal-cell { min-height: 36px; font-size: 0.78rem; }
+            .cal-cell__badge { width: 14px; height: 14px; font-size: 0.58rem; }
+        }
+        /* === GALERIE PHOTOS OCCASIONS === */
+        .photo-drop-zone {
+            border: 2px dashed rgba(255,255,255,0.18);
+            border-radius: 16px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: #0d1117;
+            position: relative;
+        }
+        .photo-drop-zone.dragover {
+            border-color: var(--blue);
+            background: rgba(21, 101, 192, 0.08);
+        }
+        .photo-drop-zone__icon { font-size: 2rem; color: var(--muted); margin-bottom: 8px; }
+        .photo-drop-zone__label { color: var(--muted); font-size: 0.9rem; }
+        .photo-drop-zone__label strong { color: var(--text); }
+        .photo-drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .photo-preview-grid:empty { display: none; }
+        .photo-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #10161f;
+            border: 1px solid var(--line);
+        }
+        .photo-thumb img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .photo-thumb__del {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(0,0,0,0.7);
+            border: none; border-radius: 50%;
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #ffb4b4; font-size: 0.7rem;
+            transition: background 0.15s;
+        }
+        .photo-thumb__del:hover { background: var(--danger); color: white; }
+        .photo-count-hint {
+            font-size: 0.8rem; color: var(--muted); margin-top: 8px; text-align: right;
+        }
+        .field-note {
+            color: var(--muted);
+            font-weight: 400;
+            font-size: 0.85rem;
+        }
+        .section__actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-note {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>🚗 Clinik Auto - Admin</h1>
-        <button class="logout-btn" onclick="logout()">Déconnexion</button>
-    </div>
-
-    <div class="container">
-        <div class="header">
-            <h2>📊 Tableau de bord administrateur</h2>
-            <div class="stats">
-                <div class="stat-card">
-                    <h3 id="totalAppointments">0</h3>
-                    <p>RDV au total</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="pendingAppointments">0</h3>
-                    <p>En attente</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="confirmedAppointments">0</h3>
-                    <p>Confirmés</p>
+    <header class="topbar">
+        <div class="topbar__inner">
+            <div class="brand">
+                <img src="images/logo.jpg" alt="Logo ClinikAuto" class="brand__logo">
+                <div>
+                    <div class="brand__title">ClinikAuto Admin</div>
+                    <div class="brand__sub">Accès personnel administrateur avec vue complète du site</div>
                 </div>
             </div>
-        </div>
 
-        <div class="appointments-section">
-            <h3>📅 Liste des rendez-vous</h3>
-            <div id="appointmentsContainer" class="loading">
-                Chargement des rendez-vous...
+            <div class="topbar__actions">
+                <a class="btn btn--ghost" href="index.html"><i class="fa-solid fa-house"></i> Accueil</a>
+                <button class="btn btn--secondary" id="refreshBtn"><i class="fa-solid fa-rotate"></i> Actualiser</button>
+                <button class="btn btn--danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
             </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <section class="hero">
+            <article class="panel hero-card">
+                <div class="eyebrow">Centre de pilotage</div>
+                <h1>Votre espace personnel pour gérer tout ClinikAuto</h1>
+                <p>
+                    Ce tableau de bord centralise les rendez-vous, les comptes clients,
+                    les occasions et les statistiques de trafic du site. Vous voyez ce qui est fait,
+                    ce qui reste en attente et vous pouvez agir immédiatement.
+                </p>
+
+                <div class="hero-meta">
+                    <span class="pill"><i class="fa-solid fa-user-shield"></i> <span id="adminIdentity">Admin connecté</span></span>
+                    <span class="pill"><i class="fa-solid fa-clock"></i> Dernière mise à jour : <span id="lastRefreshLabel">--</span></span>
+                    <span class="pill"><i class="fa-solid fa-chart-line"></i> Trafic total : <span id="trafficTotalLabel">0 vue</span></span>
+                </div>
+            </article>
+
+            <aside class="panel admin-card">
+                <div class="admin-card__head">
+                    <div>
+                        <div class="eyebrow">Accès personnel</div>
+                        <h2 class="section__title">Profil administrateur</h2>
+                    </div>
+                    <div class="admin-card__avatar" id="adminAvatar">N</div>
+                </div>
+                <ul class="admin-card__list">
+                    <li><span>Prénom</span><strong id="adminNameDisplay">Nino</strong></li>
+                    <li><span>Email</span><strong id="adminEmail">--</strong></li>
+                    <li><span>Rôle</span><strong>Administrateur unique</strong></li>
+                    <li><span>Comptes clients</span><strong id="adminClientCount">0</strong></li>
+                    <li><span>Occasions publiées</span><strong id="adminOccasionCount">0</strong></li>
+                    <li><span>Rendez-vous à traiter</span><strong id="adminPendingCount">0</strong></li>
+                </ul>
+                <a href="#settings-section" class="btn btn--ghost btn--settings-link"><i class="fa-solid fa-gear"></i> Gérer mes paramètres</a>
+            </aside>
+        </section>
+
+        <section class="stats-grid" id="overviewStats"></section>
+
+        <!-- Calendrier agenda interactif -->
+        <section class="panel calendar-section">
+            <div class="section__head">
+                <div>
+                    <div class="section__title"><i class="fa-solid fa-calendar-days"></i> Agenda des rendez-vous</div>
+                    <div class="section__sub">Cliquez sur un jour pour voir et gérer les rendez-vous</div>
+                </div>
+                <div class="cal-nav">
+                    <button class="btn btn--ghost cal-nav__btn" id="calPrev" title="Mois précédent"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span class="cal-month-label" id="calMonthLabel">--</span>
+                    <button class="btn btn--ghost cal-nav__btn" id="calNext" title="Mois suivant"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div>
+                <div class="cal-day-headers">
+                    <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+                </div>
+                <div class="cal-days" id="calDays"></div>
+                <div class="cal-legend" aria-label="Légende des statuts du calendrier">
+                    <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--pending"></span> En attente</span>
+                    <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--confirmed"></span> Confirmé</span>
+                    <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--cancelled"></span> Annulé</span>
+                </div>
+            </div>
+            <div class="cal-day-detail" id="calDayDetail">
+                <div class="cal-day-detail__head" id="calDayDetailHead"></div>
+                <div class="cards-list" id="calDayAppointments"></div>
+            </div>
+        </section>
+
+        <section class="content-grid">
+            <div class="stack">
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Suivi global</div>
+                            <div class="section__sub">Ce qui est fait, ce qui est en attente et le niveau d'avancement</div>
+                        </div>
+                    </div>
+                    <div class="progress-list" id="progressList"></div>
+                </article>
+
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Gestion des comptes clients</div>
+                            <div class="section__sub">Voir, filtrer et supprimer un compte client si nécessaire</div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="search" id="clientSearch" placeholder="Rechercher par email, nom, téléphone, immatriculation...">
+                        <select id="clientRoleFilter" title="Filtrer les comptes par rôle">
+                            <option value="all">Tous les rôles</option>
+                            <option value="client">Clients</option>
+                            <option value="admin">Admins</option>
+                        </select>
+                    </div>
+
+                    <div class="cards-list" id="clientsList"></div>
+                </article>
+
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Gestion des rendez-vous</div>
+                            <div class="section__sub">Confirmer, annuler et suivre chaque demande</div>
+                        </div>
+                        <div class="actions actions--toolbar">
+                            <button class="btn-inline btn-inline--success" onclick="exportAppointmentsCSV()" title="Exporter les RDV confirmés en CSV"><i class="fa-solid fa-file-arrow-down"></i> Exporter confirmés</button>
+                            <button class="btn-inline" onclick="document.getElementById('importCsvInput').click()" title="Importer des RDV depuis un fichier CSV"><i class="fa-solid fa-file-arrow-up"></i> Importer CSV</button>
+                            <input type="file" id="importCsvInput" class="u-hidden" accept=".csv,text/csv" onchange="importAppointmentsCSV(this)">
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="search" id="appointmentSearch" placeholder="Rechercher par client, service, date...">
+                        <select id="appointmentStatusFilter" title="Filtrer les rendez-vous par statut">
+                            <option value="all">Tous les statuts</option>
+                            <option value="pending">En attente</option>
+                            <option value="confirmed">Confirmés</option>
+                            <option value="cancelled">Annulés</option>
+                        </select>
+                    </div>
+
+                    <div class="cards-list" id="appointmentsList"></div>
+                </article>
+            </div>
+
+            <div class="stack">
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Agenda Vroomly</div>
+                            <div class="section__sub">Importez le contenu de votre calendrier Vroomly dans le tableau de bord admin</div>
+                        </div>
+                    </div>
+
+                    <div class="agenda-tools">
+                        <label for="agendaImportDate">Date de référence pour l'import Vroomly</label>
+                        <input type="date" id="agendaImportDate" value="2026-04-20">
+
+                        <div class="agenda-file-imports">
+                            <div class="file-import-block">
+                                <label class="file-import-label" for="agendaIcsFile">
+                                    <i class="fa-solid fa-calendar-import"></i>
+                                    <span class="file-import-title">Importer un fichier <strong>ICS</strong></span>
+                                    <span class="file-import-hint">Export iCalendar (.ics) depuis Vroomly ou Google Agenda</span>
+                                    <span class="file-import-btn">Choisir un fichier .ics</span>
+                                </label>
+                                <input type="file" id="agendaIcsFile" accept=".ics,text/calendar" class="file-import-hidden">
+                                <span class="file-import-name" id="agendaIcsFileName">Aucun fichier sélectionné</span>
+                            </div>
+                            <div class="file-import-block">
+                                <label class="file-import-label" for="agendaCsvFile">
+                                    <i class="fa-solid fa-file-csv"></i>
+                                    <span class="file-import-title">Importer un fichier <strong>CSV</strong></span>
+                                    <span class="file-import-hint">Export tableur (.csv) depuis Vroomly — colonnes : date, heure, client, prestation, statut</span>
+                                    <span class="file-import-btn">Choisir un fichier .csv</span>
+                                </label>
+                                <input type="file" id="agendaCsvFile" accept=".csv,text/csv" class="file-import-hidden">
+                                <span class="file-import-name" id="agendaCsvFileName">Aucun fichier sélectionné</span>
+                            </div>
+                        </div>
+
+                        <details class="agenda-manual-toggle">
+                            <summary><i class="fa-solid fa-keyboard"></i> Saisie manuelle (copier-coller)</summary>
+                            <textarea id="agendaImportText" placeholder="Collez ici les rendez-vous copiés depuis Vroomly. Formats acceptés :&#10;09:00 | Client | Prestation | Statut&#10;2026-04-20 | 09:00 | Client | Prestation | Statut"></textarea>
+                        </details>
+
+                        <div class="agenda-actions">
+                            <button class="btn btn--primary" id="agendaImportBtn"><i class="fa-solid fa-calendar-plus"></i> Importer dans l'agenda</button>
+                            <button class="btn btn--ghost" id="agendaClearBtn"><i class="fa-solid fa-trash"></i> Vider l'agenda</button>
+                            <a class="btn btn--secondary" href="https://www.vroomly.com/professional/calendar/?date=2026-04-20" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir Vroomly</a>
+                        </div>
+                        <p class="agenda-note"><i class="fa-solid fa-circle-info"></i> Importez un fichier <strong>.ics</strong> (iCalendar) ou <strong>.csv</strong> exporté depuis Vroomly, ou utilisez la saisie manuelle. La synchronisation automatique directe requiert un accès API Vroomly (non disponible publiquement à ce jour).</p>
+                    </div>
+
+                    <div class="mini-grid section-gap" id="agendaHighlights"></div>
+                    <div class="agenda-list" id="agendaList"></div>
+                </article>
+
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Statistiques de trafic</div>
+                            <div class="section__sub">Suivi local des visites enregistrées sur ce navigateur</div>
+                        </div>
+                    </div>
+
+                    <div class="mini-grid" id="trafficHighlights"></div>
+                    <div class="mini-list section-gap">
+                        <div class="mini-card">
+                            <h4>Pages les plus consultées</h4>
+                            <ul class="traffic-list" id="trafficPages"></ul>
+                        </div>
+                        <div class="mini-card">
+                            <h4>Dernière activité détectée</h4>
+                            <ul class="recent-list" id="trafficRecent"></ul>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title">Gestion des occasions</div>
+                            <div class="section__sub">Créer, modifier, vendre ou retirer une annonce</div>
+                        </div>
+                        <div class="section__actions">
+                            <button type="button" class="btn btn--primary" id="occasionNewBtn"><i class="fa-solid fa-plus"></i> Créer une nouvelle annonce</button>
+                            <a class="btn btn--ghost" href="/occasions" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Voir la page occasions</a>
+                        </div>
+                    </div>
+
+                    <form id="occasionForm">
+                        <input type="hidden" id="occasionId">
+                        <div class="form-grid">
+                            <div>
+                                <label for="occasionType">Type <small>*</small></label>
+                                <select id="occasionType" required>
+                                    <option value="voiture">Véhicule</option>
+                                    <option value="piece">Pièce détachée</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="occasionStatus">Statut <small>*</small></label>
+                                <select id="occasionStatus" required>
+                                    <option value="disponible">Disponible</option>
+                                    <option value="vendu">Vendu</option>
+                                </select>
+                            </div>
+                            <div class="full">
+                                <label for="occasionTitle">Titre <small>*</small></label>
+                                <input id="occasionTitle" type="text" required placeholder="Ex : Peugeot 208 1.2 PureTech 82ch">
+                            </div>
+                            <div>
+                                <label for="occasionPrice">Prix (€)</label>
+                                <input id="occasionPrice" type="number" min="0" step="1" placeholder="7900">
+                            </div>
+                            <div>
+                                <label for="occasionYear">Année / Référence</label>
+                                <input id="occasionYear" type="text" placeholder="2020 ou réf interne">
+                            </div>
+                            <div>
+                                <label for="occasionKm">Kilométrage</label>
+                                <input id="occasionKm" type="number" min="0" step="1" placeholder="82000">
+                            </div>
+                            <div>
+                                <label for="occasionFuel">Carburant / État</label>
+                                <input id="occasionFuel" type="text" placeholder="Diesel, essence, très bon état...">
+                            </div>
+                            <div>
+                                <label for="occasionGearbox">Boîte / Compatibilité</label>
+                                <input id="occasionGearbox" type="text" placeholder="Manuelle, automatique, compatible Clio IV...">
+                            </div>
+                            <div class="full">
+                                <label for="occasionDescription">Description <small>*</small></label>
+                                <textarea id="occasionDescription" rows="4" required placeholder="Décrivez clairement l'annonce..."></textarea>
+                            </div>
+                            <div class="full">
+                                <label>Photos de l'annonce <span class="field-note">(max 8, JPEG/PNG/WEBP)</span></label>
+                                <div class="photo-drop-zone" id="photoDropZone">
+                                    <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" multiple title="Ajouter des photos à l'annonce" aria-label="Ajouter des photos à l'annonce">
+                                    <div class="photo-drop-zone__icon"><i class="fa-solid fa-images"></i></div>
+                                    <div class="photo-drop-zone__label"><strong>Glissez vos photos ici</strong> ou cliquez pour sélectionner</div>
+                                </div>
+                                <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+                                <div class="photo-count-hint" id="photoCountHint"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn--ghost" id="occasionResetBtn">Réinitialiser</button>
+                            <button type="submit" class="btn btn--primary" id="occasionSubmitBtn"><i class="fa-solid fa-upload"></i> Publier l'annonce</button>
+                        </div>
+                        <p class="form-note" id="occasionFormNote">Validez ce formulaire pour publier l'annonce sur la page /occasions.</p>
+                    </form>
+
+                    <div class="cards-list occasions-gap" id="occasionsList"></div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ══ PARAMÈTRES ══════════════════════════════════════════════════ -->
+        <section class="content-grid" id="settings-section">
+            <div class="stack">
+                <!-- Profil admin -->
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title"><i class="fa-solid fa-user-gear"></i> Mon profil</div>
+                            <div class="section__sub">Modifier votre prénom, email et mot de passe</div>
+                        </div>
+                    </div>
+                    <form class="settings-form" id="profileForm" novalidate>
+                        <div class="settings-row">
+                            <div class="field-group">
+                                <label for="profileName">Prénom / Nom affiché</label>
+                                <input type="text" id="profileName" placeholder="Nino" maxlength="60">
+                            </div>
+                            <div class="field-group">
+                                <label for="profileEmail">Email de connexion</label>
+                                <input type="email" id="profileEmail" placeholder="clinikauto74@gmail.com" maxlength="120">
+                            </div>
+                        </div>
+                        <details class="settings-pwd-toggle">
+                            <summary><i class="fa-solid fa-lock"></i> Changer le mot de passe</summary>
+                            <div class="settings-row settings-row--pad">
+                                <div class="field-group">
+                                    <label for="profileCurrentPwd">Mot de passe actuel</label>
+                                    <input type="password" id="profileCurrentPwd" placeholder="••••••••" autocomplete="current-password">
+                                </div>
+                                <div class="field-group">
+                                    <label for="profileNewPwd">Nouveau mot de passe</label>
+                                    <input type="password" id="profileNewPwd" placeholder="min. 8 caractères" autocomplete="new-password">
+                                </div>
+                            </div>
+                        </details>
+                        <button type="submit" class="btn btn--primary" id="profileSaveBtn">
+                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer le profil
+                        </button>
+                    </form>
+                </article>
+
+                <!-- Paramètres du site -->
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title"><i class="fa-solid fa-screwdriver-wrench"></i> Paramètres du site</div>
+                            <div class="section__sub">Coordonnées, horaires et liens affichés sur le site</div>
+                        </div>
+                    </div>
+                    <form class="settings-form" id="siteSettingsForm" novalidate>
+                        <div class="settings-row">
+                            <div class="field-group">
+                                <label for="settingAddress">Adresse</label>
+                                <input type="text" id="settingAddress" placeholder="118 clos des teppes, 74950 Scionzier" maxlength="200">
+                            </div>
+                            <div class="field-group">
+                                <label for="settingPhone">Téléphone</label>
+                                <input type="text" id="settingPhone" placeholder="06 20 18 56 27" maxlength="30">
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="field-group">
+                                <label for="settingEmail">Email de contact public</label>
+                                <input type="email" id="settingEmail" placeholder="clinikauto74@gmail.com" maxlength="120">
+                            </div>
+                            <div class="field-group">
+                                <label for="settingFacebook">Lien Facebook (optionnel)</label>
+                                <input type="url" id="settingFacebook" placeholder="https://facebook.com/..." maxlength="300">
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="field-group">
+                                <label for="settingHoursWeekday">Horaires lundi–vendredi</label>
+                                <input type="text" id="settingHoursWeekday" placeholder="09h–12h / 14h–18h" maxlength="80">
+                            </div>
+                            <div class="field-group">
+                                <label for="settingHoursSaturday">Horaires samedi</label>
+                                <input type="text" id="settingHoursSaturday" placeholder="09h–12h" maxlength="80">
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="field-group">
+                                <label for="settingHoursSunday">Horaires dimanche</label>
+                                <input type="text" id="settingHoursSunday" placeholder="Fermé" maxlength="80">
+                            </div>
+                            <div class="field-group">
+                                <label for="settingMaps">Lien Google Maps (optionnel)</label>
+                                <input type="url" id="settingMaps" placeholder="https://maps.google.com/..." maxlength="500">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn--primary" id="settingsSaveBtn">
+                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer les paramètres
+                        </button>
+                    </form>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="userModal" aria-hidden="true">
+        <div class="modal__box">
+            <div class="modal__head">
+                <div>
+                    <div class="section__title">Détail du compte client</div>
+                    <div class="section__sub" id="userModalSub">Rendez-vous et informations enregistrées</div>
+                </div>
+                <button class="modal__close" id="closeUserModal" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="userModalBody"></div>
         </div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
+    <script src="js/analytics.js"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem("user"));
+        const AGENDA_KEY = 'clinikauto_admin_vroomly_agenda';
+        const ADMIN_API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        const MAX_PHOTOS = 8;
+        const MAX_PHOTO_DIMENSION = 1600;
+        const PHOTO_JPEG_QUALITY = 0.82;
+        const MAX_TOTAL_PHOTO_CHARS = 18 * 1024 * 1024;
 
-        if (!user) {
-            window.location.href = "http://localhost:3000/login";
+        // ── État photos occasion ──────────────────────────────────────────
+        const photoState = { photos: [] };
+
+        function renderPhotoGrid() {
+            const grid = document.getElementById('photoPreviewGrid');
+            const hint = document.getElementById('photoCountHint');
+            if (!grid) return;
+            grid.innerHTML = photoState.photos.map((src, i) => `
+                <div class="photo-thumb">
+                    <img src="${src}" alt="Photo ${i + 1}">
+                    <button type="button" class="photo-thumb__del" data-photo-index="${i}" title="Supprimer cette photo">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+            hint.textContent = photoState.photos.length
+                ? `${photoState.photos.length} / ${MAX_PHOTOS} photo(s)`
+                : '';
         }
 
-        async function loadAppointments() {
-            try {
-                const response = await fetch("http://localhost:3000/all-appointments");
-                const appointments = await response.json();
-
-                const container = document.getElementById("appointmentsContainer");
-
-                if (appointments.length === 0) {
-                    container.innerHTML = '<div class="no-data">Aucun rendez-vous pour le moment</div>';
+        function compressImageFile(file) {
+            return new Promise((resolve, reject) => {
+                if (!file.type.startsWith('image/')) {
+                    reject(new Error('Type non supporté'));
+                    return;
+                }
+                if (file.size > 8 * 1024 * 1024) {
+                    reject(new Error(`${file.name} dépasse 8 Mo`));
                     return;
                 }
 
-                const total = appointments.length;
-                const pending = appointments.filter(a => a.status !== "confirmed").length;
-                const confirmed = appointments.filter(a => a.status === "confirmed").length;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const image = new Image();
+                    image.onload = () => {
+                        let width = image.width;
+                        let height = image.height;
 
-                document.getElementById("totalAppointments").textContent = total;
-                document.getElementById("pendingAppointments").textContent = pending;
-                document.getElementById("confirmedAppointments").textContent = confirmed;
+                        if (width > MAX_PHOTO_DIMENSION || height > MAX_PHOTO_DIMENSION) {
+                            const ratio = Math.min(MAX_PHOTO_DIMENSION / width, MAX_PHOTO_DIMENSION / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
 
-                let tableHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Client (ID)</th>
-                                <th>Service</th>
-                                <th>Date</th>
-                                <th>Heure</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
 
-                appointments.forEach(appointment => {
-                    const status = appointment.status || "pending";
-                    const badgeClass = status === "confirmed" ? "badge-confirmed" : 
-                                      status === "cancelled" ? "badge-cancelled" : "badge-pending";
-                    const statusText = status === "confirmed" ? "Confirmé" : 
-                                      status === "cancelled" ? "Annulé" : "En attente";
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) {
+                            reject(new Error('Compression image impossible'));
+                            return;
+                        }
 
-                    tableHTML += `
-                        <tr>
-                            <td>#${appointment.id}</td>
-                            <td>Client ${appointment.user_id}</td>
-                            <td>${appointment.service}</td>
-                            <td>${appointment.date}</td>
-                            <td>${appointment.time}</td>
-                            <td><span class="badge ${badgeClass}">${statusText}</span></td>
-                            <td>
-                                ${status !== "confirmed" ? `<button class="action-btn btn-confirm" onclick="confirmAppointment(${appointment.id})">✓ Valider</button>` : ''}
-                                ${status !== "cancelled" ? `<button class="action-btn btn-cancel" onclick="cancelAppointment(${appointment.id})">✕ Annuler</button>` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                tableHTML += `
-                        </tbody>
-                    </table>
-                `;
-
-                container.innerHTML = tableHTML;
-
-            } catch (error) {
-                document.getElementById("appointmentsContainer").innerHTML = 
-                    '<div class="no-data">❌ Erreur lors du chargement des rendez-vous</div>';
-                console.error("Erreur:", error);
-            }
+                        ctx.drawImage(image, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY));
+                    };
+                    image.onerror = () => reject(new Error(`Image invalide: ${file.name}`));
+                    image.src = event.target.result;
+                };
+                reader.onerror = () => reject(new Error(`Lecture impossible: ${file.name}`));
+                reader.readAsDataURL(file);
+            });
         }
 
-        async function confirmAppointment(appointmentId) {
-            try {
-                const response = await fetch(`http://localhost:3000/appointment/${appointmentId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ status: "confirmed" })
-                });
-
-                if (response.ok) {
-                    alert("✅ Rendez-vous confirmé !");
-                    loadAppointments();
-                } else {
-                    alert("❌ Erreur lors de la confirmation");
-                }
-            } catch (error) {
-                alert("❌ Erreur de connexion");
-                console.error("Erreur:", error);
-            }
+        function readFilesAsBase64(files) {
+            return Promise.all(Array.from(files).map((file) => compressImageFile(file)));
         }
 
-        async function cancelAppointment(appointmentId) {
-            if (confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
-                try {
-                    const response = await fetch(`http://localhost:3000/appointment/${appointmentId}`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ status: "cancelled" })
-                    });
-
-                    if (response.ok) {
-                        alert("✅ Rendez-vous annulé !");
-                        loadAppointments();
-                    } else {
-                        alert("❌ Erreur lors de l'annulation");
+        function addPhotos(files) {
+            const remaining = MAX_PHOTOS - photoState.photos.length;
+            if (remaining <= 0) { showToast(`Maximum ${MAX_PHOTOS} photos atteint.`); return; }
+            const toAdd = Array.from(files).slice(0, remaining);
+            readFilesAsBase64(toAdd)
+                .then((b64s) => {
+                    const nextPhotos = [...photoState.photos, ...b64s];
+                    const totalChars = nextPhotos.reduce((sum, src) => sum + String(src || '').length, 0);
+                    if (totalChars > MAX_TOTAL_PHOTO_CHARS) {
+                        showToast('Les photos sont trop lourdes pour la publication. Réduisez leur nombre ou leur taille.');
+                        return;
                     }
-                } catch (error) {
-                    alert("❌ Erreur de connexion");
-                    console.error("Erreur:", error);
-                }
+                    photoState.photos = nextPhotos;
+                    renderPhotoGrid();
+                })
+                .catch((err) => showToast(err.message || 'Erreur chargement image.'));
+        }
+
+        function initPhotoDrop() {
+            const zone = document.getElementById('photoDropZone');
+            const fileInput = document.getElementById('photoFileInput');
+            const grid = document.getElementById('photoPreviewGrid');
+            if (!zone || !fileInput || !grid) return;
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) addPhotos(fileInput.files);
+                fileInput.value = '';
+            });
+
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) addPhotos(e.dataTransfer.files);
+            });
+
+            grid.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-photo-index]');
+                if (!btn) return;
+                const idx = Number(btn.dataset.photoIndex);
+                photoState.photos.splice(idx, 1);
+                renderPhotoGrid();
+            });
+        }
+
+        const state = {
+            admin: null,
+            token: null,
+            appointments: [],
+            users: [],
+            clients: [],
+            occasions: [],
+            agenda: [],
+            analytics: {
+                totalViews: 0,
+                sessions: 0,
+                pages: {},
+                events: {},
+                recentVisits: [],
+                recentEvents: []
+            }
+        };
+
+        const calState = {
+            year: new Date().getFullYear(),
+            month: new Date().getMonth(),
+            selectedDay: (() => {
+                const today = new Date();
+                return today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            })()
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function readLocalJson(key, fallback) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+            } catch (_err) {
+                return fallback;
             }
         }
 
-        function logout() {
-            localStorage.removeItem("user");
-            window.location.href = "http://localhost:3000/login";
+        function getAnalytics() {
+            return state.analytics || { totalViews: 0, sessions: 0, pages: {}, recentVisits: [], events: {} };
         }
 
-        loadAppointments();
-        setInterval(loadAppointments, 10000);
+        function saveAgenda() {
+            localStorage.setItem(AGENDA_KEY, JSON.stringify(state.agenda || []));
+        }
+
+        function normalizeAgendaItem(item, fallbackDate) {
+            const date = String(item.date || fallbackDate || '').trim();
+            const time = String(item.time || '').trim();
+            const client = String(item.client || '').trim();
+            const service = String(item.service || '').trim();
+            const status = String(item.status || 'À confirmer').trim();
+            const note = String(item.note || '').trim();
+            const key = [date, time, client, service, status].join('|').toLowerCase();
+            return { key, date, time, client, service, status, note };
+        }
+
+        /* ─── ICS parser ─────────────────────────────────────── */
+        function parseICS(text) {
+            const events = [];
+            const veventBlocks = text.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) || [];
+            veventBlocks.forEach((block) => {
+                const get = (key) => {
+                    const m = block.match(new RegExp(String.raw`^${key}(?:;[^\r\n]*)?:([^\r\n]*)`, 'm'));
+                    return m ? m[1].replace(/\\n/g, ' ').replace(/\\,/g, ',').trim() : '';
+                };
+                const dtRaw = get('DTSTART') || get('DTSTART;TZID=[^:]+');
+                let date = '', time = '';
+                if (dtRaw) {
+                    const clean = dtRaw.replace(/[TZ]/g, ' ').trim();
+                    const parts = clean.split(' ');
+                    const d = parts[0] || '';
+                    const t = parts[1] || '';
+                    if (d.length === 8) {
+                        date = `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+                    } else {
+                        date = d;
+                    }
+                    if (t.length >= 4) {
+                        time = `${t.slice(0, 2)}:${t.slice(2, 4)}`;
+                    }
+                }
+                const summary   = get('SUMMARY');
+                const desc      = get('DESCRIPTION');
+                const location  = get('LOCATION');
+                const statusRaw = get('STATUS');
+                const status = statusRaw === 'CONFIRMED' ? 'Confirmé'
+                             : statusRaw === 'CANCELLED' ? 'Annulé'
+                             : statusRaw === 'TENTATIVE' ? 'À confirmer'
+                             : (statusRaw || 'Importé');
+                if (summary || desc) {
+                    events.push({ date, time, client: summary, service: desc || location, status, note: location });
+                }
+            });
+            return events;
+        }
+
+        /* ─── CSV parser ─────────────────────────────────────── */
+        function parseCSV(text, fallbackDate) {
+            const lines = text.trim().split(/\r?\n/).filter(Boolean);
+            if (!lines.length) return [];
+            const sep = lines[0].includes(';') ? ';' : ',';
+            const parseLine = (line) => line.split(sep).map((c) => c.replace(/^"(.*)"$/, '$1').trim());
+
+            const headers = parseLine(lines[0]).map((h) => h.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, '_'));
+            const idx = (aliases) => aliases.reduce((found, a) => found !== -1 ? found : headers.findIndex((h) => h.includes(a)), -1);
+
+            const iDate    = idx(['date']);
+            const iTime    = idx(['heure', 'time', 'horaire']);
+            const iClient  = idx(['client', 'nom', 'name', 'proprietaire']);
+            const iService = idx(['prestation', 'service', 'intervention', 'objet']);
+            const iStatus  = idx(['statut', 'status', 'etat']);
+            const iNote    = idx(['note', 'commentaire', 'remarque', 'detail']);
+
+            const dataStart = iDate !== -1 || iClient !== -1 ? 1 : 0;
+            const results = [];
+            for (let i = dataStart; i < lines.length; i++) {
+                const cols = parseLine(lines[i]);
+                if (cols.every((c) => !c)) continue;
+                results.push({
+                    date:    iDate    >= 0 ? cols[iDate]    || fallbackDate : fallbackDate,
+                    time:    iTime    >= 0 ? cols[iTime]    || '' : '',
+                    client:  iClient  >= 0 ? cols[iClient]  || '' : cols[0] || '',
+                    service: iService >= 0 ? cols[iService] || '' : cols[1] || '',
+                    status:  iStatus  >= 0 ? cols[iStatus]  || 'Importé' : 'Importé',
+                    note:    iNote    >= 0 ? cols[iNote]    || '' : ''
+                });
+            }
+            return results.filter((r) => r.client || r.service);
+        }
+
+        function parseAgendaImport(raw, fallbackDate) {
+            const text = String(raw || '').trim();
+            if (!text) {
+                return [];
+            }
+
+            if (text.startsWith('[') || text.startsWith('{')) {
+                const parsed = JSON.parse(text);
+                const list = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
+                return list.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((item) => item.client || item.service);
+            }
+
+            return text
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                    const parts = line.split('|').map((part) => part.trim()).filter(Boolean);
+                    if (parts.length >= 5) {
+                        return normalizeAgendaItem({
+                            date: parts[0],
+                            time: parts[1],
+                            client: parts[2],
+                            service: parts[3],
+                            status: parts[4],
+                            note: parts.slice(5).join(' | ')
+                        }, fallbackDate);
+                    }
+                    if (parts.length === 4) {
+                        return normalizeAgendaItem({
+                            date: fallbackDate,
+                            time: parts[0],
+                            client: parts[1],
+                            service: parts[2],
+                            status: parts[3]
+                        }, fallbackDate);
+                    }
+                    if (parts.length === 3) {
+                        return normalizeAgendaItem({
+                            date: fallbackDate,
+                            time: parts[0],
+                            client: parts[1],
+                            service: parts[2]
+                        }, fallbackDate);
+                    }
+                    return normalizeAgendaItem({
+                        date: fallbackDate,
+                        time: '',
+                        client: '',
+                        service: line,
+                        status: 'À confirmer'
+                    }, fallbackDate);
+                })
+                .filter((item) => item.client || item.service);
+        }
+
+        function buildCalendar() {
+            const { year, month } = calState;
+            const today = new Date();
+            const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+            document.getElementById('calMonthLabel').textContent = monthNames[month] + ' ' + year;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            // Regrouper les RDV par date avec détail des statuts pour ce mois
+            const byDate = {};
+            state.appointments.forEach((appt) => {
+                if (!appt.date) return;
+                const [y, m] = appt.date.split('-').map(Number);
+                if (y === year && m - 1 === month) {
+                    const entry = byDate[appt.date] || { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
+                    const status = appt.status || 'pending';
+                    entry.total += 1;
+                    if (status === 'pending') entry.pending += 1;
+                    if (status === 'confirmed') entry.confirmed += 1;
+                    if (status === 'cancelled') entry.cancelled += 1;
+                    byDate[appt.date] = entry;
+                }
+            });
+
+            // Décalage lundi = 0 … dimanche = 6
+            const offset = (firstDay.getDay() + 6) % 7;
+            let cells = '';
+            for (let i = 0; i < offset; i++) {
+                cells += '<div class="cal-cell other-month"></div>';
+            }
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+                const dayStats = byDate[dateStr] || { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
+                const count = dayStats.total;
+                const isSelected = calState.selectedDay === dateStr;
+                let cls = 'cal-cell';
+                if (isToday) cls += ' today';
+                if (count > 0) cls += ' has-appts';
+                if (dayStats.pending > 0) cls += ' has-pending';
+                if (dayStats.confirmed > 0) cls += ' has-confirmed';
+                if (dayStats.cancelled > 0) cls += ' has-cancelled';
+                if (isSelected) cls += ' selected';
+                const statusDots = count > 0
+                    ? `<span class="cal-cell__status">${dayStats.pending > 0 ? '<span class="cal-cell__dot cal-cell__dot--pending" title="Rendez-vous en attente"></span>' : ''}${dayStats.confirmed > 0 ? '<span class="cal-cell__dot cal-cell__dot--confirmed" title="Rendez-vous confirmés"></span>' : ''}${dayStats.cancelled > 0 ? '<span class="cal-cell__dot cal-cell__dot--cancelled" title="Rendez-vous annulés"></span>' : ''}</span>`
+                    : '';
+                cells += `<div class="${cls}" data-cal-day="${dateStr}">${d}${count > 0 ? `<span class="cal-cell__badge">${count}</span>` : ''}${statusDots}</div>`;
+            }
+            document.getElementById('calDays').innerHTML = cells;
+
+            if (calState.selectedDay) {
+                showCalDayDetail(calState.selectedDay);
+            }
+        }
+
+        function showCalDayDetail(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dateFormatted = new Date(y, m - 1, d).toLocaleDateString('fr-FR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+            const appts = state.appointments.filter((a) => a.date === dateStr)
+                .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+            document.getElementById('calDayDetailHead').textContent = appts.length + ' rendez-vous — ' + dateFormatted;
+
+            if (!appts.length) {
+                document.getElementById('calDayAppointments').innerHTML = '<div class="empty" style="padding: 20px; text-align: center; color: var(--muted);">Aucun rendez-vous ce jour.</div>';
+            } else {
+                document.getElementById('calDayAppointments').innerHTML = appts.map((appt) => {
+                    const user = state.users.find((u) => String(u.id) === String(appt.user_id));
+                    const status = appt.status || 'pending';
+                    const statusClass = status === 'confirmed' ? 'chip--confirmed' : status === 'cancelled' ? 'chip--cancelled' : 'chip--pending';
+                    const statusLabel = status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente';
+                    const clientLabel = user ? (getUserLabel(user) + ' · ' + user.email) : 'Client #' + appt.user_id;
+                    const cardClass = status === 'confirmed'
+                        ? 'table-card--confirmed'
+                        : status === 'cancelled'
+                            ? 'table-card--cancelled'
+                            : 'table-card--pending';
+                    return `
+                        <article class="table-card ${cardClass}">
+                            <div class="table-card__head">
+                                <div>
+                                    <strong>#${appt.id} · ${escapeHtml(appt.time || '--:--')} · ${escapeHtml(appt.service)}</strong>
+                                    <div class="section__sub">${escapeHtml(clientLabel)}</div>
+                                </div>
+                                <span class="chip ${statusClass}">${statusLabel}</span>
+                            </div>
+                            <div class="table-card__meta table-card__meta--muted">
+                                <span>Créé le ${escapeHtml(formatDate(appt.created_at || ''))}</span>
+                            </div>
+                            <div class="actions actions--compact">
+                                ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appt.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
+                                ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appt.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
+                                ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appt.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+            }
+            document.getElementById('calDayDetail').style.display = 'block';
+        }
+
+        function buildAgenda() {
+            const list = [...(state.agenda || [])].sort((a, b) => {
+                const left = new Date((a.date || '') + 'T' + (a.time || '00:00') + ':00');
+                const right = new Date((b.date || '') + 'T' + (b.time || '00:00') + ':00');
+                return left - right;
+            });
+            const highlights = [
+                { label: 'Créneaux importés', value: list.length },
+                { label: 'Date active', value: document.getElementById('agendaImportDate').value || '—' }
+            ];
+
+            document.getElementById('agendaHighlights').innerHTML = highlights.map((item) => `
+                <div class="mini-card">
+                    <h4>${escapeHtml(item.label)}</h4>
+                    <strong>${escapeHtml(item.value)}</strong>
+                </div>
+            `).join('');
+
+            const container = document.getElementById('agendaList');
+            if (!list.length) {
+                container.innerHTML = '<div class="empty">Aucun rendez-vous Vroomly importé pour le moment.</div>';
+                return;
+            }
+
+            container.innerHTML = list.map((item) => `
+                <article class="agenda-item">
+                    <div class="agenda-item__head">
+                        <div>
+                            <strong>${escapeHtml(item.service || 'Rendez-vous')}</strong>
+                            <div class="section__sub">${escapeHtml(item.client || 'Client non renseigné')}</div>
+                        </div>
+                        <span class="chip chip--available">${escapeHtml(item.status || 'À confirmer')}</span>
+                    </div>
+                    <div class="agenda-item__meta">
+                        <span class="chip"><i class="fa-solid fa-calendar"></i> ${escapeHtml(item.date || 'Date non renseignée')}</span>
+                        <span class="chip"><i class="fa-solid fa-clock"></i> ${escapeHtml(item.time || 'Heure non renseignée')}</span>
+                    </div>
+                    ${item.note ? `<div class="section__sub" style="margin-top:12px;">${escapeHtml(item.note)}</div>` : ''}
+                </article>
+            `).join('');
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '—';
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return escapeHtml(value);
+            }
+            return date.toLocaleString('fr-FR');
+        }
+
+        function formatShortDate(dateValue, timeValue) {
+            const raw = timeValue ? dateValue + 'T' + timeValue + ':00' : dateValue;
+            const date = new Date(raw);
+            if (Number.isNaN(date.getTime())) {
+                return escapeHtml([dateValue, timeValue].filter(Boolean).join(' '));
+            }
+            return date.toLocaleDateString('fr-FR') + (timeValue ? ' à ' + escapeHtml(timeValue) : '');
+        }
+
+        function formatPrice(value) {
+            const number = Number(value);
+            return Number.isFinite(number) && number > 0
+                ? number.toLocaleString('fr-FR') + ' €'
+                : 'Prix sur demande';
+        }
+
+        function parseVehiclesText(raw) {
+            return String(raw || '')
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                    const parts = line.split(';').map((part) => part.trim());
+                    return {
+                        immat: parts[0] || '',
+                        marque: parts[1] || '',
+                        modele: parts[2] || '',
+                        annee: parts[3] || '',
+                        carburant: parts[4] || '',
+                        km: parts[5] || ''
+                    };
+                })
+                .filter((vehicle) => vehicle.immat || vehicle.marque || vehicle.modele);
+        }
+
+        function formatVehiclesText(vehicles) {
+            if (!Array.isArray(vehicles) || !vehicles.length) return '';
+            return vehicles.map((vehicle) => [
+                vehicle.immat || '',
+                vehicle.marque || '',
+                vehicle.modele || '',
+                vehicle.annee || '',
+                vehicle.carburant || '',
+                vehicle.km || ''
+            ].join(';')).join('\n');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => toast.classList.remove('show'), 3200);
+        }
+
+        function api(path, options) {
+            return fetch(ADMIN_API_BASE + path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + state.token,
+                    ...(options && options.headers ? options.headers : {})
+                }
+            }).then(async (response) => {
+                const text = await response.text();
+                let payload = null;
+                try {
+                    payload = text ? JSON.parse(text) : null;
+                } catch (_err) {
+                    payload = null;
+                }
+                if (!response.ok) {
+                    throw new Error((payload && payload.error) || 'Erreur serveur');
+                }
+                return payload;
+            });
+        }
+
+        function countStatus(status) {
+            return state.appointments.filter((appointment) => (appointment.status || 'pending') === status).length;
+        }
+
+        function getClientProfile(userId) {
+            return state.clients.find((client) => String(client.user_id) === String(userId)) || null;
+        }
+
+        function getUserLabel(user) {
+            const profile = getClientProfile(user.id);
+            if (profile && (profile.nom || profile.prenom)) {
+                return [profile.prenom, profile.nom].filter(Boolean).join(' ');
+            }
+            return user.email;
+        }
+
+        function goToSection(anchorId, filterElId, filterVal) {
+            if (filterElId) {
+                const filterEl = document.getElementById(filterElId);
+                if (filterEl && filterVal !== null) {
+                    filterEl.value = filterVal;
+                    filterEl.dispatchEvent(new Event('change'));
+                }
+            }
+            const target = document.getElementById(anchorId);
+            if (target) {
+                setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            }
+        }
+
+        function buildOverview() {
+            const analytics = getAnalytics();
+            const confirmed = countStatus('confirmed');
+            const pending = countStatus('pending');
+            const cancelled = countStatus('cancelled');
+            const totalClients = state.users.filter((user) => user.role !== 'admin').length;
+            const totalAdmins = state.users.filter((user) => user.role === 'admin').length;
+            const soldOccasions = state.occasions.filter((occasion) => occasion.statut === 'vendu').length;
+            const availableOccasions = state.occasions.filter((occasion) => occasion.statut !== 'vendu').length;
+            const cards = [
+                { label: 'Comptes clients', value: totalClients, className: 'stat-card__value--blue', note: 'hors comptes admin', anchor: 'clientsList', filterEl: 'clientRoleFilter', filterVal: 'client' },
+                { label: 'Administrateurs', value: totalAdmins, className: 'stat-card__value--red', note: 'vous êtes l’admin principal', anchor: 'clientsList', filterEl: 'clientRoleFilter', filterVal: 'admin' },
+                { label: 'RDV totaux', value: state.appointments.length, className: 'stat-card__value--blue', note: confirmed + ' confirmés', anchor: 'appointmentsList', filterEl: 'appointmentStatusFilter', filterVal: '' },
+                { label: 'RDV en attente', value: pending, className: 'stat-card__value--yellow', note: 'à traiter rapidement', anchor: 'appointmentsList', filterEl: 'appointmentStatusFilter', filterVal: 'pending' },
+                { label: 'RDV confirmés', value: confirmed, className: 'stat-card__value--green', note: 'travail validé', anchor: 'appointmentsList', filterEl: 'appointmentStatusFilter', filterVal: 'confirmed' },
+                { label: 'RDV annulés', value: cancelled, className: 'stat-card__value--red', note: 'historique annulé', anchor: 'appointmentsList', filterEl: 'appointmentStatusFilter', filterVal: 'cancelled' },
+                { label: 'Occasions en ligne', value: availableOccasions, className: 'stat-card__value--blue', note: soldOccasions + ' vendues', anchor: 'occasionsList', filterEl: null, filterVal: null },
+                { label: 'Vues du site', value: analytics.totalViews || 0, className: 'stat-card__value--green', note: (analytics.sessions || 0) + ' sessions', anchor: 'progressList', filterEl: null, filterVal: null }
+            ];
+
+            document.getElementById('overviewStats').innerHTML = cards.map((card) => `
+                <article class="stat-card" role="button" tabindex="0" title="Accéder à : ${escapeHtml(card.label)}" onclick="goToSection('${card.anchor}','${card.filterEl || ''}','${card.filterVal !== null ? card.filterVal : ''}')">                    <div class="stat-card__label">${escapeHtml(card.label)}</div>
+                    <div class="stat-card__value ${card.className}">${card.value}</div>
+                    <small>${escapeHtml(card.note)}</small>
+                </article>
+            `).join('');
+
+            document.getElementById('adminClientCount').textContent = totalClients;
+            document.getElementById('adminOccasionCount').textContent = state.occasions.length;
+            document.getElementById('adminPendingCount').textContent = pending;
+            document.getElementById('trafficTotalLabel').textContent = (analytics.totalViews || 0) + ' vues';
+            const nameDisplay = document.getElementById('adminNameDisplay');
+            if (nameDisplay) nameDisplay.textContent = (state.admin && state.admin.name) || (state.admin && state.admin.email) || 'Admin';
+        }
+
+        function buildProgress() {
+            const confirmed = countStatus('confirmed');
+            const pending = countStatus('pending');
+            const cancelled = countStatus('cancelled');
+            const totalAppointments = state.appointments.length || 1;
+            const soldOccasions = state.occasions.filter((occasion) => occasion.statut === 'vendu').length;
+            const progressItems = [
+                {
+                    label: 'Rendez-vous traités',
+                    value: confirmed,
+                    sub: pending + ' en attente • ' + cancelled + ' annulés',
+                    width: Math.min(100, Math.round((confirmed / totalAppointments) * 100))
+                },
+                {
+                    label: 'Rendez-vous en attente',
+                    value: pending,
+                    sub: 'Ces demandes restent à confirmer ou annuler',
+                    width: Math.min(100, Math.round((pending / totalAppointments) * 100))
+                },
+                {
+                    label: 'Occasions vendues',
+                    value: soldOccasions,
+                    sub: state.occasions.filter((occasion) => occasion.statut !== 'vendu').length + ' encore disponibles',
+                    width: Math.min(100, Math.round((soldOccasions / Math.max(state.occasions.length || 1, 1)) * 100))
+                }
+            ];
+
+            document.getElementById('progressList').innerHTML = progressItems.map((item) => `
+                <div class="progress-item">
+                    <div class="progress-item__head">
+                        <strong>${escapeHtml(item.label)}</strong>
+                        <span>${escapeHtml(item.value)}</span>
+                    </div>
+                    <div class="progress-bar"><span style="width:${item.width}%"></span></div>
+                    <div class="section__sub" style="margin-top:10px;">${escapeHtml(item.sub)}</div>
+                </div>
+            `).join('');
+        }
+
+        function buildTraffic() {
+            const analytics = getAnalytics();
+            const pageEntries = Object.entries(analytics.pages || {}).sort((a, b) => b[1] - a[1]);
+            const highlights = [
+                { label: 'Vues totales', value: analytics.totalViews || 0 },
+                { label: 'Sessions', value: analytics.sessions || 0 },
+                { label: 'Pages suivies', value: pageEntries.length },
+                { label: 'Événements', value: Object.values(analytics.events || {}).reduce((sum, value) => sum + value, 0) }
+            ];
+
+            document.getElementById('trafficHighlights').innerHTML = highlights.map((item) => `
+                <div class="mini-card">
+                    <h4>${escapeHtml(item.label)}</h4>
+                    <strong>${escapeHtml(item.value)}</strong>
+                </div>
+            `).join('');
+
+            document.getElementById('trafficPages').innerHTML = pageEntries.length
+                ? pageEntries.slice(0, 6).map(([page, count]) => `
+                    <li><strong>${escapeHtml(page)}</strong><span>${escapeHtml(count)} vue(s)</span></li>
+                `).join('')
+                : '<li><strong>Aucune donnée</strong><span>Les visites apparaîtront ici</span></li>';
+
+            const recentVisits = analytics.recentVisits || [];
+            document.getElementById('trafficRecent').innerHTML = recentVisits.length
+                ? recentVisits.slice(0, 6).map((visit) => `
+                    <li><strong>${escapeHtml(visit.page)}</strong><span>${escapeHtml(formatDate(visit.at))}</span></li>
+                `).join('')
+                : '<li><strong>Pas encore d’activité</strong><span>Ouvrez les pages du site pour alimenter les stats</span></li>';
+        }
+
+        function buildClients() {
+            const search = document.getElementById('clientSearch').value.trim().toLowerCase();
+            const roleFilter = document.getElementById('clientRoleFilter').value;
+            const list = state.users.filter((user) => {
+                const profile = getClientProfile(user.id);
+                const haystack = [
+                    user.email,
+                    user.role,
+                    profile && profile.nom,
+                    profile && profile.prenom,
+                    profile && profile.tel,
+                    profile && profile.email,
+                    profile && profile.adresse,
+                    profile && Array.isArray(profile.vehicules) ? profile.vehicules.map((vehicule) => vehicule.immat).join(' ') : ''
+                ].join(' ').toLowerCase();
+
+                if (roleFilter !== 'all' && user.role !== roleFilter) {
+                    return false;
+                }
+                return !search || haystack.includes(search);
+            });
+
+            const container = document.getElementById('clientsList');
+            if (!list.length) {
+                container.innerHTML = '<div class="empty">Aucun compte ne correspond à votre filtre.</div>';
+                return;
+            }
+
+            container.innerHTML = list.map((user) => {
+                const profile = getClientProfile(user.id);
+                const vehicles = profile && Array.isArray(profile.vehicules) ? profile.vehicules : [];
+                const vehiclesCount = vehicles.length;
+                const vehiclesImmat = vehicles.map((v) => v.immat).filter(Boolean);
+                const rdvCount = Number(user.appointments_count || 0);
+                return `
+                    <article class="client-card">
+                        <div class="client-card__head">
+                            <div>
+                                <strong>${escapeHtml(getUserLabel(user))}</strong>
+                                <div class="section__sub">${escapeHtml(user.email)}</div>
+                            </div>
+                            <span class="chip ${user.role === 'admin' ? 'chip--admin' : 'chip--client'}">${user.role === 'admin' ? 'Admin' : 'Client'}</span>
+                        </div>
+
+                        <div class="client-card__meta">
+                            <span class="chip"><i class="fa-solid fa-car"></i> ${escapeHtml(vehiclesCount)} véhicule(s)</span>
+                            <span class="chip"><i class="fa-solid fa-calendar-days"></i> ${escapeHtml(rdvCount)} RDV</span>
+                            <span class="chip"><i class="fa-solid fa-phone"></i> ${escapeHtml((profile && profile.tel) || 'Non renseigné')}</span>
+                            ${vehiclesImmat.map((im) => `<span class="chip chip--immat"><i class="fa-solid fa-id-card"></i> ${escapeHtml(im)}</span>`).join('')}
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn-inline" data-open-user="${user.id}"><i class="fa-solid fa-eye"></i> Voir le détail</button>
+                            ${user.role !== 'admin' ? `<button class="btn-inline btn-inline--danger" data-delete-user="${user.id}"><i class="fa-solid fa-trash"></i> Supprimer</button>` : ''}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // ── CSV utilitaire ────────────────────────────────────────
+        function csvEscape(val) {
+            const s = String(val === null || val === undefined ? '' : val);
+            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                return '"' + s.replace(/"/g, '""') + '"';
+            }
+            return s;
+        }
+
+        function downloadBlob(content, filename, mime) {
+            const bom = '\uFEFF'; // BOM pour Excel UTF-8
+            const blob = new Blob([bom + content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+
+        function exportAppointmentsCSV() {
+            const statusFilter = document.getElementById('appointmentStatusFilter').value;
+            let data = state.appointments.filter((a) => {
+                const s = a.status || 'pending';
+                return statusFilter === 'all' ? true : s === statusFilter;
+            });
+            if (!data.length) {
+                showToast('Aucun rendez-vous à exporter avec ce filtre.');
+                return;
+            }
+            const headers = ['ID', 'Service', 'Date', 'Heure', 'Statut', 'Email client', 'Nom', 'Prénom', 'Téléphone', 'Créé le'];
+            const rows = data.map((a) => {
+                const user = state.users.find((u) => u.id === a.user_id);
+                const profile = getClientProfile(a.user_id);
+                return [
+                    a.id, a.service, a.date, a.time, a.status || 'pending',
+                    user ? user.email : '',
+                    profile ? (profile.nom || '') : '',
+                    profile ? (profile.prenom || '') : '',
+                    profile ? (profile.tel || '') : '',
+                    a.created_at || ''
+                ].map(csvEscape).join(',');
+            });
+            const csv = [headers.map(csvEscape).join(','), ...rows].join('\r\n');
+            const label = statusFilter === 'all' ? 'tous' : statusFilter;
+            downloadBlob(csv, `rdv-clinikauto-${label}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+            showToast(`${data.length} rendez-vous exportés.`);
+        }
+
+        async function importAppointmentsCSV(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+
+            const text = await file.text();
+            const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim());
+            if (lines.length < 2) {
+                showToast('Fichier CSV vide ou sans données.');
+                return;
+            }
+
+            // Détection des entêtes
+            const rawHeaders = lines[0].split(',').map((h) => h.replace(/^"|"$/g, '').trim().toLowerCase());
+            const col = (names) => {
+                for (const n of names) {
+                    const idx = rawHeaders.indexOf(n);
+                    if (idx !== -1) return idx;
+                }
+                return -1;
+            };
+            const iService = col(['service']);
+            const iDate    = col(['date']);
+            const iTime    = col(['heure', 'time']);
+            const iEmail   = col(['email client', 'email']);
+            const iStatus  = col(['statut', 'status']);
+
+            if (iService === -1 || iDate === -1 || iTime === -1) {
+                showToast('Colonnes obligatoires manquantes : service, date, heure');
+                return;
+            }
+
+            const appointments = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map((c) => c.replace(/^"|"$/g, '').trim());
+                appointments.push({
+                    service: cols[iService] || '',
+                    date:    cols[iDate]    || '',
+                    time:    cols[iTime]    || '',
+                    email:   iEmail !== -1  ? cols[iEmail]  : '',
+                    status:  iStatus !== -1 ? cols[iStatus] : 'pending'
+                });
+            }
+
+            showToast(`Import de ${appointments.length} ligne(s) en cours…`);
+
+            try {
+                const result = await api('/admin/appointments/import', {
+                    method: 'POST',
+                    body: JSON.stringify({ appointments })
+                });
+                if (result.imported !== undefined) {
+                    const msg = `✓ ${result.imported} RDV importés` + (result.errors && result.errors.length ? ` · ${result.errors.length} erreurs` : '');
+                    showToast(msg);
+                    if (result.errors && result.errors.length) {
+                        console.warn('Erreurs import RDV:', result.errors);
+                    }
+                    await loadDashboard();
+                } else {
+                    showToast(result.error || 'Erreur lors de l\'import.');
+                }
+            } catch (e) {
+                showToast('Erreur réseau lors de l\'import.');
+            }
+        }
+        // ─────────────────────────────────────────────────────────
+
+        function buildAppointments() {
+            const search = document.getElementById('appointmentSearch').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('appointmentStatusFilter').value;
+            const filtered = state.appointments.filter((appointment) => {
+                const user = state.users.find((item) => item.id === appointment.user_id);
+                const profile = getClientProfile(appointment.user_id);
+                const haystack = [
+                    appointment.service,
+                    appointment.date,
+                    appointment.time,
+                    appointment.status,
+                    user && user.email,
+                    profile && profile.nom,
+                    profile && profile.prenom,
+                    profile && profile.tel
+                ].join(' ').toLowerCase();
+
+                if (statusFilter !== 'all' && (appointment.status || 'pending') !== statusFilter) {
+                    return false;
+                }
+                return !search || haystack.includes(search);
+            });
+
+            const container = document.getElementById('appointmentsList');
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty">Aucun rendez-vous ne correspond au filtre actuel.</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map((appointment) => {
+                const status = appointment.status || 'pending';
+                const user = state.users.find((item) => item.id === appointment.user_id);
+                const statusClass = status === 'confirmed'
+                    ? 'chip--confirmed'
+                    : status === 'cancelled'
+                        ? 'chip--cancelled'
+                        : 'chip--pending';
+
+                return `
+                    <article class="table-card">
+                        <div class="table-card__head">
+                            <div>
+                                <strong>#${escapeHtml(appointment.id)} · ${escapeHtml(appointment.service)}</strong>
+                                <div class="section__sub">${escapeHtml(user ? user.email : 'Client #' + appointment.user_id)} · ${escapeHtml(formatShortDate(appointment.date, appointment.time))}</div>
+                            </div>
+                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente'}</span>
+                        </div>
+                        <div class="table-card__meta">
+                            <span class="chip"><i class="fa-solid fa-user"></i> Client ${escapeHtml(appointment.user_id)}</span>
+                            <span class="chip"><i class="fa-solid fa-calendar-check"></i> Créé le ${escapeHtml(formatDate(appointment.created_at))}</span>
+                        </div>
+                        <div class="actions">
+                            ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appointment.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
+                            ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appointment.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
+                            ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appointment.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function resetOccasionForm() {
+            document.getElementById('occasionId').value = '';
+            document.getElementById('occasionType').value = 'voiture';
+            document.getElementById('occasionStatus').value = 'disponible';
+            document.getElementById('occasionTitle').value = '';
+            document.getElementById('occasionPrice').value = '';
+            document.getElementById('occasionYear').value = '';
+            document.getElementById('occasionKm').value = '';
+            document.getElementById('occasionFuel').value = '';
+            document.getElementById('occasionGearbox').value = '';
+            document.getElementById('occasionDescription').value = '';
+            photoState.photos = [];
+            renderPhotoGrid();
+            document.getElementById('occasionSubmitBtn').innerHTML = '<i class="fa-solid fa-upload"></i> Publier l\'annonce';
+            document.getElementById('occasionFormNote').textContent = 'Validez ce formulaire pour publier l\'annonce sur la page /occasions.';
+        }
+
+        function buildOccasions() {
+            const container = document.getElementById('occasionsList');
+            if (!state.occasions.length) {
+                container.innerHTML = '<div class="empty">Aucune occasion enregistrée. Utilisez le formulaire pour publier votre première annonce.</div>';
+                return;
+            }
+
+            const sorted = [...state.occasions].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            container.innerHTML = sorted.map((occasion) => `
+                <article class="occasion-card">
+                    <div class="occasion-card__head">
+                        <div>
+                            <strong>${escapeHtml(occasion.titre || 'Annonce sans titre')}</strong>
+                            <div class="section__sub">${escapeHtml(formatPrice(occasion.prix))} · ${escapeHtml(occasion.type === 'piece' ? 'Pièce détachée' : 'Véhicule')}</div>
+                        </div>
+                        <span class="chip ${occasion.statut === 'vendu' ? 'chip--sold' : 'chip--available'}">${occasion.statut === 'vendu' ? 'Vendu' : 'Disponible'}</span>
+                    </div>
+                    <div class="occasion-card__meta">
+                        ${occasion.annee ? `<span class="chip"><i class="fa-solid fa-calendar"></i> ${escapeHtml(occasion.annee)}</span>` : ''}
+                        ${occasion.km ? `<span class="chip"><i class="fa-solid fa-road"></i> ${escapeHtml(Number(occasion.km).toLocaleString('fr-FR'))} km</span>` : ''}
+                        ${occasion.carburant ? `<span class="chip"><i class="fa-solid fa-gas-pump"></i> ${escapeHtml(occasion.carburant)}</span>` : ''}
+                        ${occasion.boite ? `<span class="chip"><i class="fa-solid fa-gear"></i> ${escapeHtml(occasion.boite)}</span>` : ''}
+                        ${occasion.etat ? `<span class="chip"><i class="fa-solid fa-star"></i> ${escapeHtml(occasion.etat)}</span>` : ''}
+                    </div>
+                    <div class="section__sub" style="margin-top:12px;">${escapeHtml(occasion.description || 'Aucune description')}</div>
+                    <div class="actions">
+                        <button class="btn-inline" data-edit-occasion="${occasion.id}"><i class="fa-solid fa-pen"></i> Modifier</button>
+                        <button class="btn-inline ${occasion.statut === 'vendu' ? '' : 'btn-inline--success'}" data-toggle-occasion="${occasion.id}">
+                            <i class="fa-solid ${occasion.statut === 'vendu' ? 'fa-box-open' : 'fa-badge-check'}"></i>
+                            ${occasion.statut === 'vendu' ? 'Remettre disponible' : 'Marquer vendu'}
+                        </button>
+                        <button class="btn-inline btn-inline--danger" data-delete-occasion="${occasion.id}"><i class="fa-solid fa-trash"></i> Supprimer</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function refreshOccasionWidgets() {
+            buildOverview();
+            buildProgress();
+            buildOccasions();
+        }
+
+        function fillOccasionForm(id) {
+            const occasion = state.occasions.find((item) => item.id === id);
+            if (!occasion) {
+                return;
+            }
+
+            document.getElementById('occasionId').value = occasion.id;
+            document.getElementById('occasionType').value = occasion.type || 'voiture';
+            document.getElementById('occasionStatus').value = occasion.statut || 'disponible';
+            document.getElementById('occasionTitle').value = occasion.titre || '';
+            document.getElementById('occasionPrice').value = occasion.prix || '';
+            document.getElementById('occasionYear').value = occasion.type === 'piece' ? (occasion.reference || '') : (occasion.annee || '');
+            document.getElementById('occasionKm').value = occasion.km || '';
+            document.getElementById('occasionFuel').value = occasion.type === 'piece' ? (occasion.etat || '') : (occasion.carburant || '');
+            document.getElementById('occasionGearbox').value = occasion.type === 'piece' ? (occasion.compatible || '') : (occasion.boite || '');
+            document.getElementById('occasionDescription').value = occasion.description || '';
+            photoState.photos = Array.isArray(occasion.photos) ? [...occasion.photos] : [];
+            renderPhotoGrid();
+            document.getElementById('occasionSubmitBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Mettre à jour l\'annonce';
+            document.getElementById('occasionFormNote').textContent = 'Les modifications seront publiées sur la page /occasions après validation.';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function openUserModal(userId) {
+            const user = state.users.find((item) => String(item.id) === String(userId));
+            if (!user) {
+                return;
+            }
+            const profile = getClientProfile(user.id);
+            const appointments = state.appointments.filter((appointment) => String(appointment.user_id) === String(user.id));
+            const vehicles = profile && Array.isArray(profile.vehicules) ? profile.vehicules : [];
+
+            document.getElementById('userModalSub').textContent = user.email;
+            document.getElementById('userModalBody').innerHTML = `
+                <div class="mini-grid" style="margin-bottom:16px;">
+                    <div class="mini-card"><h4>Nom</h4><strong>${escapeHtml(profile ? [profile.prenom, profile.nom].filter(Boolean).join(' ') || 'Non renseigné' : 'Non renseigné')}</strong></div>
+                    <div class="mini-card"><h4>Email compte</h4><strong>${escapeHtml(user.email || 'Non renseigné')}</strong></div>
+                    <div class="mini-card"><h4>Rôle</h4><strong>${escapeHtml(user.role || 'client')}</strong></div>
+                    <div class="mini-card"><h4>Mise à jour fiche</h4><strong>${escapeHtml(profile && profile.updated_at ? formatDate(profile.updated_at) : 'Non disponible')}</strong></div>
+                </div>
+                <div class="mini-card" style="margin-bottom:16px;">
+                    <h4>Modifier la fiche client</h4>
+                    <div class="form-grid" style="margin-top:12px;">
+                        <div>
+                            <label for="clientEditPrenom">Prénom</label>
+                            <input id="clientEditPrenom" type="text" value="${escapeHtml((profile && profile.prenom) || '')}" maxlength="120">
+                        </div>
+                        <div>
+                            <label for="clientEditNom">Nom</label>
+                            <input id="clientEditNom" type="text" value="${escapeHtml((profile && profile.nom) || '')}" maxlength="120">
+                        </div>
+                        <div>
+                            <label for="clientEditEmail">Email</label>
+                            <input id="clientEditEmail" type="email" value="${escapeHtml((profile && profile.email) || user.email || '')}" maxlength="180">
+                        </div>
+                        <div>
+                            <label for="clientEditTel">Téléphone</label>
+                            <input id="clientEditTel" type="text" value="${escapeHtml((profile && profile.tel) || '')}" maxlength="40">
+                        </div>
+                        <div class="full">
+                            <label for="clientEditAdresse">Adresse</label>
+                            <input id="clientEditAdresse" type="text" value="${escapeHtml((profile && profile.adresse) || '')}" maxlength="220">
+                        </div>
+                        <div class="full">
+                            <label for="clientEditNotes">Notes admin</label>
+                            <textarea id="clientEditNotes" rows="3" placeholder="Suivi interne client...">${escapeHtml((profile && profile.notes) || '')}</textarea>
+                        </div>
+                        <div class="full">
+                            <label for="clientEditVehicules">Véhicules (1 ligne: immat;marque;modele;annee;carburant;km)</label>
+                            <textarea id="clientEditVehicules" rows="4" placeholder="AB-123-CD;Renault;Clio;2019;Essence;85000">${escapeHtml(formatVehiclesText(vehicles))}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" data-save-user="${user.id}"><i class="fa-solid fa-floppy-disk"></i> Enregistrer la fiche</button>
+                    </div>
+                </div>
+                <div class="mini-card">
+                    <h4>Rendez-vous du client</h4>
+                    ${appointments.length ? appointments.map((appointment) => `
+                        <div class="traffic-list"><li><strong>${escapeHtml(appointment.service)}</strong><span>${escapeHtml(formatShortDate(appointment.date, appointment.time))} · ${escapeHtml(appointment.status || 'pending')}</span></li></div>
+                    `).join('') : '<div class="section__sub">Aucun rendez-vous enregistré.</div>'}
+                </div>
+            `;
+
+            document.getElementById('userModal').classList.add('open');
+        }
+
+        async function saveClientProfile(userId) {
+            const payload = {
+                prenom: document.getElementById('clientEditPrenom').value.trim(),
+                nom: document.getElementById('clientEditNom').value.trim(),
+                email: document.getElementById('clientEditEmail').value.trim(),
+                tel: document.getElementById('clientEditTel').value.trim(),
+                adresse: document.getElementById('clientEditAdresse').value.trim(),
+                notes: document.getElementById('clientEditNotes').value.trim(),
+                vehicules: parseVehiclesText(document.getElementById('clientEditVehicules').value)
+            };
+
+            await api('/admin/client-profiles/' + userId, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+
+            showToast('Fiche client enregistrée.');
+            await loadDashboard();
+            openUserModal(userId);
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('open');
+        }
+
+        async function updateAppointmentStatus(id, status) {
+            await api('/appointment/' + id, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            if (window.ClinikAutoAnalytics) {
+                window.ClinikAutoAnalytics.trackEvent('admin_appointment_' + status, { appointmentId: id });
+            }
+            showToast('Rendez-vous mis à jour.');
+            await loadDashboard();
+        }
+
+        async function deleteUser(id) {
+            const user = state.users.find((item) => String(item.id) === String(id));
+            if (!user || !confirm('Supprimer le compte ' + user.email + ' et ses rendez-vous ?')) {
+                return;
+            }
+
+            await api('/admin/users/' + id, { method: 'DELETE' });
+            if (window.ClinikAutoAnalytics) {
+                window.ClinikAutoAnalytics.trackEvent('admin_user_deleted', { userId: id });
+            }
+            showToast('Compte client supprimé.');
+            await loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const [appointments, users, analytics, occasions, clientProfiles] = await Promise.all([
+                api('/all-appointments'),
+                api('/admin/users'),
+                api('/admin/analytics'),
+                api('/occasions-data'),
+                api('/admin/client-profiles')
+            ]);
+
+            state.appointments = Array.isArray(appointments) ? appointments : [];
+            state.users = Array.isArray(users) ? users : [];
+            state.analytics = analytics || state.analytics;
+            state.clients = Array.isArray(clientProfiles) ? clientProfiles : [];
+            state.occasions = Array.isArray(occasions) ? occasions : [];
+            state.agenda = readLocalJson(AGENDA_KEY, []);
+
+            buildOverview();
+            buildProgress();
+            buildCalendar();
+            buildAgenda();
+            buildTraffic();
+            buildClients();
+            buildAppointments();
+            buildOccasions();
+
+            const now = new Date();
+            document.getElementById('lastRefreshLabel').textContent = now.toLocaleTimeString('fr-FR');
+        }
+
+        async function initIdentity() {
+            state.token = localStorage.getItem('token');
+
+            if (!state.token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            try {
+                const profile = await api('/admin/profile');
+                if (!profile || profile.role !== 'admin') {
+                    throw new Error('Session non administrateur');
+                }
+                state.admin = profile;
+            } catch (_err) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            const name  = state.admin.name || '';
+            const email = state.admin.email || 'admin@clinikauto.local';
+            const initial = (name || email).charAt(0).toUpperCase();
+
+            document.getElementById('adminIdentity').textContent = name ? `Bonjour, ${name}` : email;
+            document.getElementById('adminEmail').textContent = email;
+            document.getElementById('adminAvatar').textContent = initial;
+
+            // Pré-remplir le formulaire profil si présent
+            const pfName  = document.getElementById('profileName');
+            const pfEmail = document.getElementById('profileEmail');
+            if (pfName) pfName.value = name;
+            if (pfEmail) pfEmail.value = email;
+
+            return true;
+        }
+
+        function bindEvents() {
+            document.getElementById('refreshBtn').addEventListener('click', async () => {
+                await loadDashboard();
+                showToast('Tableau de bord actualisé.');
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                const confirmLogout = window.confirm(
+                    'Voulez-vous vraiment vous déconnecter ?\n\n'
+                    + 'Oui: enregistrer les changements et fermer la session.\n'
+                    + 'Non: annuler la commande et garder la session ouverte.'
+                );
+                if (!confirmLogout) {
+                    showToast('Déconnexion annulée.');
+                    return;
+                }
+
+                // Sauvegarde locale avant fermeture de session
+                try {
+                    saveAgenda();
+                } catch (_err) {
+                    // On poursuit la déconnexion même si la sauvegarde locale échoue
+                }
+
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            });
+
+            document.getElementById('clientSearch').addEventListener('input', buildClients);
+            document.getElementById('clientRoleFilter').addEventListener('change', buildClients);
+            document.getElementById('appointmentSearch').addEventListener('input', buildAppointments);
+            document.getElementById('appointmentStatusFilter').addEventListener('change', buildAppointments);
+            document.getElementById('occasionNewBtn').addEventListener('click', () => {
+                resetOccasionForm();
+                document.getElementById('occasionTitle').focus();
+                document.getElementById('occasionForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // Calendrier — navigation mois
+            document.getElementById('calPrev').addEventListener('click', () => {
+                calState.month--;
+                if (calState.month < 0) { calState.month = 11; calState.year--; }
+                buildCalendar();
+            });
+            document.getElementById('calNext').addEventListener('click', () => {
+                calState.month++;
+                if (calState.month > 11) { calState.month = 0; calState.year++; }
+                buildCalendar();
+            });
+            // Calendrier — clic sur un jour
+            document.getElementById('calDays').addEventListener('click', (event) => {
+                const cell = event.target.closest('[data-cal-day]');
+                if (!cell) return;
+                calState.selectedDay = cell.dataset.calDay;
+                buildCalendar();
+            });
+            // Calendrier — actions RDV du jour sélectionné
+            document.getElementById('calDayAppointments').addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-appointment-id]');
+                if (!button) return;
+                try {
+                    await updateAppointmentStatus(button.dataset.appointmentId, button.dataset.appointmentStatus);
+                } catch (error) {
+                    showToast(error.message || 'Mise à jour impossible.');
+                }
+            });
+            document.getElementById('occasionResetBtn').addEventListener('click', resetOccasionForm);
+            document.getElementById('agendaImportBtn').addEventListener('click', () => {
+                try {
+                    const fallbackDate = document.getElementById('agendaImportDate').value;
+                    const imported = parseAgendaImport(document.getElementById('agendaImportText').value, fallbackDate);
+                    if (!imported.length) {
+                        showToast('Aucune ligne exploitable détectée pour l\'agenda Vroomly.');
+                        return;
+                    }
+                    const merged = new Map();
+                    imported.forEach((item) => merged.set(item.key, item));
+                    state.agenda = Array.from(merged.values());
+                    saveAgenda();
+                    buildAgenda();
+                    showToast('Agenda Vroomly importé dans le tableau de bord.');
+                } catch (error) {
+                    showToast('Import agenda impossible : ' + (error.message || 'format invalide.'));
+                }
+            });
+            document.getElementById('agendaClearBtn').addEventListener('click', () => {
+                if (!confirm('Vider l\'agenda importé du tableau de bord ?')) {
+                    return;
+                }
+                state.agenda = [];
+                saveAgenda();
+                document.getElementById('agendaImportText').value = '';
+                buildAgenda();
+                showToast('Agenda importé vidé.');
+            });
+
+            // ─── ICS file import ────────────────────────────────
+            document.getElementById('agendaIcsFile').addEventListener('change', (evt) => {
+                const file = evt.target.files && evt.target.files[0];
+                if (!file) return;
+                const nameEl = document.getElementById('agendaIcsFileName');
+                nameEl.textContent = file.name;
+                nameEl.classList.add('loaded');
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const fallbackDate = document.getElementById('agendaImportDate').value;
+                        const parsed = parseICS(e.target.result);
+                        if (!parsed.length) { showToast('Aucun événement trouvé dans le fichier ICS.'); return; }
+                        const normalized = parsed.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((i) => i.client || i.service);
+                        if (!normalized.length) { showToast('Aucun rendez-vous exploitable dans le fichier ICS.'); return; }
+                        const merged = new Map();
+                        (state.agenda || []).forEach((i) => merged.set(i.key, i));
+                        normalized.forEach((i) => merged.set(i.key, i));
+                        state.agenda = Array.from(merged.values());
+                        saveAgenda();
+                        buildAgenda();
+                        showToast(`${normalized.length} rendez-vous importés depuis le fichier ICS.`);
+                    } catch (err) {
+                        showToast('Erreur lors de la lecture du fichier ICS : ' + (err.message || 'format invalide.'));
+                    }
+                };
+                reader.readAsText(file, 'UTF-8');
+                evt.target.value = '';
+            });
+
+            // ─── CSV file import ────────────────────────────────
+            document.getElementById('agendaCsvFile').addEventListener('change', (evt) => {
+                const file = evt.target.files && evt.target.files[0];
+                if (!file) return;
+                const nameEl = document.getElementById('agendaCsvFileName');
+                nameEl.textContent = file.name;
+                nameEl.classList.add('loaded');
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const fallbackDate = document.getElementById('agendaImportDate').value;
+                        const parsed = parseCSV(e.target.result, fallbackDate);
+                        if (!parsed.length) { showToast('Aucune ligne exploitable dans le fichier CSV.'); return; }
+                        const normalized = parsed.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((i) => i.client || i.service);
+                        const merged = new Map();
+                        (state.agenda || []).forEach((i) => merged.set(i.key, i));
+                        normalized.forEach((i) => merged.set(i.key, i));
+                        state.agenda = Array.from(merged.values());
+                        saveAgenda();
+                        buildAgenda();
+                        showToast(`${normalized.length} rendez-vous importés depuis le fichier CSV.`);
+                    } catch (err) {
+                        showToast('Erreur lors de la lecture du fichier CSV : ' + (err.message || 'format invalide.'));
+                    }
+                };
+                reader.readAsText(file, 'UTF-8');
+                evt.target.value = '';
+            });
+
+            // ─── Profil admin ────────────────────────────────────
+            document.getElementById('profileForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const name  = document.getElementById('profileName').value.trim();
+                const email = document.getElementById('profileEmail').value.trim();
+                const currentPwd = document.getElementById('profileCurrentPwd').value;
+                const newPwd     = document.getElementById('profileNewPwd').value;
+
+                const body = {};
+                if (name)  body.name  = name;
+                if (email) body.email = email;
+                if (newPwd) {
+                    if (!currentPwd) { showToast('Veuillez saisir votre mot de passe actuel.'); return; }
+                    if (newPwd.length < 8) { showToast('Le nouveau mot de passe doit faire au moins 8 caractères.'); return; }
+                    body.password = newPwd;
+                    body.currentPassword = currentPwd;
+                }
+                if (!Object.keys(body).length) { showToast('Aucune modification à enregistrer.'); return; }
+
+                try {
+                    const btn = document.getElementById('profileSaveBtn');
+                    btn.disabled = true;
+                    const data = await api('/admin/profile', {
+                        method: 'PUT',
+                        body: JSON.stringify(body)
+                    });
+                    await initIdentity();
+                    document.getElementById('adminNameDisplay').textContent = state.admin.name || state.admin.email;
+                    document.getElementById('profileCurrentPwd').value = '';
+                    document.getElementById('profileNewPwd').value = '';
+                    showToast('Profil mis à jour avec succès !');
+                } catch (err) {
+                    showToast(err.message || 'Erreur lors de la mise à jour.');
+                } finally {
+                    document.getElementById('profileSaveBtn').disabled = false;
+                }
+            });
+
+            // ─── Paramètres du site ──────────────────────────────
+            async function loadSiteSettings() {
+                try {
+                    const s = await api('/admin/settings');
+                    const map = {
+                        settingAddress:       s.address         || '',
+                        settingPhone:         s.phone           || '',
+                        settingEmail:         s.email           || '',
+                        settingFacebook:      s.facebook_url    || '',
+                        settingHoursWeekday:  s.hours_weekday   || '',
+                        settingHoursSaturday: s.hours_saturday  || '',
+                        settingHoursSunday:   s.hours_sunday    || '',
+                        settingMaps:          s.google_maps_url || ''
+                    };
+                    Object.entries(map).forEach(([id, val]) => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = val;
+                    });
+                } catch (_) { /* silencieux */ }
+            }
+
+            document.getElementById('siteSettingsForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const body = {
+                    address:         document.getElementById('settingAddress').value.trim(),
+                    phone:           document.getElementById('settingPhone').value.trim(),
+                    email:           document.getElementById('settingEmail').value.trim(),
+                    facebook_url:    document.getElementById('settingFacebook').value.trim(),
+                    hours_weekday:   document.getElementById('settingHoursWeekday').value.trim(),
+                    hours_saturday:  document.getElementById('settingHoursSaturday').value.trim(),
+                    hours_sunday:    document.getElementById('settingHoursSunday').value.trim(),
+                    google_maps_url: document.getElementById('settingMaps').value.trim()
+                };
+                try {
+                    const btn = document.getElementById('settingsSaveBtn');
+                    btn.disabled = true;
+                    await api('/admin/settings', { method: 'PUT', body: JSON.stringify(body) });
+                    showToast('Paramètres du site enregistrés !');
+                } catch (err) {
+                    showToast(err.message || 'Erreur sauvegarde.');
+                } finally {
+                    document.getElementById('settingsSaveBtn').disabled = false;
+                }
+            });
+
+            loadSiteSettings();
+
+            document.getElementById('occasionForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const editingId = document.getElementById('occasionId').value;
+                const id = editingId || Date.now().toString(36);
+                const type = document.getElementById('occasionType').value;
+                const statut = document.getElementById('occasionStatus').value;
+                const titre = document.getElementById('occasionTitle').value.trim();
+                const prix = document.getElementById('occasionPrice').value.trim();
+                const yearOrReference = document.getElementById('occasionYear').value.trim();
+                const km = document.getElementById('occasionKm').value.trim();
+                const fuelOrState = document.getElementById('occasionFuel').value.trim();
+                const gearboxOrCompat = document.getElementById('occasionGearbox').value.trim();
+                const description = document.getElementById('occasionDescription').value.trim();
+
+                if (!titre || !description) {
+                    showToast('Titre et description sont obligatoires.');
+                    return;
+                }
+
+                const baseOccasion = {
+                    id,
+                    type,
+                    titre,
+                    description,
+                    prix: prix || '0',
+                    statut,
+                    date: new Date().toISOString(),
+                    photos: photoState.photos
+                };
+
+                if (type === 'piece') {
+                    baseOccasion.reference = yearOrReference;
+                    baseOccasion.etat = fuelOrState;
+                    baseOccasion.compatible = gearboxOrCompat;
+                } else {
+                    baseOccasion.annee = yearOrReference;
+                    baseOccasion.km = km;
+                    baseOccasion.carburant = fuelOrState;
+                    baseOccasion.boite = gearboxOrCompat;
+                }
+
+                try {
+                    await api('/admin/occasions', {
+                        method: 'POST',
+                        body: JSON.stringify(baseOccasion)
+                    });
+                    if (window.ClinikAutoAnalytics) {
+                        window.ClinikAutoAnalytics.trackEvent('admin_occasion_saved', { type, statut });
+                    }
+                    resetOccasionForm();
+                    showToast(editingId ? 'Annonce mise à jour sur /occasions.' : 'Annonce publiée sur /occasions.');
+                    await loadDashboard();
+                } catch (error) {
+                    showToast(error.message || 'Enregistrement impossible.');
+                }
+            });
+
+            document.getElementById('clientsList').addEventListener('click', async (event) => {
+                const openBtn = event.target.closest('[data-open-user]');
+                if (openBtn) {
+                    openUserModal(openBtn.dataset.openUser);
+                    return;
+                }
+
+                const deleteBtn = event.target.closest('[data-delete-user]');
+                if (deleteBtn) {
+                    try {
+                        await deleteUser(deleteBtn.dataset.deleteUser);
+                    } catch (error) {
+                        showToast(error.message || 'Suppression impossible.');
+                    }
+                }
+            });
+
+            document.getElementById('appointmentsList').addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-appointment-id]');
+                if (!button) {
+                    return;
+                }
+                try {
+                    await updateAppointmentStatus(button.dataset.appointmentId, button.dataset.appointmentStatus);
+                } catch (error) {
+                    showToast(error.message || 'Mise à jour impossible.');
+                }
+            });
+
+            document.getElementById('occasionsList').addEventListener('click', async (event) => {
+                const editBtn = event.target.closest('[data-edit-occasion]');
+                if (editBtn) {
+                    fillOccasionForm(editBtn.dataset.editOccasion);
+                    return;
+                }
+
+                const toggleBtn = event.target.closest('[data-toggle-occasion]');
+                if (toggleBtn) {
+                    const occasion = state.occasions.find((item) => item.id === toggleBtn.dataset.toggleOccasion);
+                    if (!occasion) {
+                        return;
+                    }
+                    try {
+                        await api('/admin/occasions', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                ...occasion,
+                                statut: occasion.statut === 'vendu' ? 'disponible' : 'vendu'
+                            })
+                        });
+                        showToast('Statut de l\'annonce mis à jour.');
+                        await loadDashboard();
+                    } catch (error) {
+                        showToast(error.message || 'Mise à jour impossible.');
+                    }
+                    return;
+                }
+
+                const deleteBtn = event.target.closest('[data-delete-occasion]');
+                if (deleteBtn) {
+                    if (!confirm('Supprimer définitivement cette annonce ?')) {
+                        return;
+                    }
+                    try {
+                        await api('/admin/occasions/' + deleteBtn.dataset.deleteOccasion, { method: 'DELETE' });
+                        showToast('Annonce supprimée.');
+                        await loadDashboard();
+                    } catch (error) {
+                        showToast(error.message || 'Suppression impossible.');
+                    }
+                }
+            });
+
+            document.getElementById('closeUserModal').addEventListener('click', closeUserModal);
+            document.getElementById('userModalBody').addEventListener('click', async (event) => {
+                const saveBtn = event.target.closest('[data-save-user]');
+                if (!saveBtn) {
+                    return;
+                }
+                try {
+                    await saveClientProfile(saveBtn.dataset.saveUser);
+                } catch (error) {
+                    showToast(error.message || 'Enregistrement fiche client impossible.');
+                }
+            });
+            document.getElementById('userModal').addEventListener('click', (event) => {
+                if (event.target.id === 'userModal') {
+                    closeUserModal();
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!(await initIdentity())) {
+                return;
+            }
+            initPhotoDrop();
+            bindEvents();
+            try {
+                await loadDashboard();
+                if (window.ClinikAutoAnalytics) {
+                    window.ClinikAutoAnalytics.trackEvent('admin_dashboard_opened', { email: state.admin.email });
+                }
+            } catch (error) {
+                showToast(error.message || 'Erreur lors du chargement du tableau de bord.');
+            }
+        });
     </script>
 </body>
 </html>

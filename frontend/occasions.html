@@ -9,7 +9,7 @@
   <meta name="description" content="Retrouvez les véhicules et pièces d'occasion proposés par ClinikAuto à Scionzier (74950). Annonces vérifiées par votre garagiste de confiance." />
   <meta name="keywords" content="voiture occasion Scionzier, pièces occasion 74950, vente auto ClinikAuto, occasion Haute-Savoie" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://www.clinikauto.fr/occasions.html" />
+  <link rel="canonical" href="https://www.clinikauto.fr/occasions" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Occasions ClinikAuto — Véhicules & Pièces à vendre" />
@@ -42,7 +42,7 @@
           <li><a href="index.html#tarifs" class="nav__link">Tarifs</a></li>
           <li><a href="index.html#galerie" class="nav__link">Galerie</a></li>
           <li><a href="index.html#temoignages" class="nav__link">Avis</a></li>
-          <li><a href="occasions.html" class="nav__link nav__link--active">Occasions</a></li>
+          <li><a href="/occasions" class="nav__link nav__link--active">Occasions</a></li>
           <li><a href="index.html#contact" class="nav__link nav__link--cta">Contact</a></li>
         </ul>
       </nav>
@@ -91,7 +91,7 @@
       <div class="occ-grid" id="occGrid">
         <!-- Les annonces sont injectées par occasions.js -->
       </div>
-      <div class="occ-empty" id="occEmpty" style="display:none;">
+      <div class="occ-empty occ-hidden" id="occEmpty">
         <i class="fa-solid fa-car-burst"></i>
         <p>Aucune annonce disponible pour le moment.</p>
         <span>Revenez bientôt ou contactez-nous directement !</span>
@@ -101,19 +101,19 @@
   </section>
 
   <!-- ========== MODAL DETAIL ========== -->
-  <div class="occ-modal" id="occModal" role="dialog" aria-modal="true" style="display:none;">
+  <div class="occ-modal occ-hidden" id="occModal" role="dialog" aria-modal="true">
     <div class="occ-modal__overlay" id="modalOverlay"></div>
     <div class="occ-modal__box">
-      <button class="occ-modal__close" id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+      <button class="occ-modal__close" id="modalClose" aria-label="Fermer"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       <div class="occ-modal__content" id="modalContent"></div>
     </div>
   </div>
 
   <!-- ========== MODAL RÉSERVATION ========== -->
-  <div class="occ-modal" id="modalReservation" role="dialog" aria-modal="true" style="display:none;">
+  <div class="occ-modal occ-hidden" id="modalReservation" role="dialog" aria-modal="true">
     <div class="occ-modal__overlay" onclick="fermerReservation()"></div>
     <div class="occ-modal__box occ-modal__box--reserv">
-      <button class="occ-modal__close" onclick="fermerReservation()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="occ-modal__close" onclick="fermerReservation()" aria-label="Fermer"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       <div id="reservationContent"></div>
     </div>
   </div>
@@ -148,7 +148,7 @@
             <li><a href="index.html#apropos">À propos</a></li>
             <li><a href="index.html#services">Services</a></li>
             <li><a href="index.html#tarifs">Tarifs</a></li>
-            <li><a href="occasions.html">Occasions</a></li>
+            <li><a href="/occasions">Occasions</a></li>
             <li><a href="index.html#contact">Contact</a></li>
           </ul>
         </div>
@@ -165,6 +165,7 @@
     </div>
   </footer>
 
+  <script src="js/analytics.js"></script>
   <script src="js/main.js"></script>
   <script src="js/occasions.js"></script>
 </body>

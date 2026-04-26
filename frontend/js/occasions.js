@@ -1,13 +1,36 @@
 // ========== CLINIKAUTO — occasions.js ==========
 
-const OCC_KEY        = 'clinikauto_annonces';
 const GARAGE_LAT     = 46.0452;
 const GARAGE_LNG     = 6.5134;
 const GARAGE_ADRESSE = '118 Clos des Teppes, 74950 Scionzier';
+let annoncesState    = [];
+const API_BASE       = window.CLINIKAUTO_API_BASE || (window.location.protocol === 'file:' ? 'http://localhost:3000' : '');
 
 // ===== UTILS =====
-function chargerAnnonces() {
-  try { return JSON.parse(localStorage.getItem(OCC_KEY) || '[]'); } catch { return []; }
+async function chargerAnnonces() {
+  try {
+    const response = await fetch(API_BASE + '/occasions-data', { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error('Erreur de chargement');
+    }
+    annoncesState = await response.json();
+  } catch (_err) {
+    annoncesState = [];
+  }
+  return annoncesState;
+}
+
+function getAnnonces() {
+  return Array.isArray(annoncesState) ? annoncesState : [];
+}
+
+function escapeHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function formatPrix(prix) {
@@ -34,10 +57,10 @@ function genGalerie(photos, id) {
     return '<div class="gal-placeholder"><i class="fa-solid fa-image"></i></div>';
   }
   if (photos.length === 1) {
-    return '<div class="gal-single"><img src="' + photos[0] + '" alt="Photo" onerror="this.parentElement.innerHTML=\'<div class=gal-placeholder><i class=fa-solid\\ fa-image></i></div>\'" /></div>';
+    return '<div class="gal-single"><img src="' + escapeHtml(photos[0]) + '" alt="Photo" onerror="this.parentElement.innerHTML=\'<div class=gal-placeholder><i class=fa-solid\\ fa-image></i></div>\'" /></div>';
   }
   var slides = photos.map(function(p, i) {
-    return '<img src="' + p + '" alt="Photo ' + (i+1) + '" class="gal-slide" onerror="this.style.display=\'none\'" />';
+    return '<img src="' + escapeHtml(p) + '" alt="Photo ' + (i+1) + '" class="gal-slide" onerror="this.style.display=\'none\'" />';
   }).join('');
   var dots = photos.map(function(_, i) {
     return '<span class="gal-dot' + (i === 0 ? ' active' : '') + '" data-gal="' + id + '" data-idx="' + i + '"></span>';
@@ -73,6 +96,14 @@ function goSlide(id, idx) {
   });
 }
 
+function setModalOpen(modalId, isOpen) {
+  var modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.toggle('occ-hidden', !isOpen);
+  modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
 // Délégation d'événements pour les galeries (évite les problèmes onclick dans innerHTML)
 document.addEventListener('click', function(e) {
   // Bouton prev/next galerie
@@ -95,20 +126,22 @@ document.addEventListener('click', function(e) {
 function genererCarte(a) {
   var vendu  = a.statut === 'vendu';
   var photos = getPhotos(a);
+  var titreSafe = escapeHtml(a.titre);
+  var descSafe = escapeHtml(a.description || 'Contactez-nous pour plus d\'informations.');
 
   var imgHtml = photos.length > 0
-    ? '<img src="' + photos[0] + '" alt="' + a.titre + '" loading="lazy" onerror="this.style.display=\'none\'" />'
+    ? '<img src="' + escapeHtml(photos[0]) + '" alt="' + titreSafe + '" loading="lazy" onerror="this.style.display=\'none\'" />'
     : '<div class="occ-card__img-placeholder"><i class="fa-solid fa-' + (a.type === 'voiture' ? 'car' : 'gears') + '"></i></div>';
 
   var metaHtml = '';
   if (a.type === 'voiture') {
-    if (a.annee)     metaHtml += '<span><i class="fa-solid fa-calendar"></i> ' + a.annee + '</span>';
+    if (a.annee)     metaHtml += '<span><i class="fa-solid fa-calendar"></i> ' + escapeHtml(a.annee) + '</span>';
     if (a.km)        metaHtml += '<span><i class="fa-solid fa-road"></i> ' + Number(a.km).toLocaleString('fr-FR') + ' km</span>';
-    if (a.carburant) metaHtml += '<span><i class="fa-solid fa-gas-pump"></i> ' + a.carburant + '</span>';
-    if (a.boite)     metaHtml += '<span><i class="fa-solid fa-gear"></i> ' + a.boite + '</span>';
+    if (a.carburant) metaHtml += '<span><i class="fa-solid fa-gas-pump"></i> ' + escapeHtml(a.carburant) + '</span>';
+    if (a.boite)     metaHtml += '<span><i class="fa-solid fa-gear"></i> ' + escapeHtml(a.boite) + '</span>';
   } else {
-    if (a.etat)      metaHtml += '<span><i class="fa-solid fa-star"></i> ' + a.etat + '</span>';
-    if (a.reference) metaHtml += '<span><i class="fa-solid fa-barcode"></i> R\u00e9f: ' + a.reference + '</span>';
+    if (a.etat)      metaHtml += '<span><i class="fa-solid fa-star"></i> ' + escapeHtml(a.etat) + '</span>';
+    if (a.reference) metaHtml += '<span><i class="fa-solid fa-barcode"></i> R\u00e9f: ' + escapeHtml(a.reference) + '</span>';
   }
 
   var photoBadge = photos.length > 1
@@ -127,8 +160,8 @@ function genererCarte(a) {
     photoBadge +
     '</div>' +
     '<div class="occ-card__body">' +
-    '<h2 class="occ-card__title">' + a.titre + '</h2>' +
-    '<p class="occ-card__desc">' + (a.description || 'Contactez-nous pour plus d\'informations.') + '</p>' +
+    '<h2 class="occ-card__title">' + titreSafe + '</h2>' +
+    '<p class="occ-card__desc">' + descSafe + '</p>' +
     '<div class="occ-card__meta">' + metaHtml + '</div>' +
     '<div class="occ-card__footer">' +
     '<span class="occ-card__price' + (vendu ? ' occ-card__price--vendu' : '') + '">' + formatPrix(a.prix) + '</span>' +
@@ -153,26 +186,28 @@ function genGPS(small) {
 
 // ===== MODAL DÉTAIL =====
 function ouvrirModal(id) {
-  var annonces = chargerAnnonces();
+  var annonces = getAnnonces();
   var a = annonces.find(function(x) { return x.id === id; });
   if (!a) return;
 
   var photos  = getPhotos(a);
   var vendu   = a.statut === 'vendu';
   var galHtml = genGalerie(photos, 'modal-gal');
+  var titreSafe = escapeHtml(a.titre);
+  var descSafe = escapeHtml(a.description || 'Contactez-nous pour plus d\'informations.');
 
   var specsHtml = '';
   if (a.type === 'voiture') {
-    if (a.annee)     specsHtml += '<div class="modal-spec"><span>Ann\u00e9e</span><strong>' + a.annee + '</strong></div>';
+    if (a.annee)     specsHtml += '<div class="modal-spec"><span>Ann\u00e9e</span><strong>' + escapeHtml(a.annee) + '</strong></div>';
     if (a.km)        specsHtml += '<div class="modal-spec"><span>Kilom\u00e9trage</span><strong>' + Number(a.km).toLocaleString('fr-FR') + ' km</strong></div>';
-    if (a.carburant) specsHtml += '<div class="modal-spec"><span>Carburant</span><strong>' + a.carburant + '</strong></div>';
-    if (a.boite)     specsHtml += '<div class="modal-spec"><span>Bo\u00eete</span><strong>' + a.boite + '</strong></div>';
-    if (a.couleur)   specsHtml += '<div class="modal-spec"><span>Couleur</span><strong>' + a.couleur + '</strong></div>';
-    if (a.puissance) specsHtml += '<div class="modal-spec"><span>Puissance</span><strong>' + a.puissance + ' ch</strong></div>';
+    if (a.carburant) specsHtml += '<div class="modal-spec"><span>Carburant</span><strong>' + escapeHtml(a.carburant) + '</strong></div>';
+    if (a.boite)     specsHtml += '<div class="modal-spec"><span>Bo\u00eete</span><strong>' + escapeHtml(a.boite) + '</strong></div>';
+    if (a.couleur)   specsHtml += '<div class="modal-spec"><span>Couleur</span><strong>' + escapeHtml(a.couleur) + '</strong></div>';
+    if (a.puissance) specsHtml += '<div class="modal-spec"><span>Puissance</span><strong>' + escapeHtml(a.puissance) + ' ch</strong></div>';
   } else {
-    if (a.etat)       specsHtml += '<div class="modal-spec"><span>\u00c9tat</span><strong>' + a.etat + '</strong></div>';
-    if (a.reference)  specsHtml += '<div class="modal-spec"><span>R\u00e9f\u00e9rence</span><strong>' + a.reference + '</strong></div>';
-    if (a.compatible) specsHtml += '<div class="modal-spec"><span>Compatible</span><strong>' + a.compatible + '</strong></div>';
+    if (a.etat)       specsHtml += '<div class="modal-spec"><span>\u00c9tat</span><strong>' + escapeHtml(a.etat) + '</strong></div>';
+    if (a.reference)  specsHtml += '<div class="modal-spec"><span>R\u00e9f\u00e9rence</span><strong>' + escapeHtml(a.reference) + '</strong></div>';
+    if (a.compatible) specsHtml += '<div class="modal-spec"><span>Compatible</span><strong>' + escapeHtml(a.compatible) + '</strong></div>';
   }
 
   var btnReserv = !vendu
@@ -183,9 +218,9 @@ function ouvrirModal(id) {
     '<div class="modal-galerie">' + galHtml + '</div>' +
     '<div class="modal-body">' +
     '<span class="modal-badge modal-badge--' + a.type + '">' + (a.type === 'voiture' ? 'V\u00e9hicule' : 'Pi\u00e8ce d\u00e9tach\u00e9e') + '</span>' +
-    '<h2 class="modal-title">' + a.titre + '</h2>' +
+    '<h2 class="modal-title">' + titreSafe + '</h2>' +
     '<p class="modal-price">' + (vendu ? '<s style="color:#999">VENDU</s>' : formatPrix(a.prix)) + '</p>' +
-    '<p class="modal-desc">' + (a.description || 'Contactez-nous pour plus d\'informations.') + '</p>' +
+    '<p class="modal-desc">' + descSafe + '</p>' +
     (specsHtml ? '<div class="modal-specs">' + specsHtml + '</div>' : '') +
     genGPS(false) +
     '<div class="modal-actions">' +
@@ -193,20 +228,20 @@ function ouvrirModal(id) {
     '<a href="tel:+33620185627" class="btn btn--outline" style="color:var(--dark);border-color:#ccc"><i class="fa-solid fa-phone"></i> Appeler</a>' +
     '</div></div>';
 
-  document.getElementById('occModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  setModalOpen('occModal', true);
 }
 
 function fermerModal() {
-  document.getElementById('occModal').style.display = 'none';
-  document.body.style.overflow = '';
+  setModalOpen('occModal', false);
 }
 
 // ===== MODAL RÉSERVATION =====
 function ouvrirReservation(id) {
-  var annonces = chargerAnnonces();
+  var annonces = getAnnonces();
   var a = annonces.find(function(x) { return x.id === id; });
   if (!a) return;
+  var titreSafe = escapeHtml(a.titre);
+
 
   var isVoiture = a.type === 'voiture';
   var prix      = Number(a.prix) || 0;
@@ -223,7 +258,7 @@ function ouvrirReservation(id) {
       '<div class="virement-info__row"><span>B\u00e9n\u00e9ficiaire</span><strong>ClinikAuto</strong></div>' +
       '<div class="virement-info__row"><span>IBAN</span><strong>\u00c0 renseigner</strong></div>' +
       '<div class="virement-info__row"><span>BIC</span><strong>\u00c0 renseigner</strong></div>' +
-      '<div class="virement-info__row"><span>R\u00e9f\u00e9rence</span><strong>' + a.titre + '</strong></div>' +
+      '<div class="virement-info__row"><span>R\u00e9f\u00e9rence</span><strong>' + titreSafe + '</strong></div>' +
       (prix > 0
         ? '<div class="virement-info__row virement-info__row--highlight"><span>Acompte \u00e0 verser (30%)</span><strong>' + acompte.toLocaleString('fr-FR') + ' \u20ac</strong></div>' +
           '<div class="virement-info__row"><span>Reste \u00e0 payer au retrait</span><strong>' + reste.toLocaleString('fr-FR') + ' \u20ac</strong></div>' +
@@ -239,7 +274,7 @@ function ouvrirReservation(id) {
   document.getElementById('reservationContent').innerHTML =
     '<div class="reserv-header">' +
     '<h3><i class="fa-solid fa-calendar-check"></i> ' + (isVoiture ? 'R\u00e9server / Essayer' : 'R\u00e9server cette pi\u00e8ce') + '</h3>' +
-    '<div class="reserv-annonce"><strong>' + a.titre + '</strong><span>' + formatPrix(a.prix) + '</span></div>' +
+    '<div class="reserv-annonce"><strong>' + titreSafe + '</strong><span>' + formatPrix(a.prix) + '</span></div>' +
     '</div>' +
     '<div class="reserv-body">' +
     acompteHtml +
@@ -273,13 +308,11 @@ function ouvrirReservation(id) {
     envoyerReservation(a.id, a.type, a.titre);
   });
 
-  document.getElementById('modalReservation').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  setModalOpen('modalReservation', true);
 }
 
 function fermerReservation() {
-  document.getElementById('modalReservation').style.display = 'none';
-  document.body.style.overflow = '';
+  setModalOpen('modalReservation', false);
 }
 
 function envoyerReservation(id, type, titre) {
@@ -327,7 +360,7 @@ function afficherAnnonces(filtre, recherche) {
   filtre    = filtre    || 'tous';
   recherche = recherche || '';
 
-  var annonces = chargerAnnonces();
+  var annonces = getAnnonces();
   var grid     = document.getElementById('occGrid');
   var empty    = document.getElementById('occEmpty');
   var compteur = document.getElementById('compteur');
@@ -348,10 +381,10 @@ function afficherAnnonces(filtre, recherche) {
 
   if (filtrees.length === 0) {
     grid.innerHTML = '';
-    empty.style.display = 'block';
+    empty.classList.remove('occ-hidden');
     compteur.textContent = 'Aucune annonce trouv\u00e9e';
   } else {
-    empty.style.display = 'none';
+    empty.classList.add('occ-hidden');
     grid.innerHTML = filtrees.map(genererCarte).join('');
     var dispo = filtrees.filter(function(a) { return a.statut !== 'vendu'; }).length;
     compteur.textContent = filtrees.length + ' annonce' + (filtrees.length > 1 ? 's' : '') + ' \u2014 ' + dispo + ' disponible' + (dispo > 1 ? 's' : '');
@@ -359,7 +392,10 @@ function afficherAnnonces(filtre, recherche) {
 }
 
 // ===== DÉLÉGATION ÉVÉNEMENTS PRINCIPALE =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  setModalOpen('occModal', false);
+  setModalOpen('modalReservation', false);
+  await chargerAnnonces();
   afficherAnnonces();
 
   // Filtres

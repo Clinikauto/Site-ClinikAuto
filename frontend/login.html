@@ -5,14 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - Clinik Auto</title>
     <style>
+        :root {
+            --red: #D32F2F;
+            --red-dark: #B71C1C;
+            --blue: #1565C0;
+            --blue-dark: #0D47A1;
+            --dark: #1A1A1A;
+            --dark2: #2C2C2C;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Nunito', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 50%, #210d0d 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -20,17 +30,40 @@
             padding: 20px;
         }
         .container {
-            background: white;
+            background: var(--white);
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
             width: 100%;
             max-width: 400px;
+            border-top: 4px solid var(--red);
+        }
+        .brand-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 2px auto 14px;
+            border: 3px solid var(--red);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .welcome-note {
+            text-align: center;
+            color: var(--dark);
+            background: var(--light);
+            border: 1px solid #e8e8e8;
+            border-left: 3px solid var(--blue);
+            border-radius: 10px;
+            padding: 12px 10px;
+            margin: -10px 0 18px;
+            font-size: 14px;
+            line-height: 1.5;
         }
         h1 {
             text-align: center;
             margin-bottom: 30px;
-            color: #333;
+            color: var(--dark);
         }
         .form-group {
             margin-bottom: 20px;
@@ -50,23 +83,30 @@
         }
         input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
         }
-        button {
+            button,
+            .back-btn {
             width: 100%;
+                display: block;
             padding: 12px;
-            background: #667eea;
+            background: var(--red);
             color: white;
             border: none;
             border-radius: 5px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+            }
+            button {
             margin-top: 20px;
         }
-        button:hover {
-            background: #764ba2;
+            button:hover,
+            .back-btn:hover {
+            background: var(--red-dark);
         }
         .message {
             margin-top: 20px;
@@ -95,12 +135,73 @@
             color: #666;
         }
         .signup-link a {
-            color: #667eea;
+            color: var(--blue);
             text-decoration: none;
             font-weight: bold;
         }
         .signup-link a:hover {
             text-decoration: underline;
+        }
+        .admin-access {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(21, 101, 192, 0.06), rgba(211, 47, 47, 0.1));
+            border: 1px solid rgba(21, 101, 192, 0.2);
+        }
+        .admin-access h2 {
+            font-size: 16px;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+        .admin-access p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .helper-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: var(--blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .helper-link:hover {
+            text-decoration: underline;
+        }
+        .reset-panel {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid rgba(21, 101, 192, 0.2);
+            display: none;
+        }
+        .reset-panel.show {
+            display: block;
+        }
+        .reset-panel h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .reset-panel p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .back-btn {
+            margin-bottom: 18px;
+        }
+        .admin-access__btn {
+            margin-top: 12px;
+            background: var(--blue);
+        }
+        .admin-access__btn:hover {
+            background: var(--blue-dark);
         }
 
         /* Mobile responsive */
@@ -138,7 +239,10 @@
 </head>
 <body>
     <div class="container">
+        <a href="index.html" class="back-btn">← Retour</a>
+        <img src="images/logo.jpg" alt="Logo ClinikAuto" class="brand-logo">
         <h1>🔐 Connexion</h1>
+        <p class="welcome-note">Bienvenue dans votre espace personnel, entrez vos identifiants pour vous connecter.</p>
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">Email :</label>
@@ -151,21 +255,79 @@
             <button type="submit">Se connecter</button>
         </form>
         <div class="message" id="message"></div>
+        <a href="#" class="helper-link" id="forgotPasswordLink">Mot de passe oublié ?</a>
+        <div class="reset-panel" id="resetPanel">
+            <h2>Réinitialiser le mot de passe</h2>
+            <p>Saisissez votre email et choisissez un nouveau mot de passe.</p>
+            <form id="resetForm">
+                <div class="form-group">
+                    <label for="resetEmail">Email :</label>
+                    <input type="email" id="resetEmail" name="resetEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="resetPassword">Nouveau mot de passe :</label>
+                    <input type="password" id="resetPassword" name="resetPassword" minlength="8" required>
+                </div>
+                <div class="form-group">
+                    <label for="resetPasswordConfirm">Confirmer le nouveau mot de passe :</label>
+                    <input type="password" id="resetPasswordConfirm" name="resetPasswordConfirm" minlength="8" required>
+                </div>
+                <button type="submit">Réinitialiser mon mot de passe</button>
+            </form>
+        </div>
         <div class="signup-link">
-            Pas encore inscrit ? <a href="http://localhost:3000/register">S'inscrire ici</a>
+            Pas encore inscrit ? <a href="register.html">S'inscrire ici</a>
+        </div>
+        <div class="admin-access">
+            <h2>Accès privé administrateur</h2>
+            <button type="button" class="admin-access__btn" id="adminAccessBtn">Ouvrir le tableau de bord admin</button>
         </div>
     </div>
 
+    <script src="js/analytics.js"></script>
     <script>
+        const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const messageDiv = document.getElementById("message");
+        const resetPanel = document.getElementById("resetPanel");
+
+        function hasStoredSessionToken() {
+            try {
+                return Boolean(localStorage.getItem("token"));
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        document.getElementById("adminAccessBtn").addEventListener("click", () => {
+            if (hasStoredSessionToken()) {
+                window.location.href = "admin.html";
+                return;
+            }
+            document.getElementById("email").focus();
+            messageDiv.textContent = "🔒 Connectez-vous avec votre compte administrateur pour ouvrir le tableau de bord.";
+            messageDiv.className = "message success show";
+        });
+
+        document.getElementById("forgotPasswordLink").addEventListener("click", (event) => {
+            event.preventDefault();
+            resetPanel.classList.toggle("show");
+            const emailValue = document.getElementById("email").value.trim();
+            if (emailValue) {
+                document.getElementById("resetEmail").value = emailValue;
+            }
+            if (resetPanel.classList.contains("show")) {
+                document.getElementById("resetEmail").focus();
+            }
+        });
+
         document.getElementById("loginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            const messageDiv = document.getElementById("message");
 
             try {
-                const response = await fetch("http://localhost:3000/login", {
+                const response = await fetch(API_BASE + "/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -179,11 +341,63 @@
                     messageDiv.textContent = "✅ Connexion réussie ! Bienvenue " + data.user.email;
                     messageDiv.className = "message success show";
                     
-                    localStorage.setItem("user", JSON.stringify(data.user));
+                    localStorage.setItem("token", data.token);
+                    localStorage.removeItem("user");
+                    if (window.ClinikAutoAnalytics) {
+                        window.ClinikAutoAnalytics.trackEvent("login_success", { role: data.user.role });
+                    }
                     
                     setTimeout(() => {
-                        window.location.href = "http://localhost:3000/dashboard";
+                        window.location.href = data.user.role === "admin" ? "admin.html" : "dashboard.html";
                     }, 2000);
+                } else {
+                    messageDiv.textContent = "❌ " + data.error;
+                    messageDiv.className = "message error show";
+                }
+            } catch (error) {
+                messageDiv.textContent = "❌ Erreur de connexion au serveur";
+                messageDiv.className = "message error show";
+                console.error("Erreur:", error);
+            }
+        });
+
+        document.getElementById("resetForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("resetEmail").value.trim().toLowerCase();
+            const newPassword = document.getElementById("resetPassword").value;
+            const confirmPassword = document.getElementById("resetPasswordConfirm").value;
+
+            if (newPassword.length < 8) {
+                messageDiv.textContent = "❌ Le nouveau mot de passe doit contenir au moins 8 caractères.";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                messageDiv.textContent = "❌ Les mots de passe ne correspondent pas.";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + "/forgot-password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("email").value = email;
+                    document.getElementById("password").value = "";
+                    document.getElementById("resetForm").reset();
+                    resetPanel.classList.remove("show");
+                    messageDiv.textContent = "✅ Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.";
+                    messageDiv.className = "message success show";
                 } else {
                     messageDiv.textContent = "❌ " + data.error;
                     messageDiv.className = "message error show";
