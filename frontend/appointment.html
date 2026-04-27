@@ -550,6 +550,7 @@
                 data.all.forEach(time => {
                     const timeSlot = document.createElement("div");
                     timeSlot.className = "time-slot";
+                    timeSlot.dataset.time = time;
 
                     if (data.available.includes(time)) {
                         timeSlot.classList.add("available");
@@ -646,6 +647,25 @@
 
         // Initialiser le calendrier au chargement
         generateCalendar();
+
+        // Prefill date+heure si on arrive depuis agenda.html (?date=YYYY-MM-DD&time=HH:MM)
+        (function prefillFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const dateParam = params.get('date');
+            const timeParam = params.get('time');
+            if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+                const [y, m, d] = dateParam.split('-').map(Number);
+                currentDate = new Date(y, m - 1, d);
+                selectDate(dateParam).then(() => {
+                    if (timeParam) {
+                        const slot = document.querySelector(`.time-slot[data-time="${timeParam}"]`);
+                        if (slot && !slot.classList.contains('booked')) {
+                            selectTime(timeParam, slot);
+                        }
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>

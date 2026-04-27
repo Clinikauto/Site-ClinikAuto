@@ -1438,6 +1438,78 @@ app.put("/appointment/:id", requireAuth, requireAdmin, (req, res) => {
 });
 
 // Disponibilites pour une date
+// ─────────────────────────────────────────────────────────────────────────────
+// AGENDA DOODLE — vue mensuelle
+// GET /calendar-month/:year/:month   (sans token = vue publique, avec token admin = vue complète)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get("/calendar-month/:year/:month", (req, res) => {
+    const year  = parseInt(req.params.year,  10);
+    const month = parseInt(req.params.month, 10);
+
+    if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
+        return res.status(400).json({ error: "Paramètres year/month invalides" });
+    }
+
+    // Déterminer si l'appelant est admin (token optionnel)
+    let isAdmin = false;
+    const authHeader = req.headers.authorization || "";
+    if (authHeader.startsWith("Bearer ")) {
+        try {
+            const payload = require("jsonwebtoken").verify(authHeader.slice(7), JWT_SECRET);
+            if (payload.role === "admin") {
+                isAdmin = true;
+            }
+        } catch (_) { /* token invalide → vue publique */ }
+    }
+
+    const monthStr = String(month).padStart(2, "0");
+    const prefix   = `${year}-${monthStr}`;
+
+    db.all(
+        `SELECT a.id, a.date, a.time, a.status, a.service, a.notes,
+                u.email AS client_email, u.name AS client_name,
+                cp.phone AS client_phone
+         FROM appointments a
+         LEFT JOIN users u ON a.user_id = u.id
+         LEFT JOIN client_profiles cp ON cp.user_id = u.id
+         WHERE a.date LIKE ? AND a.status != 'cancelled'
+         ORDER BY a.date, a.time`,
+        [`${prefix}-%`],
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur base de données" });
+            }
+
+            // Construire un objet { "2026-04-28": { slots: [...] } } pour chaque jour du mois
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const days = {};
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = `${prefix}-${String(d).padStart(2, "0")}`;
+                days[dayStr] = { slots: availableHours.map(h => ({ time: h, status: "available" })) };
+            }
+
+            rows.forEach(row => {
+                if (!days[row.date]) return;
+                const slot = days[row.date].slots.find(s => s.time === row.time);
+                if (!slot) return;
+                slot.status = "booked";
+                if (isAdmin) {
+                    slot.id            = row.id;
+                    slot.appointmentStatus = row.status;
+                    slot.service       = row.service;
+                    slot.notes         = row.notes;
+                    slot.client_email  = row.client_email;
+                    slot.client_name   = row.client_name;
+                    slot.client_phone  = row.client_phone;
+                }
+            });
+
+            res.json({ year, month, isAdmin, days });
+        }
+    );
+});
+
 app.get("/available-times/:date", (req, res) => {
     const { date } = req.params;
 
