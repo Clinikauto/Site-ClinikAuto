@@ -10,21 +10,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --red: #d32f2f;
-            --red-dark: #b71c1c;
-            --blue: #1565c0;
-            --blue-dark: #0d47a1;
-            --dark: #131821;
-            --panel: #1c2430;
-            --panel-soft: #232d3a;
-            --line: rgba(255, 255, 255, 0.08);
-            --text: #f4f7fb;
-            --muted: #a6b2c2;
+            --red: #D32F2F;
+            --red-dark: #B71C1C;
+            --red-light: #FFCDD2;
+            --blue: #1565C0;
+            --blue-dark: #0D47A1;
+            --blue-light: #E3F2FD;
+            --dark: #111111;
+            --panel: #1a1a1a;
+            --panel-soft: #1f1f1f;
+            --line: rgba(255, 255, 255, 0.09);
+            --text: #f4f4f4;
+            --muted: #9aabb8;
             --success: #1fa971;
             --warning: #f7b731;
-            --danger: #ff6b6b;
-            --radius: 18px;
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+            --danger: #ef5350;
+            --accent: #D32F2F;
+            --radius: 16px;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
         }
 
         * {
@@ -37,9 +40,9 @@
             font-family: 'Nunito', sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(21, 101, 192, 0.28), transparent 28%),
-                radial-gradient(circle at top right, rgba(211, 47, 47, 0.18), transparent 30%),
-                linear-gradient(180deg, #0d1117 0%, #111827 100%);
+                radial-gradient(circle at top left, rgba(211, 47, 47, 0.22), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(21, 101, 192, 0.14), transparent 30%),
+                linear-gradient(180deg, #0d0d0d 0%, #141414 100%);
             min-height: 100vh;
         }
 
@@ -54,10 +57,11 @@
             position: sticky;
             top: 0;
             z-index: 20;
-            -webkit-backdrop-filter: blur(18px);
-            backdrop-filter: blur(18px);
-            background: rgba(10, 14, 20, 0.86);
-            border-bottom: 1px solid var(--line);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            background: rgba(15, 10, 10, 0.92);
+            border-bottom: 2px solid var(--red);
+            box-shadow: 0 4px 24px rgba(211, 47, 47, 0.18);
         }
 
         .topbar__inner,
@@ -126,23 +130,34 @@
 
         .btn--primary {
             color: #fff;
-            background: linear-gradient(135deg, var(--red) 0%, #f44336 100%);
+            background: linear-gradient(135deg, var(--red-dark) 0%, var(--red) 100%);
+            box-shadow: 0 4px 16px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn--primary:hover {
+            box-shadow: 0 6px 22px rgba(211, 47, 47, 0.45);
         }
 
         .btn--secondary {
             color: #fff;
-            background: linear-gradient(135deg, var(--blue) 0%, #42a5f5 100%);
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+            box-shadow: 0 4px 16px rgba(21, 101, 192, 0.25);
         }
 
         .btn--ghost {
             color: var(--text);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(211, 47, 47, 0.2);
+        }
+
+        .btn--ghost:hover {
+            border-color: rgba(211, 47, 47, 0.45);
+            background: rgba(211, 47, 47, 0.08);
         }
 
         .btn--danger {
             color: #fff;
-            background: linear-gradient(135deg, #c62828 0%, #ef5350 100%);
+            background: linear-gradient(135deg, var(--red-dark) 0%, #ef5350 100%);
         }
 
         .wrap {
@@ -157,10 +172,10 @@
         }
 
         .panel {
-            background: linear-gradient(180deg, rgba(28, 36, 48, 0.98), rgba(24, 31, 41, 0.95));
-            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(25, 22, 22, 0.98), rgba(20, 18, 18, 0.96));
+            border: 1px solid rgba(211, 47, 47, 0.14);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .hero-card {
@@ -180,9 +195,9 @@
         }
 
         .eyebrow {
-            color: #ffb4b4;
+            color: var(--red-light);
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             font-size: 0.78rem;
             font-weight: 800;
             margin-bottom: 10px;
@@ -250,11 +265,12 @@
             width: 58px;
             height: 58px;
             border-radius: 18px;
-            background: linear-gradient(135deg, var(--blue) 0%, var(--red) 100%);
+            background: linear-gradient(135deg, var(--red-dark) 0%, var(--red) 100%);
             display: grid;
             place-items: center;
             font-size: 1.35rem;
             font-weight: 800;
+            box-shadow: 0 4px 16px rgba(211, 47, 47, 0.35);
         }
 
         .admin-card__list {
@@ -296,6 +312,10 @@
             margin-top: 14px;
         }
 
+        .management-hub__actions {
+            margin-top: 12px;
+        }
+
         .hub-link {
             display: inline-flex;
             align-items: center;
@@ -304,32 +324,34 @@
             width: 100%;
             padding: 11px 12px;
             border-radius: 12px;
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(211, 47, 47, 0.22);
+            background: rgba(211, 47, 47, 0.07);
             color: var(--text);
             text-decoration: none;
             font-weight: 700;
             font-size: 0.9rem;
-            transition: transform 0.18s ease, border-color 0.18s ease;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
         }
 
         .hub-link:hover {
-            transform: translateY(-1px);
-            border-color: rgba(255, 255, 255, 0.26);
+            transform: translateY(-2px);
+            border-color: rgba(211, 47, 47, 0.55);
+            background: rgba(211, 47, 47, 0.14);
+            color: #ffcdd2;
         }
 
         .stat-card {
             padding: 20px;
             border-radius: var(--radius);
-            border: 1px solid var(--line);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: linear-gradient(180deg, rgba(30, 20, 20, 0.9), rgba(20, 15, 15, 0.9));
             cursor: pointer;
             transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
         }
 
         .stat-card:hover {
-            border-color: var(--accent, #90caf9);
-            box-shadow: 0 4px 18px rgba(144, 202, 249, 0.18);
+            border-color: rgba(211, 47, 47, 0.55);
+            box-shadow: 0 4px 20px rgba(211, 47, 47, 0.18);
             transform: translateY(-2px);
         }
 
@@ -347,19 +369,19 @@
         }
 
         .stat-card__value--red {
-            color: #ff8a80;
+            color: #ef9a9a;
         }
 
         .stat-card__value--blue {
-            color: #90caf9;
+            color: #64b5f6;
         }
 
         .stat-card__value--green {
-            color: #86efac;
+            color: #69f0ae;
         }
 
         .stat-card__value--yellow {
-            color: #ffe082;
+            color: #ffe57f;
         }
 
         .stat-card small {
@@ -390,8 +412,10 @@
         }
 
         .section__title {
-            font-size: 1.1rem;
-            font-weight: 800;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.45rem;
+            letter-spacing: 1px;
+            font-weight: 400;
         }
 
         .section__sub {
@@ -413,8 +437,8 @@
         .client-card,
         .occasion-card {
             background: var(--panel-soft);
-            border: 1px solid var(--line);
-            border-radius: 16px;
+            border: 1px solid rgba(211, 47, 47, 0.12);
+            border-radius: 14px;
         }
 
         .progress-item {
@@ -441,7 +465,7 @@
             display: block;
             height: 100%;
             border-radius: 999px;
-            background: linear-gradient(135deg, var(--blue) 0%, var(--red) 100%);
+            background: linear-gradient(90deg, var(--red-dark) 0%, var(--red) 60%, #ff7043 100%);
         }
 
         .mini-grid {
@@ -478,8 +502,8 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 12px;
-            border: 1px solid var(--line);
-            background: #10161f;
+            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: #140e0e;
             color: var(--text);
             outline: none;
         }
@@ -551,19 +575,19 @@
             flex-direction: column;
             gap: 4px;
             padding: 18px 16px;
-            border: 2px dashed var(--line);
+            border: 2px dashed rgba(211, 47, 47, 0.25);
             border-radius: 14px;
             cursor: pointer;
             transition: border-color .2s, background .2s;
-            background: #10161f;
+            background: #140e0e;
         }
         .file-import-label:hover {
-            border-color: var(--accent);
-            background: rgba(99,102,241,.07);
+            border-color: var(--red);
+            background: rgba(211, 47, 47, 0.08);
         }
         .file-import-label i {
             font-size: 1.5rem;
-            color: var(--accent);
+            color: var(--red);
             margin-bottom: 4px;
         }
         .file-import-title {
@@ -580,7 +604,7 @@
             display: inline-block;
             padding: 6px 14px;
             border-radius: 8px;
-            background: var(--accent);
+            background: var(--red);
             color: #fff;
             font-size: 0.82rem;
             font-weight: 600;
@@ -600,9 +624,9 @@
         }
         /* Collapsible manual section */
         .agenda-manual-toggle {
-            border: 1px solid var(--line);
+            border: 1px solid rgba(211, 47, 47, 0.15);
             border-radius: 12px;
-            background: #10161f;
+            background: #140e0e;
             padding: 0;
             overflow: hidden;
         }
@@ -620,14 +644,14 @@
         }
         .agenda-manual-toggle summary::-webkit-details-marker { display: none; }
         .agenda-manual-toggle[open] summary {
-            border-bottom: 1px solid var(--line);
+            border-bottom: 1px solid rgba(211, 47, 47, 0.15);
             color: var(--text);
         }
         .agenda-manual-toggle textarea {
             width: 100%;
             padding: 12px 14px;
             border: none;
-            background: #10161f;
+            background: #140e0e;
             color: var(--text);
             outline: none;
             min-height: 120px;
@@ -669,19 +693,19 @@
         .field-group input {
             padding: 10px 14px;
             border-radius: 10px;
-            border: 1px solid var(--line);
-            background: #10161f;
+            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: #140e0e;
             color: var(--text);
             outline: none;
             transition: border-color .2s;
         }
         .field-group input:focus {
-            border-color: var(--accent);
+            border-color: var(--red);
         }
         .settings-pwd-toggle {
-            border: 1px solid var(--line);
+            border: 1px solid rgba(211, 47, 47, 0.15);
             border-radius: 12px;
-            background: #10161f;
+            background: #140e0e;
             overflow: hidden;
         }
         .settings-pwd-toggle summary {
@@ -738,10 +762,19 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 12px;
-            border: 1px solid var(--line);
-            background: #10161f;
+            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: #140e0e;
             color: var(--text);
             outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .toolbar input:focus,
+        .toolbar select:focus,
+        .form-grid input:focus,
+        .form-grid select:focus,
+        .form-grid textarea:focus {
+            border-color: rgba(211, 47, 47, 0.55);
         }
 
         .toolbar input,
@@ -798,8 +831,8 @@
         }
 
         .chip--admin {
-            background: rgba(21, 101, 192, 0.22);
-            color: #90caf9;
+            background: rgba(211, 47, 47, 0.2);
+            color: #ffcdd2;
         }
 
         .chip--client {
@@ -822,8 +855,13 @@
             color: #ffab91;
         }
 
+        .chip--completed {
+            background: rgba(158, 158, 158, 0.24);
+            color: #e0e0e0;
+        }
+
         .chip--available {
-            background: rgba(21, 101, 192, 0.18);
+            background: rgba(21, 101, 192, 0.2);
             color: #90caf9;
         }
 
@@ -848,15 +886,20 @@
         }
 
         .table-card--pending {
-            border-left: 4px solid #ff9800;
+            border-left: 4px solid #FFA726;
         }
 
         .table-card--confirmed {
-            border-left: 4px solid #4caf50;
+            border-left: 4px solid #66BB6A;
         }
 
         .table-card--cancelled {
-            border-left: 4px solid #f44336;
+            border-left: 4px solid var(--red);
+        }
+
+        .table-card--completed {
+            border-left: 4px solid #9e9e9e;
+            opacity: 0.86;
         }
 
         .table-card__meta--muted {
@@ -896,6 +939,16 @@
         }
         .btn-inline--vroomly:hover {
             background: rgba(233, 64, 87, 0.15);
+        }
+
+        .btn-inline--back {
+            border-color: rgba(211, 47, 47, 0.35);
+            color: #ffcdd2;
+            text-decoration: none;
+        }
+
+        .btn-inline--back:hover {
+            background: rgba(211, 47, 47, 0.12);
         }
 
         .vroomly-sync-box {
@@ -951,7 +1004,7 @@
             padding: 22px;
             text-align: center;
             color: var(--muted);
-            border: 1px dashed var(--line);
+            border: 1px dashed rgba(211, 47, 47, 0.2);
             border-radius: 16px;
         }
 
@@ -974,10 +1027,10 @@
             width: min(760px, 100%);
             max-height: 90vh;
             overflow: auto;
-            background: #121923;
-            border: 1px solid var(--line);
+            background: #161212;
+            border: 1px solid rgba(211, 47, 47, 0.22);
             border-radius: 20px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(211, 47, 47, 0.1);
             padding: 22px;
         }
 
@@ -1004,10 +1057,10 @@
             z-index: 60;
             padding: 14px 18px;
             border-radius: 14px;
-            background: rgba(18, 25, 35, 0.96);
-            border: 1px solid var(--line);
+            background: rgba(20, 14, 14, 0.97);
+            border: 1px solid rgba(211, 47, 47, 0.35);
             color: var(--text);
-            box-shadow: var(--shadow);
+            box-shadow: 0 8px 32px rgba(211, 47, 47, 0.18);
             opacity: 0;
             transform: translateY(18px);
             transition: opacity 0.25s ease, transform 0.25s ease;
@@ -1036,6 +1089,133 @@
                 align-items: stretch;
             }
 
+
+        /* Contact-like admin skin (index.html#contact) */
+        :root {
+            --panel: #ffffff;
+            --panel-soft: #ffffff;
+            --line: rgba(0, 0, 0, 0.08);
+            --text: #171717;
+            --muted: #616b75;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            color: var(--text);
+            background: #f5f5f5;
+        }
+
+        .topbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 2px solid var(--red);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+        }
+
+        .panel,
+        .progress-item,
+        .mini-card,
+        .table-card,
+        .client-card,
+        .occasion-card,
+        .agenda-item,
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card::after {
+            background: radial-gradient(circle, rgba(211, 47, 47, 0.12), transparent 70%);
+        }
+
+        .pill,
+        .chip,
+        .cal-legend__item {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            color: var(--text);
+        }
+
+        .hub-link {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            color: var(--text);
+        }
+
+        .hub-link:hover {
+            border-color: rgba(211, 47, 47, 0.5);
+            background: rgba(211, 47, 47, 0.08);
+            color: var(--red-dark);
+        }
+
+        .toolbar input,
+        .toolbar select,
+        .form-grid input,
+        .form-grid select,
+        .form-grid textarea,
+        .field-group input,
+        .agenda-tools textarea,
+        .agenda-tools input,
+        .agenda-manual-toggle,
+        .agenda-manual-toggle textarea,
+        .settings-pwd-toggle,
+        .file-import-label {
+            background: #ffffff;
+            border-color: #d9dfe6;
+            color: #111111;
+        }
+
+        .toolbar input::placeholder,
+        .form-grid input::placeholder,
+        .form-grid textarea::placeholder,
+        .field-group input::placeholder {
+            color: #8a96a3;
+        }
+
+        .btn--ghost,
+        .btn-inline {
+            background: #ffffff;
+            border-color: #d9dfe6;
+            color: #1f2937;
+        }
+
+        .btn-inline:hover,
+        .btn--ghost:hover {
+            background: #f9fafb;
+            border-color: #c8d0da;
+        }
+
+        .cal-cell {
+            background: #ffffff;
+            border-color: #e5e7eb;
+        }
+
+        .cal-cell:hover {
+            background: #f9fafb;
+            border-color: #cfd8e3;
+        }
+
+        .cal-day-detail {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .modal {
+            background: rgba(17, 24, 39, 0.38);
+        }
+
+        .modal__box,
+        .toast {
+            background: #ffffff;
+            border-color: #e5e7eb;
+            color: #111111;
+            box-shadow: var(--shadow);
+        }
+
+        .sync-reminder {
+            color: #8a4b00;
+            background: #fff7ed;
+            border-color: #fdba74;
+        }
             .topbar__actions {
                 width: 100%;
             }
@@ -1127,8 +1307,8 @@
             justify-content: center;
             gap: 3px;
             cursor: pointer;
-            border: 1px solid var(--line);
-            background: #10161f;
+            border: 1px solid rgba(211, 47, 47, 0.12);
+            background: #140e0e;
             transition: background 0.18s, border-color 0.18s;
             font-size: 0.88rem;
             font-weight: 700;
@@ -1137,13 +1317,14 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        .cal-cell:hover { background: #1c2430; border-color: rgba(255,255,255,0.2); }
+        .cal-cell:hover { background: #1f1212; border-color: rgba(211, 47, 47, 0.35); }
         .cal-cell.other-month { opacity: 0.25; cursor: default; pointer-events: none; }
         .cal-cell.today { border-color: var(--blue); color: #90caf9; }
         .cal-cell.has-appts { border-color: rgba(211,47,47,0.55); }
         .cal-cell.has-pending { border-color: rgba(255, 152, 0, 0.82); box-shadow: inset 0 0 0 1px rgba(255, 152, 0, 0.18); }
             .cal-cell.has-confirmed { border-color: rgba(76, 175, 80, 0.8); box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.2); }
             .cal-cell.has-cancelled { border-color: rgba(244, 67, 54, 0.82); box-shadow: inset 0 0 0 1px rgba(244, 67, 54, 0.2); }
+            .cal-cell.has-completed { border-color: rgba(158, 158, 158, 0.9); box-shadow: inset 0 0 0 1px rgba(189, 189, 189, 0.24); }
         .cal-cell.selected { background: var(--red); border-color: var(--red); color: white; }
         .cal-cell__badge {
             background: var(--warning);
@@ -1177,6 +1358,7 @@
         .cal-cell__dot--pending { background: #ff9800; }
         .cal-cell__dot--confirmed { background: #4caf50; }
         .cal-cell__dot--cancelled { background: #f44336; }
+        .cal-cell__dot--completed { background: #9e9e9e; }
         .cal-cell.selected .cal-cell__badge { background: white; color: var(--red); }
         .cal-cell.selected .cal-cell__dot { box-shadow: 0 0 0 1px rgba(255,255,255,0.45); }
         .cal-legend {
@@ -1205,6 +1387,7 @@
         .cal-legend__dot--pending { background: #ff9800; }
         .cal-legend__dot--confirmed { background: #4caf50; }
         .cal-legend__dot--cancelled { background: #f44336; }
+        .cal-legend__dot--completed { background: #9e9e9e; }
         .cal-day-detail {
             display: none;
             margin-top: 20px;
@@ -1256,18 +1439,18 @@
         }
         /* === GALERIE PHOTOS OCCASIONS === */
         .photo-drop-zone {
-            border: 2px dashed rgba(255,255,255,0.18);
+            border: 2px dashed rgba(211, 47, 47, 0.25);
             border-radius: 16px;
             padding: 28px 20px;
             text-align: center;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
-            background: #0d1117;
+            background: #140e0e;
             position: relative;
         }
         .photo-drop-zone.dragover {
-            border-color: var(--blue);
-            background: rgba(21, 101, 192, 0.08);
+            border-color: var(--red);
+            background: rgba(211, 47, 47, 0.08);
         }
         .photo-drop-zone__icon { font-size: 2rem; color: var(--muted); margin-bottom: 8px; }
         .photo-drop-zone__label { color: var(--muted); font-size: 0.9rem; }
@@ -1287,8 +1470,8 @@
             aspect-ratio: 1;
             border-radius: 10px;
             overflow: hidden;
-            background: #10161f;
-            border: 1px solid var(--line);
+            background: #140e0e;
+            border: 1px solid rgba(211, 47, 47, 0.15);
         }
         .photo-thumb img {
             width: 100%; height: 100%; object-fit: cover; display: block;
@@ -1409,6 +1592,10 @@
                 <a class="hub-link" href="#occasions-section"><i class="fa-solid fa-car"></i> Occasions</a>
                 <a class="hub-link" href="#settings-section"><i class="fa-solid fa-gear"></i> Paramètres</a>
             </div>
+            <div class="actions actions--toolbar management-hub__actions">
+                <button class="btn-inline btn-inline--danger" id="hubDeleteCancelledBtn"><i class="fa-solid fa-trash-can"></i> Supprimer RDV annulés</button>
+                <button class="btn-inline" id="hubCompletePromptBtn"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée (par ID)</button>
+            </div>
         </section>
 
         <!-- Calendrier agenda interactif -->
@@ -1419,6 +1606,8 @@
                     <div class="section__sub">Vue complète des rendez-vous avec actions directes et rappel de synchronisation Vroomly</div>
                 </div>
                 <div class="cal-nav">
+                    <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
+                    <button class="btn btn--ghost cal-nav__btn" id="calRefreshBtn" title="Rafraîchir les rendez-vous"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
                     <button class="btn btn--ghost cal-nav__btn" id="calPrev" title="Mois précédent"><i class="fa-solid fa-chevron-left"></i></button>
                     <span class="cal-month-label" id="calMonthLabel">--</span>
                     <button class="btn btn--ghost cal-nav__btn" id="calNext" title="Mois suivant"><i class="fa-solid fa-chevron-right"></i></button>
@@ -1433,6 +1622,7 @@
                     <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--pending"></span> En attente</span>
                     <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--confirmed"></span> Confirmé</span>
                     <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--cancelled"></span> Annulé</span>
+                    <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--completed"></span> Prestation effectuée</span>
                 </div>
             </div>
             <div class="cal-day-detail" id="calDayDetail">
@@ -1448,6 +1638,7 @@
                         <option value="pending">En attente</option>
                         <option value="confirmed">Confirmés</option>
                         <option value="cancelled">Annulés</option>
+                        <option value="completed">Prestations effectuées</option>
                     </select>
                 </div>
                 <div id="calendarSyncReminder" class="sync-reminder">
@@ -1467,6 +1658,7 @@
                             <div class="section__title">Suivi global</div>
                             <div class="section__sub">Ce qui est fait, ce qui est en attente et le niveau d'avancement</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
                     <div class="progress-list" id="progressList"></div>
                 </article>
@@ -1477,6 +1669,7 @@
                             <div class="section__title">Gestion des comptes clients</div>
                             <div class="section__sub">Voir, filtrer et supprimer un compte client si nécessaire</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
 
                     <div class="toolbar">
@@ -1507,6 +1700,9 @@
                             <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('confirmed')" title="Télécharger l'ICS des RDV confirmés puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS confirmés</button>
                             <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('all')" title="Télécharger l'ICS de tous les statuts puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-plus"></i> Exporter ICS tous statuts</button>
                             <button class="btn-inline" onclick="document.getElementById('importCsvInput').click()" title="Importer des RDV depuis un fichier CSV"><i class="fa-solid fa-file-arrow-up"></i> Importer CSV</button>
+                            <button class="btn-inline btn-inline--danger" id="appointmentsDeleteCancelledBtn" title="Supprimer définitivement tous les rendez-vous annulés"><i class="fa-solid fa-trash-can"></i> Purger annulés</button>
+                            <button class="btn-inline" id="appointmentsCompletePromptBtn" title="Marquer une prestation effectuée en saisissant son identifiant"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée (ID)</button>
+                            <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                             <input type="file" id="importCsvInput" class="u-hidden" accept=".csv,text/csv" onchange="importAppointmentsCSV(this)">
                         </div>
                     </div>
@@ -1518,6 +1714,7 @@
                             <option value="pending">En attente</option>
                             <option value="confirmed">Confirmés</option>
                             <option value="cancelled">Annulés</option>
+                            <option value="completed">Prestations effectuées</option>
                         </select>
                     </div>
 
@@ -1534,6 +1731,7 @@
                             <div class="section__title">Agenda Vroomly</div>
                             <div class="section__sub">Importez le contenu de votre calendrier Vroomly dans le tableau de bord admin</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
 
                     <div class="agenda-tools">
@@ -1563,6 +1761,7 @@
                             <div class="section__title">Statistiques de trafic</div>
                             <div class="section__sub">Suivi local des visites enregistrées sur ce navigateur</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
 
                     <div class="mini-grid" id="trafficHighlights"></div>
@@ -1587,6 +1786,7 @@
                         <div class="section__actions">
                             <button type="button" class="btn btn--primary" id="occasionNewBtn"><i class="fa-solid fa-plus"></i> Créer une nouvelle annonce</button>
                             <a class="btn btn--ghost" href="/occasions" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Voir la page occasions</a>
+                            <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                         </div>
                     </div>
 
@@ -1668,6 +1868,7 @@
                             <div class="section__title"><i class="fa-solid fa-user-gear"></i> Mon profil</div>
                             <div class="section__sub">Modifier votre prénom, email et mot de passe</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
                     <form class="settings-form" id="profileForm" novalidate>
                         <div class="settings-row">
@@ -1706,6 +1907,7 @@
                             <div class="section__title"><i class="fa-solid fa-screwdriver-wrench"></i> Paramètres du site</div>
                             <div class="section__sub">Coordonnées, horaires et liens affichés sur le site</div>
                         </div>
+                        <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
                     </div>
                     <form class="settings-form" id="siteSettingsForm" novalidate>
                         <div class="settings-row">
@@ -2205,12 +2407,13 @@
                 if (!appt.date) return;
                 const [y, m] = appt.date.split('-').map(Number);
                 if (y === year && m - 1 === month) {
-                    const entry = byDate[appt.date] || { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
+                    const entry = byDate[appt.date] || { total: 0, pending: 0, confirmed: 0, cancelled: 0, completed: 0 };
                     const status = appt.status || 'pending';
                     entry.total += 1;
                     if (status === 'pending') entry.pending += 1;
                     if (status === 'confirmed') entry.confirmed += 1;
                     if (status === 'cancelled') entry.cancelled += 1;
+                    if (status === 'completed') entry.completed += 1;
                     byDate[appt.date] = entry;
                 }
             });
@@ -2224,7 +2427,7 @@
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
                 const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-                const dayStats = byDate[dateStr] || { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
+                const dayStats = byDate[dateStr] || { total: 0, pending: 0, confirmed: 0, cancelled: 0, completed: 0 };
                 const count = dayStats.total;
                 const isSelected = calState.selectedDay === dateStr;
                 let cls = 'cal-cell';
@@ -2233,9 +2436,10 @@
                 if (dayStats.pending > 0) cls += ' has-pending';
                 if (dayStats.confirmed > 0) cls += ' has-confirmed';
                 if (dayStats.cancelled > 0) cls += ' has-cancelled';
+                if (dayStats.completed > 0) cls += ' has-completed';
                 if (isSelected) cls += ' selected';
                 const statusDots = count > 0
-                    ? `<span class="cal-cell__status">${dayStats.pending > 0 ? '<span class="cal-cell__dot cal-cell__dot--pending" title="Rendez-vous en attente"></span>' : ''}${dayStats.confirmed > 0 ? '<span class="cal-cell__dot cal-cell__dot--confirmed" title="Rendez-vous confirmés"></span>' : ''}${dayStats.cancelled > 0 ? '<span class="cal-cell__dot cal-cell__dot--cancelled" title="Rendez-vous annulés"></span>' : ''}</span>`
+                    ? `<span class="cal-cell__status">${dayStats.pending > 0 ? '<span class="cal-cell__dot cal-cell__dot--pending" title="Rendez-vous en attente"></span>' : ''}${dayStats.confirmed > 0 ? '<span class="cal-cell__dot cal-cell__dot--confirmed" title="Rendez-vous confirmés"></span>' : ''}${dayStats.cancelled > 0 ? '<span class="cal-cell__dot cal-cell__dot--cancelled" title="Rendez-vous annulés"></span>' : ''}${dayStats.completed > 0 ? '<span class="cal-cell__dot cal-cell__dot--completed" title="Prestations effectuées"></span>' : ''}</span>`
                     : '';
                 cells += `<div class="${cls}" data-cal-day="${dateStr}">${d}${count > 0 ? `<span class="cal-cell__badge">${count}</span>` : ''}${statusDots}</div>`;
             }
@@ -2262,13 +2466,15 @@
                 document.getElementById('calDayAppointments').innerHTML = appts.map((appt) => {
                     const user = state.users.find((u) => String(u.id) === String(appt.user_id));
                     const status = appt.status || 'pending';
-                    const statusClass = status === 'confirmed' ? 'chip--confirmed' : status === 'cancelled' ? 'chip--cancelled' : 'chip--pending';
-                    const statusLabel = status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente';
+                    const statusClass = status === 'confirmed' ? 'chip--confirmed' : status === 'cancelled' ? 'chip--cancelled' : status === 'completed' ? 'chip--completed' : 'chip--pending';
+                    const statusLabel = status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : status === 'completed' ? 'Prestation effectuée' : 'En attente';
                     const clientLabel = user ? (getUserLabel(user) + ' · ' + user.email) : 'Client #' + appt.user_id;
                     const cardClass = status === 'confirmed'
                         ? 'table-card--confirmed'
                         : status === 'cancelled'
                             ? 'table-card--cancelled'
+                            : status === 'completed'
+                                ? 'table-card--completed'
                             : 'table-card--pending';
                     return `
                         <article class="table-card ${cardClass}">
@@ -2282,10 +2488,12 @@
                             <div class="table-card__meta table-card__meta--muted">
                                 <span>Créé le ${escapeHtml(formatDate(appt.created_at || ''))}</span>
                             </div>
+                            ${status === 'completed' ? `<div class="section__sub">Résumé: ${escapeHtml(appt.completion_summary || 'Prestation réalisée en atelier ClinikAuto.')}</div>` : ''}
                             <div class="actions actions--compact">
                                 ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appt.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
                                 ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appt.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
                                 ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appt.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                                ${status !== 'completed' ? `<button class="btn-inline" data-complete-appointment="${appt.id}"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée</button>` : ''}
                                 <button class="btn-inline" data-review-email="${appt.id}"><i class="fa-solid fa-envelope"></i> Demander un avis Google</button>
                             </div>
                         </article>
@@ -2331,25 +2539,36 @@
                     ? 'chip--confirmed'
                     : status === 'cancelled'
                         ? 'chip--cancelled'
+                        : status === 'completed'
+                            ? 'chip--completed'
                         : 'chip--pending';
+                const cardClass = status === 'confirmed'
+                    ? 'table-card--confirmed'
+                    : status === 'cancelled'
+                        ? 'table-card--cancelled'
+                        : status === 'completed'
+                            ? 'table-card--completed'
+                        : 'table-card--pending';
 
                 return `
-                    <article class="table-card">
+                    <article class="table-card ${cardClass}">
                         <div class="table-card__head">
                             <div>
                                 <strong>#${escapeHtml(appointment.id)} · ${escapeHtml(appointment.service)}</strong>
                                 <div class="section__sub">${escapeHtml(user ? user.email : 'Client #' + appointment.user_id)} · ${escapeHtml(formatShortDate(appointment.date, appointment.time))}</div>
                             </div>
-                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente'}</span>
+                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : status === 'completed' ? 'Prestation effectuée' : 'En attente'}</span>
                         </div>
                         <div class="table-card__meta">
                             <span class="chip"><i class="fa-solid fa-user"></i> Client ${escapeHtml(appointment.user_id)}</span>
                             <span class="chip"><i class="fa-solid fa-calendar-check"></i> Créé le ${escapeHtml(formatDate(appointment.created_at))}</span>
                         </div>
+                        ${status === 'completed' ? `<div class="section__sub">Résumé: ${escapeHtml(appointment.completion_summary || 'Prestation réalisée en atelier ClinikAuto.')}</div>` : ''}
                         <div class="actions">
                             ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appointment.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
                             ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appointment.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
                             ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appointment.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                            ${status !== 'completed' ? `<button class="btn-inline" data-complete-appointment="${appointment.id}"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée</button>` : ''}
                             <button class="btn-inline" data-review-email="${appointment.id}"><i class="fa-solid fa-envelope"></i> Demander un avis Google</button>
                         </div>
                     </article>
@@ -2998,25 +3217,37 @@
                     ? 'chip--confirmed'
                     : status === 'cancelled'
                         ? 'chip--cancelled'
+                        : status === 'completed'
+                            ? 'chip--completed'
                         : 'chip--pending';
+                const cardClass = status === 'confirmed'
+                    ? 'table-card--confirmed'
+                    : status === 'cancelled'
+                        ? 'table-card--cancelled'
+                        : status === 'completed'
+                            ? 'table-card--completed'
+                        : 'table-card--pending';
 
                 return `
-                    <article class="table-card">
+                    <article class="table-card ${cardClass}">
                         <div class="table-card__head">
                             <div>
                                 <strong>#${escapeHtml(appointment.id)} · ${escapeHtml(appointment.service)}</strong>
                                 <div class="section__sub">${escapeHtml(user ? user.email : 'Client #' + appointment.user_id)} · ${escapeHtml(formatShortDate(appointment.date, appointment.time))}</div>
                             </div>
-                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente'}</span>
+                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : status === 'completed' ? 'Prestation effectuée' : 'En attente'}</span>
                         </div>
                         <div class="table-card__meta">
                             <span class="chip"><i class="fa-solid fa-user"></i> Client ${escapeHtml(appointment.user_id)}</span>
                             <span class="chip"><i class="fa-solid fa-calendar-check"></i> Créé le ${escapeHtml(formatDate(appointment.created_at))}</span>
                         </div>
+                        ${status === 'completed' ? `<div class="section__sub">Résumé: ${escapeHtml(appointment.completion_summary || 'Prestation réalisée en atelier ClinikAuto.')}</div>` : ''}
                         <div class="actions">
                             ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appointment.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
                             ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appointment.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
                             ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appointment.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                            ${status !== 'completed' ? `<button class="btn-inline" data-complete-appointment="${appointment.id}"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée</button>` : ''}
+                            <button class="btn-inline" data-review-email="${appointment.id}"><i class="fa-solid fa-envelope"></i> Demander un avis Google</button>
                         </div>
                     </article>
                 `;
@@ -3195,16 +3426,68 @@
             document.getElementById('userModal').classList.remove('open');
         }
 
-        async function updateAppointmentStatus(id, status) {
+        async function updateAppointmentStatus(id, status, options) {
+            const completionSummary = options && options.completionSummary ? String(options.completionSummary).trim() : '';
+            const remindVroomly = !(options && options.remindVroomly === false);
             await api('/appointment/' + id, {
                 method: 'PUT',
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status, completionSummary })
             });
             if (window.ClinikAutoAnalytics) {
                 window.ClinikAutoAnalytics.trackEvent('admin_appointment_' + status, { appointmentId: id });
             }
-            setVroomlySyncReminder();
-            showToast('Rendez-vous mis à jour. Pensez à synchroniser avec Vroomly.');
+            if (remindVroomly) {
+                setVroomlySyncReminder();
+                showToast('Rendez-vous mis à jour. Pensez à synchroniser avec Vroomly.');
+            } else {
+                showToast('Rendez-vous mis à jour.');
+            }
+            await loadDashboard();
+        }
+
+        async function markAppointmentAsCompleted(id) {
+            const appointment = state.appointments.find((item) => String(item.id) === String(id));
+            if (!appointment) {
+                showToast('Rendez-vous introuvable.');
+                return;
+            }
+
+            const defaultSummary = appointment.completion_summary || '';
+            const input = window.prompt('Résumé de la prestation effectuée :', defaultSummary || 'Prestation réalisée en atelier ClinikAuto.');
+            if (input === null) {
+                return;
+            }
+
+            const completionSummary = String(input).trim() || 'Prestation réalisée en atelier ClinikAuto.';
+            await updateAppointmentStatus(id, 'completed', { completionSummary, remindVroomly: false });
+            requestGoogleReviewEmail(id);
+        }
+
+        async function completeAppointmentFromPrompt() {
+            const rawId = window.prompt('ID du rendez-vous à passer en prestation effectuée :', '');
+            if (rawId === null) {
+                return;
+            }
+            const id = String(rawId).trim();
+            if (!id) {
+                showToast('Identifiant de rendez-vous requis.');
+                return;
+            }
+            await markAppointmentAsCompleted(id);
+        }
+
+        async function purgeCancelledAppointments() {
+            const cancelledCount = state.appointments.filter((appointment) => (appointment.status || 'pending') === 'cancelled').length;
+            if (!cancelledCount) {
+                showToast('Aucun rendez-vous annulé à supprimer.');
+                return;
+            }
+            if (!window.confirm('Supprimer définitivement ' + cancelledCount + ' rendez-vous annulé(s) ?')) {
+                return;
+            }
+            const result = await api('/admin/appointments/cancelled', { method: 'DELETE' });
+            const deleted = Number(result && result.deleted ? result.deleted : 0);
+            showToast((deleted || 0) + ' rendez-vous annulé(s) supprimé(s).');
             await loadDashboard();
         }
 
@@ -3333,6 +3616,34 @@
             });
             document.getElementById('appointmentSearch').addEventListener('input', buildAppointments);
             document.getElementById('appointmentStatusFilter').addEventListener('change', buildAppointments);
+            document.getElementById('hubDeleteCancelledBtn').addEventListener('click', async () => {
+                try {
+                    await purgeCancelledAppointments();
+                } catch (error) {
+                    showToast(error.message || 'Suppression impossible.');
+                }
+            });
+            document.getElementById('hubCompletePromptBtn').addEventListener('click', async () => {
+                try {
+                    await completeAppointmentFromPrompt();
+                } catch (error) {
+                    showToast(error.message || 'Mise à jour impossible.');
+                }
+            });
+            document.getElementById('appointmentsDeleteCancelledBtn').addEventListener('click', async () => {
+                try {
+                    await purgeCancelledAppointments();
+                } catch (error) {
+                    showToast(error.message || 'Suppression impossible.');
+                }
+            });
+            document.getElementById('appointmentsCompletePromptBtn').addEventListener('click', async () => {
+                try {
+                    await completeAppointmentFromPrompt();
+                } catch (error) {
+                    showToast(error.message || 'Mise à jour impossible.');
+                }
+            });
             document.getElementById('vroomlySyncStatus').addEventListener('click', async (event) => {
                 const ackBtn = event.target.closest('#vroomlyAckReminderBtn');
                 if (!ackBtn) return;
@@ -3346,6 +3657,22 @@
                 resetOccasionForm();
                 document.getElementById('occasionTitle').focus();
                 document.getElementById('occasionForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // Calendrier — actualiser les rendez-vous
+            document.getElementById('calRefreshBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('calRefreshBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-rotate-right fa-spin"></i> Actualisation…';
+                try {
+                    await loadDashboard();
+                    showToast('Rendez-vous mis à jour.');
+                } catch (_err) {
+                    showToast('Erreur lors de l\'actualisation.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Actualiser';
+                }
             });
 
             // Calendrier — navigation mois
@@ -3373,6 +3700,15 @@
                     requestGoogleReviewEmail(reviewBtn.dataset.reviewEmail);
                     return;
                 }
+                const completeBtn = event.target.closest('[data-complete-appointment]');
+                if (completeBtn) {
+                    try {
+                        await markAppointmentAsCompleted(completeBtn.dataset.completeAppointment);
+                    } catch (error) {
+                        showToast(error.message || 'Mise à jour impossible.');
+                    }
+                    return;
+                }
                 const button = event.target.closest('[data-appointment-id]');
                 if (!button) return;
                 try {
@@ -3388,6 +3724,15 @@
                 const reviewBtn = event.target.closest('[data-review-email]');
                 if (reviewBtn) {
                     requestGoogleReviewEmail(reviewBtn.dataset.reviewEmail);
+                    return;
+                }
+                const completeBtn = event.target.closest('[data-complete-appointment]');
+                if (completeBtn) {
+                    try {
+                        await markAppointmentAsCompleted(completeBtn.dataset.completeAppointment);
+                    } catch (error) {
+                        showToast(error.message || 'Mise à jour impossible.');
+                    }
                     return;
                 }
                 const button = event.target.closest('[data-appointment-id]');
@@ -3590,6 +3935,20 @@
             });
 
             document.getElementById('appointmentsList').addEventListener('click', async (event) => {
+                const reviewBtn = event.target.closest('[data-review-email]');
+                if (reviewBtn) {
+                    requestGoogleReviewEmail(reviewBtn.dataset.reviewEmail);
+                    return;
+                }
+                const completeBtn = event.target.closest('[data-complete-appointment]');
+                if (completeBtn) {
+                    try {
+                        await markAppointmentAsCompleted(completeBtn.dataset.completeAppointment);
+                    } catch (error) {
+                        showToast(error.message || 'Mise à jour impossible.');
+                    }
+                    return;
+                }
                 const button = event.target.closest('[data-appointment-id]');
                 if (!button) {
                     return;
@@ -3670,6 +4029,34 @@
             }
             initPhotoDrop();
             bindEvents();
+
+            // Auto-refresh quand l'onglet reprend le focus (ex. après une réservation depuis appointment.html)
+            let lastFocusRefresh = Date.now();
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible') {
+                    const now = Date.now();
+                    if (now - lastFocusRefresh > 30000) { // max 1 refresh toutes les 30s
+                        lastFocusRefresh = now;
+                        try { await loadDashboard(); } catch (_) {}
+                    }
+                }
+            });
+
+            // Rafraîchissement périodique pour une vue analytics quasi temps réel.
+            let autoRefreshBusy = false;
+            setInterval(async () => {
+                if (document.visibilityState !== 'visible' || autoRefreshBusy) {
+                    return;
+                }
+                autoRefreshBusy = true;
+                try {
+                    await loadDashboard();
+                } catch (_) {
+                } finally {
+                    autoRefreshBusy = false;
+                }
+            }, 15000);
+
             try {
                 await loadDashboard();
                 if (window.ClinikAutoAnalytics) {

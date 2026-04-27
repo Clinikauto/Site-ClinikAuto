@@ -5,6 +5,7 @@ const TOKEN_KEY = 'token';
 const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
 
 let currentClient = null;
+let currentAppointments = [];
 
 // ===== UTILS =====
 function genId() {
@@ -60,6 +61,16 @@ async function loadMyProfile() {
 async function saveMyProfile(payload) {
   await apiAuth('/me/profile', 'PUT', payload);
   return loadMyProfile();
+}
+
+async function loadMyAppointments() {
+  const userId = Number(currentClient && currentClient.user_id);
+  if (!Number.isFinite(userId)) {
+    currentAppointments = [];
+    return currentAppointments;
+  }
+  currentAppointments = await apiAuth('/appointments/' + userId);
+  return currentAppointments;
 }
 
 function toast(msg, type = 'success') {
@@ -119,6 +130,7 @@ async function seConnecter() {
     localStorage.removeItem('clinikauto_clients');
 
     await loadMyProfile();
+    await loadMyAppointments();
 
     errEl.style.display = 'none';
     afficherDashboard(currentClient);
@@ -203,6 +215,7 @@ async function sInscrire() {
       adresse,
       vehicules: [vehicule]
     });
+    await loadMyAppointments();
 
     errEl.style.display = 'none';
     afficherDashboard(currentClient);
@@ -220,6 +233,55 @@ function afficherDashboard(client) {
   document.getElementById('dashPrenom').textContent = client.prenom || '';
   afficherVehicules(client);
   afficherInfos(client);
+  afficherInterventions(currentAppointments);
+}
+
+function formatDateTimeFr(dateValue, timeValue) {
+  const raw = timeValue ? String(dateValue || '') + 'T' + String(timeValue || '') + ':00' : String(dateValue || '');
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) {
+    return [dateValue, timeValue].filter(Boolean).join(' ');
+  }
+  return date.toLocaleDateString('fr-FR') + (timeValue ? ' a ' + timeValue : '');
+}
+
+function afficherInterventions(appointments) {
+  const container = document.getElementById('dashInterventions');
+  if (!container) {
+    return;
+  }
+
+  const rows = Array.isArray(appointments) ? appointments : [];
+  const completed = rows
+    .filter((appointment) => (appointment.status || 'pending') === 'completed')
+    .sort((a, b) => {
+      const left = new Date((a.completed_at || a.date || '') + 'T' + (a.time || '00:00') + ':00').getTime();
+      const right = new Date((b.completed_at || b.date || '') + 'T' + (b.time || '00:00') + ':00').getTime();
+      return right - left;
+    });
+
+  if (!completed.length) {
+    container.innerHTML = '<p class="ec-empty-note">Aucune prestation effectuee n\'est encore disponible.</p>';
+    return;
+  }
+
+  container.innerHTML = completed.map((appointment) => {
+    const summary = String(appointment.completion_summary || 'Prestation realisee en atelier ClinikAuto.').trim();
+    const completedLabel = appointment.completed_at
+      ? new Date(appointment.completed_at).toLocaleString('fr-FR')
+      : formatDateTimeFr(appointment.date, appointment.time);
+    return `
+      <article class="ec-int-card">
+        <div class="ec-int-card__head">
+          <div class="ec-int-card__title">${escapeHtml(appointment.service || 'Prestation atelier')}</div>
+          <span class="ec-int-chip"><i class="fa-solid fa-circle-check"></i> Terminee</span>
+        </div>
+        <div class="ec-int-meta">Rendez-vous du ${escapeHtml(formatDateTimeFr(appointment.date, appointment.time))}</div>
+        <div class="ec-int-meta">Cloturee le ${escapeHtml(completedLabel)}</div>
+        <div class="ec-int-summary">${escapeHtml(summary)}</div>
+      </article>
+    `;
+  }).join('');
 }
 
 function seDeconnecter() {
@@ -442,6 +504,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (token) {
     try {
       await loadMyProfile();
+      await loadMyAppointments();
       afficherDashboard(currentClient);
     } catch (_err) {
       localStorage.removeItem(SESSION_KEY);

@@ -17,6 +17,24 @@ const ALLOWED_ORIGINS = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const GOOGLE_CALENDAR_ICS_URL = String(process.env.GOOGLE_CALENDAR_ICS_URL || "").trim();
+const GOOGLE_CALENDAR_DEFAULT_SERVICE = String(process.env.GOOGLE_CALENDAR_DEFAULT_SERVICE || "Réparation").trim() || "Réparation";
+const GOOGLE_CALENDAR_SYNC_INTERVAL_MS = Math.max(60000, Number.parseInt(process.env.GOOGLE_CALENDAR_SYNC_INTERVAL_MS || "300000", 10) || 300000);
+const GOOGLE_CALENDAR_SYNC_ENABLED = (() => {
+    const raw = String(process.env.GOOGLE_CALENDAR_SYNC_ENABLED || "true").trim().toLowerCase();
+    if (["0", "false", "no", "off"].includes(raw)) {
+        return false;
+    }
+    return !!GOOGLE_CALENDAR_ICS_URL;
+})();
+const googleCalendarSyncState = {
+    running: false,
+    lastRunAt: 0,
+    lastError: "",
+    lastScanned: 0,
+    lastImported: 0,
+    timer: null
+};
 
 app.use(
     cors({
@@ -119,10 +137,24 @@ CREATE TABLE IF NOT EXISTS appointments (
     date TEXT,
     time TEXT,
     status TEXT DEFAULT 'pending',
+    completion_summary TEXT DEFAULT '',
+    completed_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 )
 `);
+
+db.run("ALTER TABLE appointments ADD COLUMN completion_summary TEXT DEFAULT ''", (err) => {
+    if (err && !String(err.message || "").includes("duplicate column name")) {
+        console.error("Erreur migration completion_summary:", err.message);
+    }
+});
+
+db.run("ALTER TABLE appointments ADD COLUMN completed_at DATETIME", (err) => {
+    if (err && !String(err.message || "").includes("duplicate column name")) {
+        console.error("Erreur migration completed_at:", err.message);
+    }
+});
 
 db.run(`
 CREATE TABLE IF NOT EXISTS occasions (
@@ -206,7 +238,7 @@ db.serialize(() => {
 
 // Horaires disponibles
 const availableHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
-const allowedStatuses = new Set(["pending", "confirmed", "cancelled"]);
+const allowedStatuses = new Set(["pending", "confirmed", "cancelled", "completed"]);
 const allowedServices = new Set(["Réparation", "Lavage", "Pneus", "Électricité"]);
 
 function isValidEmail(email) {
@@ -373,6 +405,283 @@ function dbRunAsync(query, params = []) {
             resolve({ lastID: this.lastID, changes: this.changes || 0 });
         });
     });
+}
+
+function dbAllAsync(query, params = []) {
+    return new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(Array.isArray(rows) ? rows : []);
+        });
+    });
+}
+
+function getSettingAsync(key) {
+    return dbGetAsync("SELECT value FROM site_settings WHERE key = ?", [key]).then((row) => (row ? row.value : ""));
+}
+
+function upsertSiteSettingAsync(key, value) {
+    return new Promise((resolve, reject) => {
+        upsertSiteSetting(key, value, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(true);
+        });
+    });
+}
+
+function unfoldIcsLines(text) {
+    return String(text || "")
+        .replace(/\r\n[ \t]/g, "")
+        .replace(/\n[ \t]/g, "");
+}
+
+function parseIcsEvents(icsText) {
+    const content = unfoldIcsLines(icsText);
+    const lines = content.split(/\r?\n/);
+    const events = [];
+    let current = null;
+
+    for (const rawLine of lines) {
+        const line = String(rawLine || "").trim();
+        if (!line) continue;
+        if (line === "BEGIN:VEVENT") {
+            current = [];
+            continue;
+        }
+        if (line === "END:VEVENT") {
+            if (Array.isArray(current)) {
+                events.push(current);
+            }
+            current = null;
+            continue;
+        }
+        if (!Array.isArray(current)) {
+            continue;
+        }
+        const sep = line.indexOf(":");
+        if (sep <= 0) {
+            continue;
+        }
+        const key = line.slice(0, sep).toUpperCase();
+        const value = line.slice(sep + 1).trim();
+        current.push({ key, value });
+    }
+
+    return events;
+}
+
+function getIcsField(event, fieldName) {
+    const target = String(fieldName || "").toUpperCase();
+    return event.find((item) => item.key === target || item.key.startsWith(`${target};`)) || null;
+}
+
+function getIcsFields(event, fieldName) {
+    const target = String(fieldName || "").toUpperCase();
+    return event.filter((item) => item.key === target || item.key.startsWith(`${target};`));
+}
+
+function toDateAndTimeParts(dateObj) {
+    if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) {
+        return null;
+    }
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    const hh = String(dateObj.getHours()).padStart(2, "0");
+    const mm = String(dateObj.getMinutes()).padStart(2, "0");
+    return { date: `${y}-${m}-${d}`, time: `${hh}:${mm}` };
+}
+
+function parseIcsDateTime(rawValue) {
+    const value = String(rawValue || "").trim();
+    if (!value) {
+        return null;
+    }
+
+    if (/^\d{8}$/.test(value)) {
+        return {
+            date: `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`,
+            time: "09:00"
+        };
+    }
+
+    if (/^\d{8}T\d{6}Z$/.test(value)) {
+        const year = Number.parseInt(value.slice(0, 4), 10);
+        const month = Number.parseInt(value.slice(4, 6), 10);
+        const day = Number.parseInt(value.slice(6, 8), 10);
+        const hour = Number.parseInt(value.slice(9, 11), 10);
+        const minute = Number.parseInt(value.slice(11, 13), 10);
+        return toDateAndTimeParts(new Date(Date.UTC(year, month - 1, day, hour, minute, 0)));
+    }
+
+    if (/^\d{8}T\d{6}$/.test(value)) {
+        const year = Number.parseInt(value.slice(0, 4), 10);
+        const month = Number.parseInt(value.slice(4, 6), 10);
+        const day = Number.parseInt(value.slice(6, 8), 10);
+        const hour = Number.parseInt(value.slice(9, 11), 10);
+        const minute = Number.parseInt(value.slice(11, 13), 10);
+        return toDateAndTimeParts(new Date(year, month - 1, day, hour, minute, 0));
+    }
+
+    return null;
+}
+
+function extractEmailFromText(text) {
+    const value = String(text || "");
+    const mailto = value.match(/mailto:([^\s>;,]+)/i);
+    if (mailto && isValidEmail(mailto[1])) {
+        return mailto[1].toLowerCase();
+    }
+    const email = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    if (email && isValidEmail(email[0])) {
+        return email[0].toLowerCase();
+    }
+    return "";
+}
+
+function normalizeGoogleEvent(event) {
+    const dtStartField = getIcsField(event, "DTSTART");
+    if (!dtStartField || !dtStartField.value) {
+        return null;
+    }
+    const start = parseIcsDateTime(dtStartField.value);
+    if (!start || !isValidDate(start.date)) {
+        return null;
+    }
+
+    const statusField = getIcsField(event, "STATUS");
+    const statusRaw = String(statusField ? statusField.value : "").trim().toUpperCase();
+    if (statusRaw === "CANCELLED") {
+        return null;
+    }
+
+    const summaryField = getIcsField(event, "SUMMARY");
+    const descriptionField = getIcsField(event, "DESCRIPTION");
+    const attendees = getIcsFields(event, "ATTENDEE");
+
+    const summary = String(summaryField ? summaryField.value : "").trim();
+    const service = summary || GOOGLE_CALENDAR_DEFAULT_SERVICE;
+
+    let email = "";
+    for (const attendee of attendees) {
+        email = extractEmailFromText(attendee.value);
+        if (email) break;
+    }
+    if (!email) {
+        email = extractEmailFromText(descriptionField ? descriptionField.value : "");
+    }
+
+    return {
+        service: service.slice(0, 180),
+        date: start.date,
+        time: start.time,
+        status: "pending",
+        email
+    };
+}
+
+async function syncGoogleCalendarToAppointments(options = {}) {
+    const force = !!options.force;
+
+    if (!GOOGLE_CALENDAR_SYNC_ENABLED) {
+        return { enabled: false, imported: 0, scanned: 0, reason: "disabled" };
+    }
+    if (googleCalendarSyncState.running) {
+        return { enabled: true, imported: 0, scanned: 0, reason: "already_running" };
+    }
+
+    const now = Date.now();
+    if (!force && now - googleCalendarSyncState.lastRunAt < 45000) {
+        return { enabled: true, imported: 0, scanned: googleCalendarSyncState.lastScanned, reason: "throttled" };
+    }
+
+    googleCalendarSyncState.running = true;
+    googleCalendarSyncState.lastRunAt = now;
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        const response = await fetch(GOOGLE_CALENDAR_ICS_URL, {
+            method: "GET",
+            headers: { "Cache-Control": "no-cache" },
+            signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const icsText = await response.text();
+        const events = parseIcsEvents(icsText)
+            .map(normalizeGoogleEvent)
+            .filter(Boolean);
+
+        const today = isoDateOnly();
+        const recentEvents = events.filter((item) => item.date >= today);
+        const scopedEvents = recentEvents.length ? recentEvents : events;
+        googleCalendarSyncState.lastScanned = scopedEvents.length;
+
+        if (!scopedEvents.length) {
+            googleCalendarSyncState.lastImported = 0;
+            googleCalendarSyncState.lastError = "";
+            await upsertSiteSettingAsync("google_calendar_last_sync_at", new Date().toISOString());
+            await upsertSiteSettingAsync("google_calendar_last_sync_count", "0");
+            await upsertSiteSettingAsync("google_calendar_last_sync_error", "");
+            return { enabled: true, imported: 0, scanned: 0 };
+        }
+
+        const emails = [...new Set(scopedEvents.map((item) => item.email).filter(Boolean))];
+        let emailToUserId = {};
+        if (emails.length) {
+            const placeholders = emails.map(() => "?").join(",");
+            const users = await dbAllAsync(`SELECT id, email FROM users WHERE LOWER(email) IN (${placeholders})`, emails);
+            emailToUserId = (users || []).reduce((acc, user) => {
+                acc[String(user.email || "").toLowerCase()] = user.id;
+                return acc;
+            }, {});
+        }
+
+        let imported = 0;
+        for (const item of scopedEvents) {
+            try {
+                const userId = item.email ? (emailToUserId[item.email] || null) : null;
+                const result = await dbRunAsync(
+                    "INSERT OR IGNORE INTO appointments (user_id, service, date, time, status) VALUES (?, ?, ?, ?, ?)",
+                    [userId, item.service, item.date, item.time, item.status]
+                );
+                if (result.changes > 0) {
+                    imported += 1;
+                }
+            } catch (insertErr) {
+                if (!String(insertErr.message || "").includes("UNIQUE constraint failed")) {
+                    console.warn("Sync Google Calendar: insertion ignorée", insertErr.message);
+                }
+            }
+        }
+
+        googleCalendarSyncState.lastImported = imported;
+        googleCalendarSyncState.lastError = "";
+        await upsertSiteSettingAsync("google_calendar_last_sync_at", new Date().toISOString());
+        await upsertSiteSettingAsync("google_calendar_last_sync_count", String(imported));
+        await upsertSiteSettingAsync("google_calendar_last_sync_error", "");
+
+        return { enabled: true, imported, scanned: scopedEvents.length };
+    } catch (err) {
+        const message = err && err.message ? err.message : "Erreur inconnue";
+        googleCalendarSyncState.lastError = message;
+        googleCalendarSyncState.lastImported = 0;
+        await upsertSiteSettingAsync("google_calendar_last_sync_error", message).catch(() => {});
+        return { enabled: true, imported: 0, scanned: 0, error: message };
+    } finally {
+        googleCalendarSyncState.running = false;
+    }
 }
 
 function upsertClientProfileAsync(userId, payload) {
@@ -749,7 +1058,13 @@ app.get("/appointments/:user_id", requireAuth, (req, res) => {
 });
 
 // Voir tous les rendez-vous (admin)
-app.get("/all-appointments", requireAuth, requireAdmin, (req, res) => {
+app.get("/all-appointments", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+        await syncGoogleCalendarToAppointments({ force: false });
+    } catch (_err) {
+        // Ne bloque pas le tableau de bord si la sync Google échoue.
+    }
+
     db.all(
         "SELECT * FROM appointments ORDER BY date DESC",
         (err, rows) => {
@@ -759,6 +1074,35 @@ app.get("/all-appointments", requireAuth, requireAdmin, (req, res) => {
             res.json(rows);
         }
     );
+});
+
+app.post("/admin/google-calendar/sync", requireAuth, requireAdmin, async (_req, res) => {
+    const result = await syncGoogleCalendarToAppointments({ force: true });
+    if (result.error) {
+        return res.status(502).json({ error: `Synchronisation Google échouée: ${result.error}`, ...result });
+    }
+    res.json({
+        message: "Synchronisation Google Calendar terminée",
+        ...result
+    });
+});
+
+app.get("/admin/google-calendar/sync-status", requireAuth, requireAdmin, async (_req, res) => {
+    const lastSyncAt = await getSettingAsync("google_calendar_last_sync_at").catch(() => "");
+    const lastSyncCount = await getSettingAsync("google_calendar_last_sync_count").catch(() => "0");
+    const lastSyncError = await getSettingAsync("google_calendar_last_sync_error").catch(() => "");
+    res.json({
+        enabled: GOOGLE_CALENDAR_SYNC_ENABLED,
+        sourceConfigured: !!GOOGLE_CALENDAR_ICS_URL,
+        intervalMs: GOOGLE_CALENDAR_SYNC_INTERVAL_MS,
+        running: googleCalendarSyncState.running,
+        lastRunAt: googleCalendarSyncState.lastRunAt ? new Date(googleCalendarSyncState.lastRunAt).toISOString() : null,
+        lastSyncAt: lastSyncAt || null,
+        lastSyncCount: Number(lastSyncCount || 0),
+        lastSyncError: lastSyncError || null,
+        lastScanned: googleCalendarSyncState.lastScanned,
+        lastImported: googleCalendarSyncState.lastImported
+    });
 });
 
 app.get("/admin/appointments/export-ics", requireAuth, requireAdmin, (req, res) => {
@@ -1426,19 +1770,40 @@ app.delete("/admin/users/:id", requireAuth, requireAdmin, (req, res) => {
 app.put("/appointment/:id", requireAuth, requireAdmin, (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
+    const completionSummary = String(req.body?.completionSummary || "").trim();
 
     if (!allowedStatuses.has(status)) {
         return res.status(400).json({ error: "Statut invalide" });
     }
 
+    const nextSummary = status === "completed"
+        ? (completionSummary || "Prestation réalisée en atelier ClinikAuto.")
+        : "";
+    const completedAt = status === "completed" ? new Date().toISOString() : null;
+
     db.run(
-        "UPDATE appointments SET status = ? WHERE id = ?",
-        [status, id],
+        "UPDATE appointments SET status = ?, completion_summary = ?, completed_at = ? WHERE id = ?",
+        [status, nextSummary, completedAt, id],
         function (err) {
             if (err) {
                 return res.status(400).json({ error: "Erreur lors de la mise a jour" });
             }
+            if (!this.changes) {
+                return res.status(404).json({ error: "Rendez-vous introuvable" });
+            }
             res.json({ message: "Rendez-vous mis a jour" });
+        }
+    );
+});
+
+app.delete("/admin/appointments/cancelled", requireAuth, requireAdmin, (req, res) => {
+    db.run(
+        "DELETE FROM appointments WHERE status = 'cancelled'",
+        function (err) {
+            if (err) {
+                return res.status(500).json({ error: "Erreur suppression des rendez-vous annulés" });
+            }
+            res.json({ message: "Rendez-vous annulés supprimés", deleted: this.changes || 0 });
         }
     );
 });
@@ -1919,11 +2284,38 @@ app.get("/register", (req, res) => {
 app.listen(3000, () => {
     console.log("Serveur lance sur http://localhost:3000");
     ensureAdminFromEnv();
+
+    if (GOOGLE_CALENDAR_SYNC_ENABLED) {
+        console.log("Sync Google Calendar activee (intervalle ms):", GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+        // Lancement initial sans bloquer le démarrage serveur.
+        setTimeout(() => {
+            syncGoogleCalendarToAppointments({ force: true })
+                .then((result) => {
+                    if (result.error) {
+                        console.warn("Sync Google initiale en erreur:", result.error);
+                        return;
+                    }
+                    console.log(`Sync Google initiale OK: ${result.imported} importés / ${result.scanned} lus`);
+                })
+                .catch((err) => console.warn("Sync Google initiale impossible:", err.message));
+        }, 1500);
+
+        googleCalendarSyncState.timer = setInterval(() => {
+            syncGoogleCalendarToAppointments({ force: true }).catch((err) => {
+                console.warn("Sync Google periodique impossible:", err.message);
+            });
+        }, GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+    } else {
+        console.log("Sync Google Calendar desactivee (definir GOOGLE_CALENDAR_ICS_URL).");
+    }
 });
 
 // Proper DB close on exit
 process.on('SIGINT', () => {
   console.log('Fermeture de la base de donnees...');
+    if (googleCalendarSyncState.timer) {
+        clearInterval(googleCalendarSyncState.timer);
+    }
   db.close(() => {
     process.exit(0);
   });
