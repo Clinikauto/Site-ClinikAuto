@@ -1448,7 +1448,12 @@
                                 <span class="file-import-name" id="agendaIcsFileName">Aucun fichier sélectionné</span>
                             </div>
                             <div class="file-import-block">
-                                <label class="file-import-label" for="agendaCsvFile">
+                                    <!-- Actions ICS après import — affichées dynamiquement -->
+                                <div id="agendaIcsActions" style="display:none; gap:8px; flex-wrap:wrap; margin-top:6px; margin-bottom:2px;">
+                                    <button type="button" class="btn-inline" id="agendaIcsCopyBtn" title="Copier le contenu ICS dans le presse-papier pour le coller sur Vroomly"><i class="fa-solid fa-clipboard"></i> Copier le contenu ICS</button>
+                                    <button type="button" class="btn-inline" id="agendaIcsDownloadBtn" title="Re-télécharger le fichier ICS pour l'importer dans Vroomly"><i class="fa-solid fa-file-arrow-down"></i> Re-télécharger ICS</button>
+                                </div>
+                                    <label class="file-import-label" for="agendaCsvFile">
                                     <i class="fa-solid fa-file-csv"></i>
                                     <span class="file-import-title">Importer un fichier <strong>CSV</strong></span>
                                     <span class="file-import-hint">Export tableur (.csv) depuis Vroomly — colonnes : date, heure, client, prestation, statut</span>
@@ -1467,7 +1472,7 @@
                         <div class="agenda-actions">
                             <button class="btn btn--primary" id="agendaImportBtn"><i class="fa-solid fa-calendar-plus"></i> Importer dans l'agenda</button>
                             <button class="btn btn--ghost" id="agendaClearBtn"><i class="fa-solid fa-trash"></i> Vider l'agenda</button>
-                            <a class="btn btn--secondary" href="https://www.vroomly.com/professional/calendar/?date=2026-04-20" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir Vroomly</a>
+                            <a class="btn btn--secondary" href="https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir Vroomly</a>
                         </div>
                         <p class="agenda-note"><i class="fa-solid fa-circle-info"></i> Importez un fichier <strong>.ics</strong> (iCalendar) ou <strong>.csv</strong> exporté depuis Vroomly, ou utilisez la saisie manuelle. La synchronisation automatique directe requiert un accès API Vroomly (non disponible publiquement à ce jour).</p>
                     </div>
@@ -1697,7 +1702,8 @@
         const AGENDA_KEY = 'clinikauto_admin_vroomly_agenda';
         const ADMIN_API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
         const VROOMLY_REMINDER_TOAST_KEY = 'clinikauto_vroomly_reminder_toast_day';
-        const MAX_PHOTOS = 8;
+            let _lastIcsRaw = null; // Contenu brut du dernier fichier ICS importé (Google Agenda → Vroomly)
+            const MAX_PHOTOS = 8;
         const MAX_PHOTO_DIMENSION = 1600;
         const PHOTO_JPEG_QUALITY = 0.82;
         const MAX_TOTAL_PHOTO_CHARS = 18 * 1024 * 1024;
@@ -3224,7 +3230,8 @@
                 reader.onload = (e) => {
                     try {
                         const fallbackDate = document.getElementById('agendaImportDate').value;
-                        const parsed = parseICS(e.target.result);
+                            _lastIcsRaw = e.target.result;
+                            const parsed = parseICS(_lastIcsRaw);
                         if (!parsed.length) { showToast('Aucun événement trouvé dans le fichier ICS.'); return; }
                         const normalized = parsed.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((i) => i.client || i.service);
                         if (!normalized.length) { showToast('Aucun rendez-vous exploitable dans le fichier ICS.'); return; }
@@ -3235,6 +3242,7 @@
                         saveAgenda();
                         buildAgenda();
                         showToast(`${normalized.length} rendez-vous importés depuis le fichier ICS.`);
+                            document.getElementById('agendaIcsActions').style.display = 'flex';
                     } catch (err) {
                         showToast('Erreur lors de la lecture du fichier ICS : ' + (err.message || 'format invalide.'));
                     }
@@ -3243,7 +3251,44 @@
                 evt.target.value = '';
             });
 
-            // ─── CSV file import ────────────────────────────────
+                // ─── Copier contenu ICS dans le presse-papier ───────
+                document.getElementById('agendaIcsCopyBtn').addEventListener('click', () => {
+                    if (!_lastIcsRaw) { showToast('Aucun fichier ICS chargé.'); return; }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(_lastIcsRaw).then(() => {
+                            showToast('Contenu ICS copié ! Collez-le sur la page d\'import Vroomly.');
+                        }).catch(() => {
+                            _copyIcsFallback();
+                        });
+                    } else {
+                        _copyIcsFallback();
+                    }
+                });
+                function _copyIcsFallback() {
+                    const ta = document.createElement('textarea');
+                    ta.value = _lastIcsRaw;
+                    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
+                    document.body.appendChild(ta);
+                    ta.focus(); ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('Contenu ICS copié. Collez-le sur la page d\'import Vroomly.');
+                }
+
+                // ─── Re-télécharger le fichier ICS ──────────────────
+                document.getElementById('agendaIcsDownloadBtn').addEventListener('click', () => {
+                    if (!_lastIcsRaw) { showToast('Aucun fichier ICS chargé.'); return; }
+                    const blob = new Blob([_lastIcsRaw], { type: 'text/calendar;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'agenda-google-' + new Date().toISOString().slice(0, 10) + '.ics';
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    showToast('Fichier ICS téléchargé. Importez-le sur la page Vroomly.');
+                });
+
+                // ─── CSV file import ────────────────────────────────
             document.getElementById('agendaCsvFile').addEventListener('change', (evt) => {
                 const file = evt.target.files && evt.target.files[0];
                 if (!file) return;
