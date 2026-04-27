@@ -524,6 +524,15 @@ img { max-width: 100%; display: block; }
   gap: 16px;
   min-width: 220px;
 }
+.google-avis__cta .btn--outline {
+  background: var(--white);
+  color: var(--red);
+  border-color: var(--red);
+}
+.google-avis__cta .btn--outline:hover {
+  background: var(--red);
+  color: var(--white);
+}
 .google-avis__badge {
   background: var(--light);
   border-radius: var(--radius-lg);

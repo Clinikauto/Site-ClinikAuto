@@ -7,6 +7,12 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+const GOOGLE_REVIEWS_CACHE_MS = 5 * 60 * 1000;
+const googleReviewsCache = {
+        cacheKey: "",
+        ts: 0,
+        data: null
+};
 const ALLOWED_ORIGINS = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
@@ -1778,6 +1784,104 @@ app.get("/admin/analytics", requireAuth, requireAdmin, (_req, res) => {
             );
         }
     );
+});
+
+app.get("/google-reviews", async (req, res) => {
+    const apiKey = String(process.env.GOOGLE_PLACES_KEY || "").trim();
+    let placeId = String(req.query.place_id || process.env.PLACE_ID || "").trim();
+    const placeQuery = String(req.query.q || process.env.GOOGLE_PLACE_QUERY || "").trim();
+    const envReviewUrl = String(req.query.review_url || process.env.GOOGLE_REVIEW_URL || "").trim();
+
+    if (!apiKey) {
+        return res.status(503).json({
+            configured: false,
+            error: "Google Reviews non configure",
+            help: "Definissez GOOGLE_PLACES_KEY puis PLACE_ID ou GOOGLE_PLACE_QUERY"
+        });
+    }
+
+    if (!placeId && !placeQuery) {
+        return res.status(503).json({
+            configured: false,
+            error: "Google Reviews non configure",
+            help: "Definissez PLACE_ID ou GOOGLE_PLACE_QUERY"
+        });
+    }
+
+    const resolvePlaceIdFromQuery = async () => {
+        if (!placeQuery) {
+            return "";
+        }
+        const findUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(placeQuery)}&inputtype=textquery&fields=place_id&language=fr&key=${encodeURIComponent(apiKey)}`;
+        const findResponse = await fetch(findUrl);
+        const findPayload = await findResponse.json();
+        if (!findResponse.ok || !Array.isArray(findPayload.candidates) || findPayload.candidates.length === 0) {
+            return "";
+        }
+        return String(findPayload.candidates[0].place_id || "").trim();
+    };
+
+    if (!placeId) {
+        placeId = await resolvePlaceIdFromQuery();
+    }
+
+    if (!placeId) {
+        return res.status(404).json({
+            configured: false,
+            error: "Etablissement introuvable",
+            help: "Verifiez GOOGLE_PLACE_QUERY ou fournissez PLACE_ID"
+        });
+    }
+
+    const cacheKey = `${placeId}::${placeQuery}`;
+    if (
+        googleReviewsCache.data &&
+        googleReviewsCache.cacheKey === cacheKey &&
+        Date.now() - googleReviewsCache.ts < GOOGLE_REVIEWS_CACHE_MS
+    ) {
+        return res.json(googleReviewsCache.data);
+    }
+
+    const fields = ["name", "rating", "user_ratings_total", "reviews", "url"].join(",");
+    const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=${encodeURIComponent(fields)}&language=fr&reviews_sort=newest&key=${encodeURIComponent(apiKey)}`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const payload = await response.json();
+
+        if (!response.ok || (payload.status && payload.status !== "OK")) {
+            return res.status(502).json({
+                configured: true,
+                error: "Erreur Google Places",
+                googleStatus: payload.status || response.status
+            });
+        }
+
+        const result = payload.result || {};
+        const reviewUrl = envReviewUrl || `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+        const data = {
+            configured: true,
+            placeId,
+            name: result.name || "",
+            rating: Number(result.rating || 0),
+            user_ratings_total: Number(result.user_ratings_total || 0),
+            reviews: Array.isArray(result.reviews) ? result.reviews : [],
+            maps_url: result.url || "",
+            write_review_url: reviewUrl
+        };
+
+        googleReviewsCache.cacheKey = cacheKey;
+        googleReviewsCache.ts = Date.now();
+        googleReviewsCache.data = data;
+
+        return res.json(data);
+    } catch (error) {
+        return res.status(500).json({
+            configured: true,
+            error: "Impossible de recuperer les avis Google",
+            detail: String(error && error.message ? error.message : error)
+        });
+    }
 });
 
 // Servir frontend

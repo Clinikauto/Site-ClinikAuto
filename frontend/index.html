@@ -257,6 +257,86 @@
     .temoignage-card__name { font-weight: 800; font-size: 0.95rem; }
     .temoignage-card__date { font-size: 0.8rem; color: var(--grey); }
 
+    .avis-meta {
+      margin: 14px 0 0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .avis-count {
+      font-weight: 700;
+      color: var(--dark);
+      background: #fff6f6;
+      border: 1px solid #ffd6d6;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+    .avis-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      color: #1f2937;
+      font-weight: 700;
+    }
+    .avis-rating__stars {
+      --rating: 5;
+      position: relative;
+      display: inline-block;
+      line-height: 1;
+      letter-spacing: 1px;
+      font-size: 0.95rem;
+      color: #d1d5db;
+    }
+    .avis-rating__stars::before {
+      content: '★★★★★';
+    }
+    .avis-rating__stars::after {
+      content: '★★★★★';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: calc((var(--rating) / 5) * 100%);
+      overflow: hidden;
+      color: #fbbc05;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .btn--google-review {
+      background: #fff;
+      color: #1f2937;
+      border-color: #dadce0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .btn--google-review:hover {
+      background: #f8f9fa;
+      color: #111827;
+      border-color: #c6c9cc;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+    .google-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      line-height: 1;
+      background: conic-gradient(#4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-family: Arial, sans-serif;
+    }
+
     /* ── Contact grid override ── */
     .contact__info { display: flex; flex-direction: column; gap: 0; }
 
@@ -293,12 +373,13 @@
 
       <nav class="nav" id="main-nav" aria-label="Navigation principale">
         <ul class="nav__list">
-          <li><a href="/index" class="nav__link">Accueil</a></li>
+          <li><a href="index.html" class="nav__link">Accueil</a></li>
           <li><a href="#services"    class="nav__link">Services</a></li>
           <li><a href="#tarifs"      class="nav__link">Tarifs</a></li>
           <li><a href="#avis"        class="nav__link">Avis clients</a></li>
-          <li><a href="/occasions" class="nav__link">Occasions</a></li>
+          <li><a href="occasions.html" class="nav__link">Occasions</a></li>
           <li><a href="#contact"     class="nav__link">Contact</a></li>
+          <li><a href="agenda.html"  class="nav__link">Agenda</a></li>
           <li><a href="login.html"   class="nav__link">Mon espace</a></li>
           <li><a href="#contact" class="nav__link nav__link--cta js-rdv-contact"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
         </ul>
@@ -543,7 +624,7 @@
         Des occasions de confiance à prix justes.
       </p>
       <div class="occasions-preview__cta">
-        <a href="/occasions" class="btn btn--outline btn--lg">
+        <a href="occasions.html" class="btn btn--outline btn--lg">
           <i class="fa-solid fa-car-side"></i> Voir les véhicules disponibles
         </a>
       </div>
@@ -558,10 +639,20 @@
       <div class="reveal">
         <span class="section__label">Témoignages</span>
         <h2 class="section__title" id="avis-title">Ce que disent nos clients</h2>
-        <p class="section__sub">Des centaines de clients nous ont fait confiance. Voici leurs retours.</p>
+        <p class="section__sub" id="avis-subtitle">Des centaines de clients nous ont fait confiance. Voici leurs retours Google.</p>
+        <div class="avis-meta">
+          <span class="avis-count" id="avis-count">Chargement des avis Google...</span>
+          <span class="avis-rating" id="avis-rating" aria-label="Note Google moyenne">
+            <span class="avis-rating__stars" id="avis-rating-stars"></span>
+            <strong id="avis-rating-value">5,0</strong>
+          </span>
+          <a class="btn btn--outline btn--google-review" id="google-review-btn" href="https://www.google.com/search?q=Clinik+Auto&stick=H4sIAAAAAAAA_-NgU1I1qDAxt0g2ME82SUozNE5LSUmzMqhIs0xNM0pMtjA0sbA0Njc1XcTK7ZyTmZeZreBYWpIPANVypS43AAAA&hl=fr&mat=CS7Z2RoFb9dUElcBTVDHniemTtGixe-YvxQcWEMsNmtHFSH2x4i1moXrolFB9j7KgnQh69jJcgw9nk6V83W_hf4TvUMriCC-i7ghvwFpKM9xMNz-ZcV4rJu7_H8nZBnUqmk&authuser=0" target="_blank" rel="noopener">
+            <span class="google-logo" aria-hidden="true">G</span> Laisser un avis Google
+          </a>
+        </div>
       </div>
 
-      <div class="temoignages__grid reveal">
+      <div class="temoignages__grid reveal" id="avis-grid">
         <article class="temoignage-card">
           <div class="temoignage-card__stars">★★★★★</div>
           <p class="temoignage-card__text">
@@ -846,7 +937,7 @@
           <ul>
             <li><a href="#services">Nos services</a></li>
             <li><a href="#tarifs">Tarifs</a></li>
-            <li><a href="/occasions">Occasions</a></li>
+            <li><a href="occasions.html">Occasions</a></li>
             <li><a href="#contact">Contact</a></li>
             <li><a href="#contact" class="js-rdv-contact">Rendez-vous</a></li>
             <li><a href="login.html">Espace client</a></li>
@@ -874,6 +965,8 @@
   <script>
     const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
     const REGISTER_PREFILL_KEY = 'clinikauto_register_prefill';
+    const GOOGLE_REVIEW_PUBLIC_URL = 'https://www.google.com/search?q=Clinik+Auto&stick=H4sIAAAAAAAA_-NgU1I1qDAxt0g2ME82SUozNE5LSUmzMqhIs0xNM0pMtjA0sbA0Njc1XcTK7ZyTmZeZreBYWpIPANVypS43AAAA&hl=fr&mat=CS7Z2RoFb9dUElcBTVDHniemTtGixe-YvxQcWEMsNmtHFSH2x4i1moXrolFB9j7KgnQh69jJcgw9nk6V83W_hf4TvUMriCC-i7ghvwFpKM9xMNz-ZcV4rJu7_H8nZBnUqmk&authuser=0';
+    const GOOGLE_PLACE_QUERY = 'Clinik Auto Scionzier';
 
     let contactDirty = false;
     let searchDirty = false;
@@ -954,6 +1047,112 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function starsFromRating(rating) {
+      var rounded = Math.max(0, Math.min(5, Math.round(Number(rating || 0))));
+      return '★★★★★'.slice(0, rounded) + '☆☆☆☆☆'.slice(0, 5 - rounded);
+    }
+
+    function formatReviewDate(review) {
+      if (review && typeof review.relative_time_description === 'string' && review.relative_time_description.trim()) {
+        return review.relative_time_description.trim() + ' · Avis Google';
+      }
+      if (review && Number(review.time)) {
+        var d = new Date(Number(review.time) * 1000);
+        if (!Number.isNaN(d.getTime())) {
+          return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) + ' · Avis Google';
+        }
+      }
+      return 'Avis Google';
+    }
+
+    function renderGoogleReviews(data) {
+      if (!data || !Array.isArray(data.reviews) || data.reviews.length === 0) {
+        return;
+      }
+
+      var countEl = document.getElementById('avis-count');
+      var subtitleEl = document.getElementById('avis-subtitle');
+      var reviewBtn = document.getElementById('google-review-btn');
+      var gridEl = document.getElementById('avis-grid');
+      var ratingStarsEl = document.getElementById('avis-rating-stars');
+      var ratingValueEl = document.getElementById('avis-rating-value');
+
+      var total = Number(data.user_ratings_total || 0);
+      var rating = Number(data.rating || 0);
+      if (countEl) {
+        var label = total > 1 ? 'avis Google publies' : 'avis Google publie';
+        countEl.textContent = rating.toFixed(1).replace('.', ',') + '/5 · ' + total + ' ' + label;
+      }
+
+      if (ratingStarsEl) {
+        var clampedRating = Math.max(0, Math.min(5, rating));
+        ratingStarsEl.style.setProperty('--rating', String(clampedRating));
+      }
+      if (ratingValueEl) {
+        ratingValueEl.textContent = rating.toFixed(1).replace('.', ',');
+      }
+
+      if (subtitleEl) {
+        subtitleEl.textContent = 'Avis publies sur notre fiche Google, synchronises automatiquement.';
+      }
+
+      if (reviewBtn && data.write_review_url) {
+        reviewBtn.href = data.write_review_url;
+      }
+
+      if (!gridEl) {
+        return;
+      }
+
+      var topReviews = data.reviews.slice(0, 3);
+      gridEl.innerHTML = topReviews.map(function (review) {
+        var authorName = String((review && review.author_name) || 'Client ClinikAuto').trim();
+        var initial = authorName ? authorName.charAt(0).toUpperCase() : 'C';
+        var text = String((review && review.text) || '').trim() || 'Avis publie sur Google.';
+        return ''
+          + '<article class="temoignage-card">'
+          + '  <div class="temoignage-card__stars">' + starsFromRating(review.rating) + '</div>'
+          + '  <p class="temoignage-card__text">"' + escapeHtml(text) + '"</p>'
+          + '  <div class="temoignage-card__author">'
+          + '    <div class="temoignage-card__avatar">' + escapeHtml(initial) + '</div>'
+          + '    <div>'
+          + '      <p class="temoignage-card__name">' + escapeHtml(authorName) + '</p>'
+          + '      <p class="temoignage-card__date">' + escapeHtml(formatReviewDate(review)) + '</p>'
+          + '    </div>'
+          + '  </div>'
+          + '</article>';
+      }).join('');
+    }
+
+    async function loadGoogleReviews() {
+      try {
+        var query = new URLSearchParams();
+        query.set('q', GOOGLE_PLACE_QUERY);
+        query.set('review_url', GOOGLE_REVIEW_PUBLIC_URL);
+
+        var response = await fetch(API_BASE + '/google-reviews?' + query.toString(), { cache: 'no-store' });
+        if (!response.ok) {
+          return;
+        }
+        var data = await response.json();
+        if (!data || data.configured === false) {
+          return;
+        }
+        renderGoogleReviews(data);
+      } catch (_err) {
+        // En cas d'erreur, on garde les avis statiques déjà présents.
+      }
     }
 
     function hasPendingActions() {
@@ -1157,6 +1356,7 @@
     nomInput.addEventListener('blur', checkExistingClientAccount);
     emailInput.addEventListener('blur', checkExistingClientAccount);
 
+    loadGoogleReviews();
     setupPendingNavigationGuard();
   </script>
 </body>
