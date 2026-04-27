@@ -284,6 +284,40 @@
             margin-bottom: 24px;
         }
 
+        .management-hub {
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .management-hub__grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .hub-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .hub-link:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.26);
+        }
+
         .stat-card {
             padding: 20px;
             border-radius: var(--radius);
@@ -1017,6 +1051,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .management-hub__grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
             .wrap,
             .topbar__inner {
                 width: min(100% - 20px, 1440px);
@@ -1183,6 +1221,35 @@
         .cal-day-detail .cards-list {
             max-height: 400px;
         }
+
+        .calendar-actions {
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .calendar-appointments-full {
+            margin-top: 16px;
+        }
+
+        .sync-reminder {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 152, 0, 0.45);
+            background: rgba(255, 152, 0, 0.12);
+            color: #ffe0b2;
+            font-size: 0.9rem;
+        }
+
+        .sync-reminder.show {
+            display: block;
+        }
+
+        .sync-reminder__link {
+            margin-left: 8px;
+        }
+
         @media (max-width: 640px) {
             .cal-cell { min-height: 36px; font-size: 0.78rem; }
             .cal-cell__badge { width: 14px; height: 14px; font-size: 0.58rem; }
@@ -1325,12 +1392,31 @@
 
         <section class="stats-grid" id="overviewStats"></section>
 
+        <section class="panel management-hub" id="managementHub">
+            <div class="section__head">
+                <div>
+                    <div class="section__title"><i class="fa-solid fa-sliders"></i> Pilotage rapide des blocs</div>
+                    <div class="section__sub">Accédez et gérez chaque zone de la page depuis ce panneau</div>
+                </div>
+            </div>
+            <div class="management-hub__grid">
+                <a class="hub-link" href="#calendar-section"><i class="fa-solid fa-calendar-days"></i> Agenda des rendez-vous</a>
+                <a class="hub-link" href="#suivi-section"><i class="fa-solid fa-chart-line"></i> Suivi global</a>
+                <a class="hub-link" href="#clients-section"><i class="fa-solid fa-users"></i> Comptes clients</a>
+                <a class="hub-link" href="#appointments-section"><i class="fa-solid fa-list-check"></i> Gestion des rendez-vous</a>
+                <a class="hub-link" href="#vroomly-section"><i class="fa-solid fa-car-side"></i> Agenda Vroomly</a>
+                <a class="hub-link" href="#traffic-section"><i class="fa-solid fa-chart-column"></i> Statistiques</a>
+                <a class="hub-link" href="#occasions-section"><i class="fa-solid fa-car"></i> Occasions</a>
+                <a class="hub-link" href="#settings-section"><i class="fa-solid fa-gear"></i> Paramètres</a>
+            </div>
+        </section>
+
         <!-- Calendrier agenda interactif -->
-        <section class="panel calendar-section">
+        <section class="panel calendar-section" id="calendar-section">
             <div class="section__head">
                 <div>
                     <div class="section__title"><i class="fa-solid fa-calendar-days"></i> Agenda des rendez-vous</div>
-                    <div class="section__sub">Cliquez sur un jour pour voir et gérer les rendez-vous</div>
+                    <div class="section__sub">Vue complète des rendez-vous avec actions directes et rappel de synchronisation Vroomly</div>
                 </div>
                 <div class="cal-nav">
                     <button class="btn btn--ghost cal-nav__btn" id="calPrev" title="Mois précédent"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1353,11 +1439,29 @@
                 <div class="cal-day-detail__head" id="calDayDetailHead"></div>
                 <div class="cards-list" id="calDayAppointments"></div>
             </div>
+
+            <div class="calendar-actions">
+                <div class="toolbar">
+                    <input type="search" id="calendarAppointmentSearch" placeholder="Rechercher un rendez-vous (client, email, service, date)...">
+                    <select id="calendarAppointmentStatusFilter" title="Filtrer les rendez-vous de la vue complète">
+                        <option value="all">Tous les statuts</option>
+                        <option value="pending">En attente</option>
+                        <option value="confirmed">Confirmés</option>
+                        <option value="cancelled">Annulés</option>
+                    </select>
+                </div>
+                <div id="calendarSyncReminder" class="sync-reminder">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Des modifications de rendez-vous ont été faites. Pensez à synchroniser avec Vroomly.
+                    <a class="btn-inline sync-reminder__link" href="https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv" target="_blank" rel="noopener">Ouvrir l'import Vroomly</a>
+                </div>
+            </div>
+
+            <div class="cards-list calendar-appointments-full" id="calendarAppointmentsFullList"></div>
         </section>
 
         <section class="content-grid">
             <div class="stack">
-                <article class="panel section">
+                <article class="panel section" id="suivi-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Suivi global</div>
@@ -1367,7 +1471,7 @@
                     <div class="progress-list" id="progressList"></div>
                 </article>
 
-                <article class="panel section">
+                <article class="panel section" id="clients-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Gestion des comptes clients</div>
@@ -1392,7 +1496,7 @@
                     <div class="cards-list" id="clientsList"></div>
                 </article>
 
-                <article class="panel section">
+                <article class="panel section" id="appointments-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Gestion des rendez-vous</div>
@@ -1424,7 +1528,7 @@
             </div>
 
             <div class="stack">
-                <article class="panel section">
+                <article class="panel section" id="vroomly-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Agenda Vroomly</div>
@@ -1436,34 +1540,6 @@
                         <label for="agendaImportDate">Date de référence pour l'import Vroomly</label>
                         <input type="date" id="agendaImportDate" value="2026-04-20">
 
-                        <div class="agenda-file-imports">
-                            <div class="file-import-block">
-                                <label class="file-import-label" for="agendaIcsFile">
-                                    <i class="fa-solid fa-calendar-import"></i>
-                                    <span class="file-import-title">Importer un fichier <strong>ICS</strong></span>
-                                    <span class="file-import-hint">Export iCalendar (.ics) depuis Vroomly ou Google Agenda</span>
-                                    <span class="file-import-btn">Choisir un fichier .ics</span>
-                                </label>
-                                <input type="file" id="agendaIcsFile" accept=".ics,text/calendar" class="file-import-hidden">
-                                <span class="file-import-name" id="agendaIcsFileName">Aucun fichier sélectionné</span>
-                            </div>
-                            <div class="file-import-block">
-                                    <!-- Actions ICS après import — affichées dynamiquement -->
-                                <div id="agendaIcsActions" style="display:none; gap:8px; flex-wrap:wrap; margin-top:6px; margin-bottom:2px;">
-                                    <button type="button" class="btn-inline" id="agendaIcsCopyBtn" title="Copier le contenu ICS dans le presse-papier pour le coller sur Vroomly"><i class="fa-solid fa-clipboard"></i> Copier le contenu ICS</button>
-                                    <button type="button" class="btn-inline" id="agendaIcsDownloadBtn" title="Re-télécharger le fichier ICS pour l'importer dans Vroomly"><i class="fa-solid fa-file-arrow-down"></i> Re-télécharger ICS</button>
-                                </div>
-                                    <label class="file-import-label" for="agendaCsvFile">
-                                    <i class="fa-solid fa-file-csv"></i>
-                                    <span class="file-import-title">Importer un fichier <strong>CSV</strong></span>
-                                    <span class="file-import-hint">Export tableur (.csv) depuis Vroomly — colonnes : date, heure, client, prestation, statut</span>
-                                    <span class="file-import-btn">Choisir un fichier .csv</span>
-                                </label>
-                                <input type="file" id="agendaCsvFile" accept=".csv,text/csv" class="file-import-hidden">
-                                <span class="file-import-name" id="agendaCsvFileName">Aucun fichier sélectionné</span>
-                            </div>
-                        </div>
-
                         <details class="agenda-manual-toggle">
                             <summary><i class="fa-solid fa-keyboard"></i> Saisie manuelle (copier-coller)</summary>
                             <textarea id="agendaImportText" placeholder="Collez ici les rendez-vous copiés depuis Vroomly. Formats acceptés :&#10;09:00 | Client | Prestation | Statut&#10;2026-04-20 | 09:00 | Client | Prestation | Statut"></textarea>
@@ -1474,14 +1550,14 @@
                             <button class="btn btn--ghost" id="agendaClearBtn"><i class="fa-solid fa-trash"></i> Vider l'agenda</button>
                             <a class="btn btn--secondary" href="https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir Vroomly</a>
                         </div>
-                        <p class="agenda-note"><i class="fa-solid fa-circle-info"></i> Importez un fichier <strong>.ics</strong> (iCalendar) ou <strong>.csv</strong> exporté depuis Vroomly, ou utilisez la saisie manuelle. La synchronisation automatique directe requiert un accès API Vroomly (non disponible publiquement à ce jour).</p>
+                        <p class="agenda-note"><i class="fa-solid fa-circle-info"></i> Utilisez la saisie/copie manuelle puis synchronisez avec Vroomly via le bouton d'ouverture directe de la page d'import.</p>
                     </div>
 
                     <div class="mini-grid section-gap" id="agendaHighlights"></div>
                     <div class="agenda-list" id="agendaList"></div>
                 </article>
 
-                <article class="panel section">
+                <article class="panel section" id="traffic-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Statistiques de trafic</div>
@@ -1502,7 +1578,7 @@
                     </div>
                 </article>
 
-                <article class="panel section">
+                <article class="panel section" id="occasions-section">
                     <div class="section__head">
                         <div>
                             <div class="section__title">Gestion des occasions</div>
@@ -1702,8 +1778,8 @@
         const AGENDA_KEY = 'clinikauto_admin_vroomly_agenda';
         const ADMIN_API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
         const VROOMLY_REMINDER_TOAST_KEY = 'clinikauto_vroomly_reminder_toast_day';
-            let _lastIcsRaw = null; // Contenu brut du dernier fichier ICS importé (Google Agenda → Vroomly)
-            const MAX_PHOTOS = 8;
+        const VROOMLY_MANUAL_SYNC_REMINDER_KEY = 'clinikauto_vroomly_manual_sync_reminder';
+        const MAX_PHOTOS = 8;
         const MAX_PHOTO_DIMENSION = 1600;
         const PHOTO_JPEG_QUALITY = 0.82;
         const MAX_TOTAL_PHOTO_CHARS = 18 * 1024 * 1024;
@@ -2210,12 +2286,75 @@
                                 ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appt.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
                                 ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appt.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
                                 ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appt.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                                <button class="btn-inline" data-review-email="${appt.id}"><i class="fa-solid fa-envelope"></i> Demander un avis Google</button>
                             </div>
                         </article>
                     `;
                 }).join('');
             }
             document.getElementById('calDayDetail').style.display = 'block';
+        }
+
+        function buildCalendarAppointmentsFull() {
+            const search = document.getElementById('calendarAppointmentSearch').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('calendarAppointmentStatusFilter').value;
+            const filtered = state.appointments.filter((appointment) => {
+                const user = state.users.find((item) => item.id === appointment.user_id);
+                const profile = getClientProfile(appointment.user_id);
+                const haystack = [
+                    appointment.service,
+                    appointment.date,
+                    appointment.time,
+                    appointment.status,
+                    user && user.email,
+                    profile && profile.nom,
+                    profile && profile.prenom,
+                    profile && profile.tel
+                ].join(' ').toLowerCase();
+
+                if (statusFilter !== 'all' && (appointment.status || 'pending') !== statusFilter) {
+                    return false;
+                }
+                return !search || haystack.includes(search);
+            });
+
+            const container = document.getElementById('calendarAppointmentsFullList');
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty">Aucun rendez-vous ne correspond à ce filtre.</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map((appointment) => {
+                const status = appointment.status || 'pending';
+                const user = state.users.find((item) => item.id === appointment.user_id);
+                const statusClass = status === 'confirmed'
+                    ? 'chip--confirmed'
+                    : status === 'cancelled'
+                        ? 'chip--cancelled'
+                        : 'chip--pending';
+
+                return `
+                    <article class="table-card">
+                        <div class="table-card__head">
+                            <div>
+                                <strong>#${escapeHtml(appointment.id)} · ${escapeHtml(appointment.service)}</strong>
+                                <div class="section__sub">${escapeHtml(user ? user.email : 'Client #' + appointment.user_id)} · ${escapeHtml(formatShortDate(appointment.date, appointment.time))}</div>
+                            </div>
+                            <span class="chip ${statusClass}">${status === 'confirmed' ? 'Confirmé' : status === 'cancelled' ? 'Annulé' : 'En attente'}</span>
+                        </div>
+                        <div class="table-card__meta">
+                            <span class="chip"><i class="fa-solid fa-user"></i> Client ${escapeHtml(appointment.user_id)}</span>
+                            <span class="chip"><i class="fa-solid fa-calendar-check"></i> Créé le ${escapeHtml(formatDate(appointment.created_at))}</span>
+                        </div>
+                        <div class="actions">
+                            ${status !== 'confirmed' ? `<button class="btn-inline btn-inline--success" data-appointment-status="confirmed" data-appointment-id="${appointment.id}"><i class="fa-solid fa-check"></i> Confirmer</button>` : ''}
+                            ${status !== 'cancelled' ? `<button class="btn-inline btn-inline--danger" data-appointment-status="cancelled" data-appointment-id="${appointment.id}"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
+                            ${status === 'cancelled' ? `<button class="btn-inline" data-appointment-status="pending" data-appointment-id="${appointment.id}"><i class="fa-solid fa-rotate-left"></i> Remettre en attente</button>` : ''}
+                            <button class="btn-inline" data-review-email="${appointment.id}"><i class="fa-solid fa-envelope"></i> Demander un avis Google</button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
         }
 
         function buildAgenda() {
@@ -2278,6 +2417,48 @@
                 return escapeHtml([dateValue, timeValue].filter(Boolean).join(' '));
             }
             return date.toLocaleDateString('fr-FR') + (timeValue ? ' à ' + escapeHtml(timeValue) : '');
+        }
+
+        function setVroomlySyncReminder() {
+            localStorage.setItem(VROOMLY_MANUAL_SYNC_REMINDER_KEY, new Date().toISOString());
+            renderCalendarSyncReminder();
+        }
+
+        function renderCalendarSyncReminder() {
+            const reminderEl = document.getElementById('calendarSyncReminder');
+            if (!reminderEl) return;
+            const hasReminder = !!localStorage.getItem(VROOMLY_MANUAL_SYNC_REMINDER_KEY);
+            reminderEl.classList.toggle('show', hasReminder);
+        }
+
+        function requestGoogleReviewEmail(appointmentId) {
+            const appointment = state.appointments.find((item) => String(item.id) === String(appointmentId));
+            if (!appointment) {
+                showToast('Rendez-vous introuvable.');
+                return;
+            }
+
+            const user = state.users.find((item) => String(item.id) === String(appointment.user_id));
+            const profile = getClientProfile(appointment.user_id);
+            const targetEmail = (profile && profile.email) || (user && user.email) || '';
+            if (!targetEmail) {
+                showToast('Email client indisponible pour ce rendez-vous.');
+                return;
+            }
+
+            const clientName = (profile && [profile.prenom, profile.nom].filter(Boolean).join(' ')) || targetEmail;
+            const reviewUrl = 'https://g.page/r/Cep8mdufV7wSEAE/review';
+            const subject = encodeURIComponent('Merci pour votre passage chez ClinikAuto');
+            const body = encodeURIComponent(
+                `Bonjour ${clientName},\n\n` +
+                `Merci pour votre confiance suite à votre rendez-vous (${appointment.service}) chez ClinikAuto.\n` +
+                `Pour nous aider, pouvez-vous laisser un avis Google ?\n\n` +
+                `${reviewUrl}\n\n` +
+                `Merci beaucoup et à bientôt,\nL'équipe ClinikAuto`
+            );
+
+            window.location.href = `mailto:${encodeURIComponent(targetEmail)}?subject=${subject}&body=${body}`;
+            showToast('Email de demande d\'avis préparé.');
         }
 
         function formatPrice(value) {
@@ -2765,6 +2946,9 @@
                 if (result.imported !== undefined) {
                     const msg = `✓ ${result.imported} RDV importés` + (result.errors && result.errors.length ? ` · ${result.errors.length} erreurs` : '');
                     showToast(msg);
+                    if (result.imported > 0) {
+                        setVroomlySyncReminder();
+                    }
                     if (result.errors && result.errors.length) {
                         console.warn('Erreurs import RDV:', result.errors);
                     }
@@ -3019,7 +3203,8 @@
             if (window.ClinikAutoAnalytics) {
                 window.ClinikAutoAnalytics.trackEvent('admin_appointment_' + status, { appointmentId: id });
             }
-            showToast('Rendez-vous mis à jour.');
+            setVroomlySyncReminder();
+            showToast('Rendez-vous mis à jour. Pensez à synchroniser avec Vroomly.');
             await loadDashboard();
         }
 
@@ -3058,12 +3243,14 @@
             buildOverview();
             buildProgress();
             buildCalendar();
+            buildCalendarAppointmentsFull();
             buildAgenda();
             buildTraffic();
             buildClients();
             buildAppointments();
             buildOccasions();
             renderVroomlySyncStatus();
+            renderCalendarSyncReminder();
 
             const now = new Date();
             document.getElementById('lastRefreshLabel').textContent = now.toLocaleTimeString('fr-FR');
@@ -3181,6 +3368,11 @@
             });
             // Calendrier — actions RDV du jour sélectionné
             document.getElementById('calDayAppointments').addEventListener('click', async (event) => {
+                const reviewBtn = event.target.closest('[data-review-email]');
+                if (reviewBtn) {
+                    requestGoogleReviewEmail(reviewBtn.dataset.reviewEmail);
+                    return;
+                }
                 const button = event.target.closest('[data-appointment-id]');
                 if (!button) return;
                 try {
@@ -3189,6 +3381,24 @@
                     showToast(error.message || 'Mise à jour impossible.');
                 }
             });
+
+            document.getElementById('calendarAppointmentSearch').addEventListener('input', buildCalendarAppointmentsFull);
+            document.getElementById('calendarAppointmentStatusFilter').addEventListener('change', buildCalendarAppointmentsFull);
+            document.getElementById('calendarAppointmentsFullList').addEventListener('click', async (event) => {
+                const reviewBtn = event.target.closest('[data-review-email]');
+                if (reviewBtn) {
+                    requestGoogleReviewEmail(reviewBtn.dataset.reviewEmail);
+                    return;
+                }
+                const button = event.target.closest('[data-appointment-id]');
+                if (!button) return;
+                try {
+                    await updateAppointmentStatus(button.dataset.appointmentId, button.dataset.appointmentStatus);
+                } catch (error) {
+                    showToast(error.message || 'Mise à jour impossible.');
+                }
+            });
+
             document.getElementById('occasionResetBtn').addEventListener('click', resetOccasionForm);
             document.getElementById('agendaImportBtn').addEventListener('click', () => {
                 try {
@@ -3217,104 +3427,6 @@
                 document.getElementById('agendaImportText').value = '';
                 buildAgenda();
                 showToast('Agenda importé vidé.');
-            });
-
-            // ─── ICS file import ────────────────────────────────
-            document.getElementById('agendaIcsFile').addEventListener('change', (evt) => {
-                const file = evt.target.files && evt.target.files[0];
-                if (!file) return;
-                const nameEl = document.getElementById('agendaIcsFileName');
-                nameEl.textContent = file.name;
-                nameEl.classList.add('loaded');
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const fallbackDate = document.getElementById('agendaImportDate').value;
-                            _lastIcsRaw = e.target.result;
-                            const parsed = parseICS(_lastIcsRaw);
-                        if (!parsed.length) { showToast('Aucun événement trouvé dans le fichier ICS.'); return; }
-                        const normalized = parsed.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((i) => i.client || i.service);
-                        if (!normalized.length) { showToast('Aucun rendez-vous exploitable dans le fichier ICS.'); return; }
-                        const merged = new Map();
-                        (state.agenda || []).forEach((i) => merged.set(i.key, i));
-                        normalized.forEach((i) => merged.set(i.key, i));
-                        state.agenda = Array.from(merged.values());
-                        saveAgenda();
-                        buildAgenda();
-                        showToast(`${normalized.length} rendez-vous importés depuis le fichier ICS.`);
-                            document.getElementById('agendaIcsActions').style.display = 'flex';
-                    } catch (err) {
-                        showToast('Erreur lors de la lecture du fichier ICS : ' + (err.message || 'format invalide.'));
-                    }
-                };
-                reader.readAsText(file, 'UTF-8');
-                evt.target.value = '';
-            });
-
-                // ─── Copier contenu ICS dans le presse-papier ───────
-                document.getElementById('agendaIcsCopyBtn').addEventListener('click', () => {
-                    if (!_lastIcsRaw) { showToast('Aucun fichier ICS chargé.'); return; }
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(_lastIcsRaw).then(() => {
-                            showToast('Contenu ICS copié ! Collez-le sur la page d\'import Vroomly.');
-                        }).catch(() => {
-                            _copyIcsFallback();
-                        });
-                    } else {
-                        _copyIcsFallback();
-                    }
-                });
-                function _copyIcsFallback() {
-                    const ta = document.createElement('textarea');
-                    ta.value = _lastIcsRaw;
-                    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
-                    document.body.appendChild(ta);
-                    ta.focus(); ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    showToast('Contenu ICS copié. Collez-le sur la page d\'import Vroomly.');
-                }
-
-                // ─── Re-télécharger le fichier ICS ──────────────────
-                document.getElementById('agendaIcsDownloadBtn').addEventListener('click', () => {
-                    if (!_lastIcsRaw) { showToast('Aucun fichier ICS chargé.'); return; }
-                    const blob = new Blob([_lastIcsRaw], { type: 'text/calendar;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'agenda-google-' + new Date().toISOString().slice(0, 10) + '.ics';
-                    a.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 5000);
-                    showToast('Fichier ICS téléchargé. Importez-le sur la page Vroomly.');
-                });
-
-                // ─── CSV file import ────────────────────────────────
-            document.getElementById('agendaCsvFile').addEventListener('change', (evt) => {
-                const file = evt.target.files && evt.target.files[0];
-                if (!file) return;
-                const nameEl = document.getElementById('agendaCsvFileName');
-                nameEl.textContent = file.name;
-                nameEl.classList.add('loaded');
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const fallbackDate = document.getElementById('agendaImportDate').value;
-                        const parsed = parseCSV(e.target.result, fallbackDate);
-                        if (!parsed.length) { showToast('Aucune ligne exploitable dans le fichier CSV.'); return; }
-                        const normalized = parsed.map((item) => normalizeAgendaItem(item, fallbackDate)).filter((i) => i.client || i.service);
-                        const merged = new Map();
-                        (state.agenda || []).forEach((i) => merged.set(i.key, i));
-                        normalized.forEach((i) => merged.set(i.key, i));
-                        state.agenda = Array.from(merged.values());
-                        saveAgenda();
-                        buildAgenda();
-                        showToast(`${normalized.length} rendez-vous importés depuis le fichier CSV.`);
-                    } catch (err) {
-                        showToast('Erreur lors de la lecture du fichier CSV : ' + (err.message || 'format invalide.'));
-                    }
-                };
-                reader.readAsText(file, 'UTF-8');
-                evt.target.value = '';
             });
 
             // ─── Profil admin ────────────────────────────────────
