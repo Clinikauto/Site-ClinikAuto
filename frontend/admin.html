@@ -222,6 +222,18 @@
             font-weight: 700;
         }
 
+        .pill--sync-ok {
+            border-color: rgba(31, 169, 113, 0.35);
+            background: rgba(31, 169, 113, 0.14);
+            color: #b9f6d3;
+        }
+
+        .pill--sync-alert {
+            border-color: rgba(255, 107, 107, 0.45);
+            background: rgba(255, 107, 107, 0.14);
+            color: #ffd3d3;
+        }
+
         .admin-card {
             padding: 26px;
         }
@@ -1279,6 +1291,7 @@
                     <span class="pill"><i class="fa-solid fa-user-shield"></i> <span id="adminIdentity">Admin connecté</span></span>
                     <span class="pill"><i class="fa-solid fa-clock"></i> Dernière mise à jour : <span id="lastRefreshLabel">--</span></span>
                     <span class="pill"><i class="fa-solid fa-chart-line"></i> Trafic total : <span id="trafficTotalLabel">0 vue</span></span>
+                    <span class="pill" id="vroomlySyncPill"><i class="fa-solid fa-arrows-rotate"></i> Synchro Vroomly : <span id="vroomlySyncPillLabel">Chargement...</span></span>
                 </div>
             </article>
 
@@ -2555,16 +2568,30 @@
 
         function renderVroomlySyncStatus() {
             const box = document.getElementById('vroomlySyncStatus');
+            const syncPill = document.getElementById('vroomlySyncPill');
+            const syncPillLabel = document.getElementById('vroomlySyncPillLabel');
             if (!box) return;
 
             const sync = state.vroomlySync;
             if (!sync) {
                 box.style.display = 'none';
+                if (syncPill && syncPillLabel) {
+                    syncPill.classList.remove('pill--sync-ok', 'pill--sync-alert');
+                    syncPillLabel.textContent = 'Indisponible';
+                }
                 return;
             }
 
             box.style.display = 'flex';
             box.classList.toggle('is-alert', !!sync.needsReminder);
+
+            if (syncPill && syncPillLabel) {
+                syncPill.classList.toggle('pill--sync-alert', !!sync.needsReminder);
+                syncPill.classList.toggle('pill--sync-ok', !sync.needsReminder);
+                syncPillLabel.textContent = sync.needsReminder
+                    ? `Action requise (${sync.confirmedCount} confirmés)`
+                    : 'À jour aujourd\'hui';
+            }
 
             const scopeLabel = sync.lastExportScope === 'all' ? 'tous statuts' : 'confirmés';
             const title = sync.needsReminder
