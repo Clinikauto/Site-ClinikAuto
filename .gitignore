@@ -4,3 +4,5 @@ backend/database.db.bak
 .env
 .vscode/
 clinikauto-agenda/
+backend/*_server_stdout.log
+backend/*_server_stderr.log
