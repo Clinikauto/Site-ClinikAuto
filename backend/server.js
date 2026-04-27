@@ -262,6 +262,42 @@ function upsertClientProfile(userId, payload, callback) {
     );
 }
 
+function dbGetAsync(query, params = []) {
+    return new Promise((resolve, reject) => {
+        db.get(query, params, (err, row) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(row || null);
+        });
+    });
+}
+
+function dbRunAsync(query, params = []) {
+    return new Promise((resolve, reject) => {
+        db.run(query, params, function onRun(err) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve({ lastID: this.lastID, changes: this.changes || 0 });
+        });
+    });
+}
+
+function upsertClientProfileAsync(userId, payload) {
+    return new Promise((resolve, reject) => {
+        upsertClientProfile(userId, payload, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(true);
+        });
+    });
+}
+
 function mapOccasionRow(row) {
     return {
         ...row,
@@ -433,10 +469,54 @@ app.get("/client-account/exists", (req, res) => {
     );
 });
 
+// Vérifier si un client importé existe déjà et s'il doit créer son mot de passe (première connexion)
+app.get("/client-onboarding-status", (req, res) => {
+    const email = String(req.query.email || "").trim().toLowerCase();
+
+    if (!isValidEmail(email)) {
+        return res.json({ found: false, hasPassword: false });
+    }
+
+    db.get(
+        `
+        SELECT
+            u.id,
+            u.email,
+            u.password,
+            u.name,
+            cp.nom,
+            cp.prenom
+        FROM users u
+        LEFT JOIN client_profiles cp ON cp.user_id = u.id
+        WHERE u.role = 'client' AND LOWER(u.email) = ?
+        LIMIT 1
+        `,
+        [email],
+        (err, row) => {
+            if (err) {
+                return res.status(500).json({ error: "Erreur serveur" });
+            }
+            if (!row) {
+                return res.json({ found: false, hasPassword: false });
+            }
+
+            const fullName = [row.prenom || "", row.nom || ""].join(" ").trim() || row.name || "";
+            const hasPassword = typeof row.password === "string" && row.password.trim().length > 0;
+
+            res.json({
+                found: true,
+                hasPassword,
+                displayName: fullName,
+                email: row.email
+            });
+        }
+    );
+});
+
 // Connexion
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = String(email || "").toLowerCase().trim();
     const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
 
     if (!isValidEmail(email) || typeof password !== "string") {
@@ -453,6 +533,14 @@ app.post("/login", async (req, res) => {
                 }
                 if (!row) {
                     return res.status(401).json({ error: "Identifiants invalides" });
+                }
+
+                const hasPassword = typeof row.password === "string" && row.password.trim().length > 0;
+                if (!hasPassword) {
+                    return res.status(403).json({
+                        error: "Première connexion détectée : créez votre mot de passe depuis 'Mot de passe oublié'.",
+                        code: "FIRST_LOGIN_SETUP_REQUIRED"
+                    });
                 }
 
                 const passwordMatch = await bcrypt.compare(password, row.password);
@@ -807,6 +895,109 @@ app.get("/admin/client-profiles", requireAuth, requireAdmin, (_req, res) => {
             res.json(mapped);
         }
     );
+});
+
+// Import en masse des comptes clients (ex: fichier XLSX parsé côté admin)
+app.post("/admin/clients/import", requireAuth, requireAdmin, async (req, res) => {
+    const rawClients = Array.isArray(req.body?.clients) ? req.body.clients : [];
+    if (!rawClients.length) {
+        return res.status(400).json({ error: "Aucune ligne client reçue" });
+    }
+    if (rawClients.length > 5000) {
+        return res.status(400).json({ error: "Import trop volumineux (max 5000 lignes)" });
+    }
+
+    const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+    const summary = {
+        total: rawClients.length,
+        created: 0,
+        updated: 0,
+        skippedInvalid: 0,
+        skippedAdmin: 0,
+        pendingPasswordSetup: 0,
+        errors: 0
+    };
+
+    for (const line of rawClients) {
+        const email = String(line?.email || "").trim().toLowerCase();
+        if (!isValidEmail(email)) {
+            summary.skippedInvalid += 1;
+            continue;
+        }
+        if (adminEmail && email === adminEmail) {
+            summary.skippedAdmin += 1;
+            continue;
+        }
+
+        const nom = String(line?.nom || "").trim();
+        const prenom = String(line?.prenom || "").trim();
+        const providedName = String(line?.name || "").trim();
+        const tel = String(line?.tel || "").trim();
+        const adresse = String(line?.adresse || "").trim();
+        const notes = String(line?.notes || "").trim();
+        const fullName = [prenom, nom].filter(Boolean).join(" ").trim() || providedName;
+
+        try {
+            const existing = await dbGetAsync(
+                "SELECT id, email, role, name, password FROM users WHERE LOWER(email) = ? LIMIT 1",
+                [email]
+            );
+
+            if (!existing) {
+                const created = await dbRunAsync(
+                    "INSERT INTO users (email, password, role, name) VALUES (?, NULL, 'client', ?)",
+                    [email, fullName]
+                );
+                await upsertClientProfileAsync(created.lastID, {
+                    nom,
+                    prenom,
+                    tel,
+                    email,
+                    adresse,
+                    notes,
+                    vehicules: []
+                });
+
+                summary.created += 1;
+                summary.pendingPasswordSetup += 1;
+                continue;
+            }
+
+            if (existing.role === "admin") {
+                summary.skippedAdmin += 1;
+                continue;
+            }
+
+            await dbRunAsync(
+                "UPDATE users SET role = 'client', name = ? WHERE id = ?",
+                [fullName || existing.name || "", existing.id]
+            );
+
+            await upsertClientProfileAsync(existing.id, {
+                nom,
+                prenom,
+                tel,
+                email,
+                adresse,
+                notes,
+                vehicules: []
+            });
+
+            summary.updated += 1;
+            const hasPassword = typeof existing.password === "string" && existing.password.trim().length > 0;
+            if (!hasPassword) {
+                summary.pendingPasswordSetup += 1;
+            }
+        } catch (error) {
+            summary.errors += 1;
+            console.error("Erreur import client:", error.message);
+        }
+    }
+
+    return res.json({
+        message: "Import clients terminé",
+        ...summary
+    });
 });
 
 app.put("/admin/client-profiles/:userId", requireAuth, requireAdmin, (req, res) => {

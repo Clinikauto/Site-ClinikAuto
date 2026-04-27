@@ -217,6 +217,55 @@
         .admin-access__btn:hover {
             background: var(--blue-dark);
         }
+        .first-login-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 15, 23, 0.62);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+        .first-login-modal.show {
+            display: flex;
+        }
+        .first-login-modal__card {
+            width: 100%;
+            max-width: 540px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+            padding: 24px;
+            border-top: 4px solid var(--blue);
+        }
+        .first-login-modal__title {
+            margin: 0 0 12px;
+            color: var(--dark);
+            font-size: 22px;
+        }
+        .first-login-modal__text {
+            color: #3f3f3f;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .first-login-modal__actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .first-login-modal__actions button {
+            margin-top: 0;
+            flex: 1;
+            min-width: 180px;
+        }
+        .btn-secondary {
+            background: #eceff4;
+            color: #232323;
+        }
+        .btn-secondary:hover {
+            background: #d9dee7;
+        }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
@@ -298,11 +347,62 @@
         </div>
     </div>
 
+    <div class="first-login-modal" id="firstLoginModal" aria-hidden="true" role="dialog" aria-labelledby="firstLoginTitle">
+        <div class="first-login-modal__card">
+            <h2 class="first-login-modal__title" id="firstLoginTitle">Bienvenue chez ClinikAuto</h2>
+            <p class="first-login-modal__text" id="firstLoginText"></p>
+            <div class="first-login-modal__actions">
+                <button type="button" id="firstLoginCreateNow">Créer mon mot de passe maintenant</button>
+                <button type="button" class="btn-secondary" id="firstLoginLater">Plus tard</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/analytics.js"></script>
     <script>
         const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
         const messageDiv = document.getElementById("message");
         const resetPanel = document.getElementById("resetPanel");
+        const firstLoginModal = document.getElementById("firstLoginModal");
+        const firstLoginText = document.getElementById("firstLoginText");
+        let dismissedOnboardingEmail = "";
+
+        function isEmailFormatValid(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+        }
+
+        function openFirstLoginModal(name, email) {
+            const person = String(name || "").trim() || email;
+            firstLoginText.textContent = `Bienvenue ${person}, vous êtes déjà client ClinikAuto. Votre compte est créé. Pour votre première connexion, choisissez votre mot de passe pour activer votre espace personnel.`;
+            firstLoginModal.classList.add("show");
+            firstLoginModal.setAttribute("aria-hidden", "false");
+            firstLoginModal.dataset.email = email;
+        }
+
+        function closeFirstLoginModal() {
+            firstLoginModal.classList.remove("show");
+            firstLoginModal.setAttribute("aria-hidden", "true");
+        }
+
+        async function checkOnboardingByEmail(rawEmail) {
+            const email = String(rawEmail || "").trim().toLowerCase();
+            if (!isEmailFormatValid(email) || email === dismissedOnboardingEmail) {
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + "/client-onboarding-status?email=" + encodeURIComponent(email));
+                if (!response.ok) {
+                    return;
+                }
+                const payload = await response.json();
+                if (payload && payload.found && !payload.hasPassword) {
+                    openFirstLoginModal(payload.displayName || "", email);
+                }
+            } catch (_error) {
+                // Vérification optionnelle: ignorer silencieusement en cas d'indisponibilité réseau.
+            }
+        }
 
         function hasStoredSessionToken() {
             try {
@@ -320,6 +420,34 @@
             document.getElementById("email").focus();
             messageDiv.textContent = "🔒 Connectez-vous avec votre compte administrateur pour ouvrir le tableau de bord.";
             messageDiv.className = "message success show";
+        });
+
+        document.getElementById("email").addEventListener("blur", (event) => {
+            checkOnboardingByEmail(event.target.value);
+        });
+
+        document.getElementById("firstLoginCreateNow").addEventListener("click", () => {
+            const email = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+            closeFirstLoginModal();
+            resetPanel.classList.add("show");
+            document.getElementById("resetEmail").value = email;
+            document.getElementById("resetPassword").focus();
+            messageDiv.textContent = "✅ Première connexion détectée : choisissez maintenant votre mot de passe.";
+            messageDiv.className = "message success show";
+        });
+
+        document.getElementById("firstLoginLater").addEventListener("click", () => {
+            dismissedOnboardingEmail = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+            closeFirstLoginModal();
+            messageDiv.textContent = "ℹ️ Vous pourrez créer votre mot de passe plus tard via \"Mot de passe oublié\".";
+            messageDiv.className = "message success show";
+        });
+
+        firstLoginModal.addEventListener("click", (event) => {
+            if (event.target === firstLoginModal) {
+                dismissedOnboardingEmail = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+                closeFirstLoginModal();
+            }
         });
 
         document.getElementById("forgotPasswordLink").addEventListener("click", (event) => {
@@ -365,6 +493,9 @@
                         window.location.href = data.user.role === "admin" ? "admin.html" : "dashboard.html";
                     }, 2000);
                 } else {
+                    if (data && data.code === "FIRST_LOGIN_SETUP_REQUIRED") {
+                        openFirstLoginModal("", String(email || "").trim().toLowerCase());
+                    }
                     messageDiv.textContent = "❌ " + data.error;
                     messageDiv.className = "message error show";
                 }

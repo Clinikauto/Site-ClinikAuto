@@ -489,6 +489,9 @@
             grid-template-columns: 1fr 1fr;
             gap: 14px;
         }
+        .client-import-actions {
+            margin-bottom: 12px;
+        }
         @media (max-width: 600px) {
             .agenda-file-imports { grid-template-columns: 1fr; }
         }
@@ -1325,6 +1328,11 @@
                         </select>
                     </div>
 
+                    <div class="actions actions--toolbar client-import-actions">
+                        <button class="btn-inline" id="importClientsBtn" title="Importer des comptes clients depuis un fichier Excel ou CSV"><i class="fa-solid fa-file-import"></i> Importer clients XLSX/CSV</button>
+                        <input type="file" id="importClientsInput" class="u-hidden" accept=".xlsx,.xls,.csv,text/csv">
+                    </div>
+
                     <div class="cards-list" id="clientsList"></div>
                 </article>
 
@@ -1624,6 +1632,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="js/analytics.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         const AGENDA_KEY = 'clinikauto_admin_vroomly_agenda';
         const ADMIN_API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
@@ -1882,6 +1891,103 @@
                 });
             }
             return results.filter((r) => r.client || r.service);
+        }
+
+        function normalizeHeaderKey(raw) {
+            return String(raw || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/\p{Diacritic}/gu, '')
+                .replace(/[^a-z0-9]+/g, '');
+        }
+
+        function pickSpreadsheetValue(row, aliases) {
+            const entries = Object.entries(row || {});
+            for (const [key, value] of entries) {
+                const normalized = normalizeHeaderKey(key);
+                if (aliases.includes(normalized)) {
+                    return String(value ?? '').trim();
+                }
+            }
+            return '';
+        }
+
+        function normalizeImportedClientRow(row) {
+            const email = pickSpreadsheetValue(row, ['email', 'mail', 'courriel', 'emailclient']);
+            const prenom = pickSpreadsheetValue(row, ['prenom', 'firstname', 'first', 'givenname']);
+            const nom = pickSpreadsheetValue(row, ['nom', 'lastname', 'surname', 'familyname']);
+            const name = pickSpreadsheetValue(row, ['nomcomplet', 'fullname', 'name', 'client']);
+            const tel = pickSpreadsheetValue(row, ['tel', 'telephone', 'phone', 'mobile']);
+            const adresse = pickSpreadsheetValue(row, ['adresse', 'address']);
+            const notes = pickSpreadsheetValue(row, ['notes', 'note', 'commentaire', 'commentaires']);
+            return {
+                email,
+                prenom,
+                nom,
+                name,
+                tel,
+                adresse,
+                notes
+            };
+        }
+
+        async function importClientsSpreadsheet(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast('Import Excel indisponible: librairie XLSX non chargée.');
+                return;
+            }
+
+            try {
+                let rows = [];
+                const isCsv = /\.csv$/i.test(file.name);
+
+                if (isCsv) {
+                    const text = await file.text();
+                    const workbook = XLSX.read(text, { type: 'string' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    if (!firstSheetName) {
+                        showToast('Aucune feuille trouvée dans ce fichier CSV.');
+                        return;
+                    }
+                    rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
+                } else {
+                    const buffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(buffer, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    if (!firstSheetName) {
+                        showToast('Aucune feuille trouvée dans ce fichier.');
+                        return;
+                    }
+                    rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], { defval: '' });
+                }
+
+                const clients = rows
+                    .map((row) => normalizeImportedClientRow(row))
+                    .filter((row) => row.email);
+
+                if (!clients.length) {
+                    showToast('Aucune ligne client valide: colonne email manquante ou vide.');
+                    return;
+                }
+
+                showToast(`Import de ${clients.length} client(s) en cours...`);
+                const result = await api('/admin/clients/import', {
+                    method: 'POST',
+                    body: JSON.stringify({ clients })
+                });
+
+                showToast(
+                    `Import terminé: ${result.created || 0} créés, ${result.updated || 0} mis à jour, `
+                    + `${result.pendingPasswordSetup || 0} à activer en première connexion.`
+                );
+                await loadDashboard();
+            } catch (error) {
+                showToast(error.message || 'Erreur lors de l\'import du fichier clients.');
+            }
         }
 
         function parseAgendaImport(raw, fallbackDate) {
@@ -2843,6 +2949,12 @@
 
             document.getElementById('clientSearch').addEventListener('input', buildClients);
             document.getElementById('clientRoleFilter').addEventListener('change', buildClients);
+            document.getElementById('importClientsBtn').addEventListener('click', () => {
+                document.getElementById('importClientsInput').click();
+            });
+            document.getElementById('importClientsInput').addEventListener('change', (event) => {
+                importClientsSpreadsheet(event.target);
+            });
             document.getElementById('appointmentSearch').addEventListener('input', buildAppointments);
             document.getElementById('appointmentStatusFilter').addEventListener('change', buildAppointments);
             document.getElementById('occasionNewBtn').addEventListener('click', () => {
