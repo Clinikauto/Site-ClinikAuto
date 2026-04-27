@@ -234,6 +234,73 @@ function splitDisplayName(fullName) {
     };
 }
 
+function escapeIcsText(value) {
+    return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/\r?\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
+}
+
+function toIcsLocalDate(dateStr, timeStr) {
+    const [year, month, day] = String(dateStr || "").split("-");
+    const [hour, minute] = String(timeStr || "09:00").split(":");
+    const hh = String(Number.parseInt(hour, 10) || 9).padStart(2, "0");
+    const mm = String(Number.parseInt(minute, 10) || 0).padStart(2, "0");
+    return `${year}${month}${day}T${hh}${mm}00`;
+}
+
+function toIcsLocalDateEnd(dateStr, timeStr) {
+    const [year, month, day] = String(dateStr || "").split("-");
+    const [hour, minute] = String(timeStr || "09:00").split(":");
+    const startHour = Number.parseInt(hour, 10);
+    const endHour = Number.isNaN(startHour) ? 10 : Math.min(startHour + 1, 23);
+    const mm = String(Number.parseInt(minute, 10) || 0).padStart(2, "0");
+    return `${year}${month}${day}T${String(endHour).padStart(2, "0")}${mm}00`;
+}
+
+function buildAppointmentsIcs(appointments) {
+    const now = new Date();
+    const dtstamp = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}${String(now.getUTCDate()).padStart(2, "0")}T${String(now.getUTCHours()).padStart(2, "0")}${String(now.getUTCMinutes()).padStart(2, "0")}${String(now.getUTCSeconds()).padStart(2, "0")}Z`;
+
+    const events = appointments.map((appt) => {
+        const firstName = String(appt.prenom || "").trim();
+        const lastName = String(appt.nom || "").trim();
+        const fullName = [firstName, lastName].filter(Boolean).join(" ") || String(appt.email || "Client");
+        const email = String(appt.email || "").trim();
+        const phone = String(appt.tel || "").trim();
+        const details = [
+            `Client: ${fullName}`,
+            email ? `Email: ${email}` : "",
+            phone ? `Tel: ${phone}` : "",
+            `Service: ${String(appt.service || "").trim()}`
+        ].filter(Boolean).join(" | ");
+
+        return [
+            "BEGIN:VEVENT",
+            `UID:rdv-${appt.id}-clinikauto@site`,
+            `DTSTAMP:${dtstamp}`,
+            `DTSTART:${toIcsLocalDate(appt.date, appt.time)}`,
+            `DTEND:${toIcsLocalDateEnd(appt.date, appt.time)}`,
+            `SUMMARY:${escapeIcsText(`${String(appt.service || "Rendez-vous").trim()} - ${fullName}`)}`,
+            `DESCRIPTION:${escapeIcsText(details)}`,
+            "LOCATION:ClinikAuto",
+            `STATUS:${appt.status === "cancelled" ? "CANCELLED" : appt.status === "pending" ? "TENTATIVE" : "CONFIRMED"}`,
+            "END:VEVENT"
+        ].join("\r\n");
+    });
+
+    return [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//ClinikAuto//Agenda Vroomly//FR",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        ...events,
+        "END:VCALENDAR"
+    ].join("\r\n");
+}
+
 function upsertClientProfile(userId, payload, callback) {
     const nom = String(payload.nom || "").trim();
     const prenom = String(payload.prenom || "").trim();
@@ -670,6 +737,42 @@ app.get("/all-appointments", requireAuth, requireAdmin, (req, res) => {
             res.json(rows);
         }
     );
+});
+
+app.get("/admin/appointments/export-ics", requireAuth, requireAdmin, (req, res) => {
+    const filter = String(req.query.status || "confirmed").toLowerCase();
+    const includeAll = filter === "all";
+    const query = `
+        SELECT
+            a.id,
+            a.user_id,
+            a.service,
+            a.date,
+            a.time,
+            a.status,
+            u.email,
+            cp.nom,
+            cp.prenom,
+            cp.tel
+        FROM appointments a
+        LEFT JOIN users u ON u.id = a.user_id
+        LEFT JOIN client_profiles cp ON cp.user_id = a.user_id
+        ${includeAll ? "" : "WHERE a.status = 'confirmed'"}
+        ORDER BY a.date ASC, a.time ASC
+    `;
+
+    db.all(query, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: "Erreur export ICS" });
+        }
+
+        const ics = buildAppointmentsIcs(rows || []);
+        const today = new Date().toISOString().slice(0, 10);
+        const suffix = includeAll ? "all" : "confirmed";
+        res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename=\"rdv-clinikauto-vroomly-${suffix}-${today}.ics\"`);
+        return res.status(200).send(ics);
+    });
 });
 
 // Importer des rendez-vous en masse (admin)

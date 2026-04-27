@@ -1352,7 +1352,7 @@
                         </div>
                         <div class="actions actions--toolbar">
                             <button class="btn-inline btn-inline--success" onclick="exportAppointmentsCSV()" title="Exporter les RDV confirmés en CSV"><i class="fa-solid fa-file-arrow-down"></i> Exporter confirmés</button>
-                            <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS()" title="Exporter les RDV confirmés au format ICS pour import dans Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS → Vroomly</button>
+                            <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS()" title="Télécharger l'ICS généré par le serveur puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS auto → Vroomly</button>
                             <button class="btn-inline" onclick="document.getElementById('importCsvInput').click()" title="Importer des RDV depuis un fichier CSV"><i class="fa-solid fa-file-arrow-up"></i> Importer CSV</button>
                             <input type="file" id="importCsvInput" class="u-hidden" accept=".csv,text/csv" onchange="importAppointmentsCSV(this)">
                         </div>
@@ -2505,74 +2505,41 @@
             setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
 
-        function exportAppointmentsICS() {
-            const confirmed = state.appointments.filter((a) => a.status === 'confirmed');
-            if (!confirmed.length) {
-                showToast('Aucun rendez-vous confirmé à exporter.');
-                return;
+        async function exportAppointmentsICS() {
+            try {
+                const response = await fetch(ADMIN_API_BASE + '/admin/appointments/export-ics?status=confirmed', {
+                    headers: {
+                        'Authorization': 'Bearer ' + state.token
+                    }
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    let payload = null;
+                    try {
+                        payload = text ? JSON.parse(text) : null;
+                    } catch (_err) {
+                        payload = null;
+                    }
+                    throw new Error((payload && payload.error) || 'Erreur export ICS');
+                }
+
+                const blob = await response.blob();
+                const contentDisposition = response.headers.get('Content-Disposition') || '';
+                const fileMatch = contentDisposition.match(/filename="([^"]+)"/i);
+                const filename = fileMatch ? fileMatch[1] : `rdv-clinikauto-vroomly-confirmed-${new Date().toISOString().slice(0, 10)}.ics`;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+                window.open('https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv', '_blank', 'noopener');
+                showToast('ICS serveur téléchargé. La page d\'import Vroomly est ouverte.');
+            } catch (error) {
+                showToast(error.message || 'Erreur lors de l\'export ICS');
             }
-
-            function pad(n) { return String(n).padStart(2, '0'); }
-
-            function toIcsDate(dateStr, timeStr) {
-                // dateStr: YYYY-MM-DD, timeStr: HH:MM
-                const [y, mo, d] = dateStr.split('-');
-                const [h, mi] = (timeStr || '09:00').split(':');
-                return `${y}${pad(mo)}${pad(d)}T${pad(h)}${pad(mi)}00`;
-            }
-
-            function toIcsDateEnd(dateStr, timeStr) {
-                // Durée estimée : 1h
-                const [y, mo, d] = dateStr.split('-');
-                const [h, mi] = (timeStr || '09:00').split(':');
-                const endH = parseInt(h, 10) + 1;
-                return `${y}${pad(mo)}${pad(d)}T${pad(endH)}${pad(mi)}00`;
-            }
-
-            function escIcs(str) {
-                return (str || '').replace(/[\\;,]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
-            }
-
-            const now = new Date();
-            const dtstamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}Z`;
-
-            const events = confirmed.map((a) => {
-                const user = state.users.find((u) => u.id === a.user_id);
-                const profile = getClientProfile(a.user_id);
-                const prenom = profile ? (profile.prenom || '') : '';
-                const nom = profile ? (profile.nom || '') : '';
-                const clientName = [prenom, nom].filter(Boolean).join(' ') || (user ? user.email : 'Client');
-                const tel = profile ? (profile.tel || '') : '';
-                const email = user ? user.email : '';
-                const desc = ['Client: ' + clientName, email ? 'Email: ' + email : '', tel ? 'Tél: ' + tel : ''].filter(Boolean).join(' | ');
-
-                return [
-                    'BEGIN:VEVENT',
-                    `UID:rdv-${a.id}-clinikauto@site`,
-                    `DTSTAMP:${dtstamp}`,
-                    `DTSTART:${toIcsDate(a.date, a.time)}`,
-                    `DTEND:${toIcsDateEnd(a.date, a.time)}`,
-                    `SUMMARY:${escIcs(a.service)} - ${escIcs(clientName)}`,
-                    `DESCRIPTION:${escIcs(desc)}`,
-                    'LOCATION:ClinikAuto',
-                    'STATUS:CONFIRMED',
-                    'END:VEVENT'
-                ].join('\r\n');
-            });
-
-            const ics = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//ClinikAuto//FR',
-                'CALSCALE:GREGORIAN',
-                'METHOD:PUBLISH',
-                ...events,
-                'END:VCALENDAR'
-            ].join('\r\n');
-
-            const filename = `rdv-clinikauto-vroomly-${new Date().toISOString().slice(0, 10)}.ics`;
-            downloadBlob(ics, filename, 'text/calendar;charset=utf-8');
-            showToast(`${confirmed.length} RDV confirmés exportés. Importez ce fichier dans Vroomly → Paramètres calendrier → Importer RDV.`);
         }
 
         function exportAppointmentsCSV() {
