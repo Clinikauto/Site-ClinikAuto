@@ -852,6 +852,33 @@
             background: rgba(233, 64, 87, 0.15);
         }
 
+        .vroomly-sync-box {
+            margin: 10px 0 14px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(233, 64, 87, 0.25);
+            background: rgba(233, 64, 87, 0.08);
+            color: #ffd6de;
+            display: none;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .vroomly-sync-box__meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #f8b4c2;
+        }
+
+        .vroomly-sync-box.is-alert {
+            border-color: rgba(255, 107, 107, 0.45);
+            background: rgba(255, 107, 107, 0.14);
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1352,7 +1379,8 @@
                         </div>
                         <div class="actions actions--toolbar">
                             <button class="btn-inline btn-inline--success" onclick="exportAppointmentsCSV()" title="Exporter les RDV confirmés en CSV"><i class="fa-solid fa-file-arrow-down"></i> Exporter confirmés</button>
-                            <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS()" title="Télécharger l'ICS généré par le serveur puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS auto → Vroomly</button>
+                            <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('confirmed')" title="Télécharger l'ICS des RDV confirmés puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS confirmés</button>
+                            <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('all')" title="Télécharger l'ICS de tous les statuts puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-plus"></i> Exporter ICS tous statuts</button>
                             <button class="btn-inline" onclick="document.getElementById('importCsvInput').click()" title="Importer des RDV depuis un fichier CSV"><i class="fa-solid fa-file-arrow-up"></i> Importer CSV</button>
                             <input type="file" id="importCsvInput" class="u-hidden" accept=".csv,text/csv" onchange="importAppointmentsCSV(this)">
                         </div>
@@ -1367,6 +1395,8 @@
                             <option value="cancelled">Annulés</option>
                         </select>
                     </div>
+
+                    <div id="vroomlySyncStatus" class="vroomly-sync-box"></div>
 
                     <div class="cards-list" id="appointmentsList"></div>
                 </article>
@@ -1645,6 +1675,7 @@
     <script>
         const AGENDA_KEY = 'clinikauto_admin_vroomly_agenda';
         const ADMIN_API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        const VROOMLY_REMINDER_TOAST_KEY = 'clinikauto_vroomly_reminder_toast_day';
         const MAX_PHOTOS = 8;
         const MAX_PHOTO_DIMENSION = 1600;
         const PHOTO_JPEG_QUALITY = 0.82;
@@ -1773,6 +1804,7 @@
             clients: [],
             occasions: [],
             agenda: [],
+            vroomlySync: null,
             analytics: {
                 totalViews: 0,
                 sessions: 0,
@@ -2505,9 +2537,75 @@
             setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
 
-        async function exportAppointmentsICS() {
+        function formatSyncDateTime(value) {
+            if (!value) return 'Jamais';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'Jamais';
+            return date.toLocaleString('fr-FR');
+        }
+
+        async function refreshVroomlySyncStatus() {
             try {
-                const response = await fetch(ADMIN_API_BASE + '/admin/appointments/export-ics?status=confirmed', {
+                state.vroomlySync = await api('/admin/appointments/vroomly-sync-status');
+            } catch (_err) {
+                state.vroomlySync = null;
+            }
+            renderVroomlySyncStatus();
+        }
+
+        function renderVroomlySyncStatus() {
+            const box = document.getElementById('vroomlySyncStatus');
+            if (!box) return;
+
+            const sync = state.vroomlySync;
+            if (!sync) {
+                box.style.display = 'none';
+                return;
+            }
+
+            box.style.display = 'flex';
+            box.classList.toggle('is-alert', !!sync.needsReminder);
+
+            const scopeLabel = sync.lastExportScope === 'all' ? 'tous statuts' : 'confirmés';
+            const title = sync.needsReminder
+                ? 'Rappel quotidien: des RDV confirmés attendent encore un export Vroomly.'
+                : 'Synchronisation Vroomly à jour pour aujourd\'hui.';
+
+            box.innerHTML = `
+                <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <div class="vroomly-sync-box__meta">
+                        <span>Confirmés en attente: <strong>${escapeHtml(sync.confirmedCount)}</strong></span>
+                        <span>Dernier export: <strong>${escapeHtml(formatSyncDateTime(sync.lastExportAt))}</strong></span>
+                        <span>Scope: <strong>${escapeHtml(scopeLabel)}</strong></span>
+                        <span>Volume: <strong>${escapeHtml(sync.lastExportCount || 0)}</strong></span>
+                    </div>
+                </div>
+                ${sync.needsReminder ? '<button class="btn-inline btn-inline--danger" id="vroomlyAckReminderBtn"><i class="fa-solid fa-bell-slash"></i> Rappel vu aujourd\'hui</button>' : ''}
+            `;
+
+            if (sync.needsReminder) {
+                const today = new Date().toISOString().slice(0, 10);
+                if (localStorage.getItem(VROOMLY_REMINDER_TOAST_KEY) !== today) {
+                    showToast('Rappel: exportez les RDV confirmés vers Vroomly aujourd\'hui.');
+                    localStorage.setItem(VROOMLY_REMINDER_TOAST_KEY, today);
+                }
+            }
+        }
+
+        async function acknowledgeVroomlyReminder() {
+            await api('/admin/appointments/vroomly-reminder-ack', {
+                method: 'POST',
+                body: '{}'
+            });
+            showToast('Rappel quotidien masqué pour aujourd\'hui.');
+            await refreshVroomlySyncStatus();
+        }
+
+        async function exportAppointmentsICS(scope = 'confirmed') {
+            try {
+                const safeScope = scope === 'all' ? 'all' : 'confirmed';
+                const response = await fetch(ADMIN_API_BASE + '/admin/appointments/export-ics?status=' + encodeURIComponent(safeScope), {
                     headers: {
                         'Authorization': 'Bearer ' + state.token
                     }
@@ -2527,7 +2625,7 @@
                 const blob = await response.blob();
                 const contentDisposition = response.headers.get('Content-Disposition') || '';
                 const fileMatch = contentDisposition.match(/filename="([^"]+)"/i);
-                const filename = fileMatch ? fileMatch[1] : `rdv-clinikauto-vroomly-confirmed-${new Date().toISOString().slice(0, 10)}.ics`;
+                const filename = fileMatch ? fileMatch[1] : `rdv-clinikauto-vroomly-${safeScope}-${new Date().toISOString().slice(0, 10)}.ics`;
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -2536,7 +2634,8 @@
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
 
                 window.open('https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv', '_blank', 'noopener');
-                showToast('ICS serveur téléchargé. La page d\'import Vroomly est ouverte.');
+                showToast('ICS serveur téléchargé (' + (safeScope === 'all' ? 'tous statuts' : 'confirmés') + '). La page d\'import Vroomly est ouverte.');
+                await refreshVroomlySyncStatus();
             } catch (error) {
                 showToast(error.message || 'Erreur lors de l\'export ICS');
             }
@@ -2898,12 +2997,13 @@
         }
 
         async function loadDashboard() {
-            const [appointments, users, analytics, occasions, clientProfiles] = await Promise.all([
+            const [appointments, users, analytics, occasions, clientProfiles, vroomlySync] = await Promise.all([
                 api('/all-appointments'),
                 api('/admin/users'),
                 api('/admin/analytics'),
                 api('/occasions-data'),
-                api('/admin/client-profiles')
+                api('/admin/client-profiles'),
+                api('/admin/appointments/vroomly-sync-status')
             ]);
 
             state.appointments = Array.isArray(appointments) ? appointments : [];
@@ -2912,6 +3012,7 @@
             state.clients = Array.isArray(clientProfiles) ? clientProfiles : [];
             state.occasions = Array.isArray(occasions) ? occasions : [];
             state.agenda = readLocalJson(AGENDA_KEY, []);
+            state.vroomlySync = vroomlySync || null;
 
             buildOverview();
             buildProgress();
@@ -2921,6 +3022,7 @@
             buildClients();
             buildAppointments();
             buildOccasions();
+            renderVroomlySyncStatus();
 
             const now = new Date();
             document.getElementById('lastRefreshLabel').textContent = now.toLocaleTimeString('fr-FR');
@@ -3003,6 +3105,15 @@
             });
             document.getElementById('appointmentSearch').addEventListener('input', buildAppointments);
             document.getElementById('appointmentStatusFilter').addEventListener('change', buildAppointments);
+            document.getElementById('vroomlySyncStatus').addEventListener('click', async (event) => {
+                const ackBtn = event.target.closest('#vroomlyAckReminderBtn');
+                if (!ackBtn) return;
+                try {
+                    await acknowledgeVroomlyReminder();
+                } catch (error) {
+                    showToast(error.message || 'Erreur lors de la mise à jour du rappel.');
+                }
+            });
             document.getElementById('occasionNewBtn').addEventListener('click', () => {
                 resetOccasionForm();
                 document.getElementById('occasionTitle').focus();

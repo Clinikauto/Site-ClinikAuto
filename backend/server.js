@@ -234,6 +234,22 @@ function splitDisplayName(fullName) {
     };
 }
 
+function upsertSiteSetting(key, value, callback) {
+    db.run(
+        "INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [key, String(value || "")],
+        callback
+    );
+}
+
+function isoDateOnly(dateValue) {
+    const date = dateValue ? new Date(dateValue) : new Date();
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+    return date.toISOString().slice(0, 10);
+}
+
 function escapeIcsText(value) {
     return String(value || "")
         .replace(/\\/g, "\\\\")
@@ -766,12 +782,72 @@ app.get("/admin/appointments/export-ics", requireAuth, requireAdmin, (req, res) 
             return res.status(500).json({ error: "Erreur export ICS" });
         }
 
+        const exportedAt = new Date().toISOString();
+        upsertSiteSetting("vroomly_last_export_at", exportedAt, () => {});
+        upsertSiteSetting("vroomly_last_export_scope", includeAll ? "all" : "confirmed", () => {});
+        upsertSiteSetting("vroomly_last_export_count", String((rows || []).length), () => {});
+
         const ics = buildAppointmentsIcs(rows || []);
         const today = new Date().toISOString().slice(0, 10);
         const suffix = includeAll ? "all" : "confirmed";
         res.setHeader("Content-Type", "text/calendar; charset=utf-8");
         res.setHeader("Content-Disposition", `attachment; filename=\"rdv-clinikauto-vroomly-${suffix}-${today}.ics\"`);
         return res.status(200).send(ics);
+    });
+});
+
+app.get("/admin/appointments/vroomly-sync-status", requireAuth, requireAdmin, (_req, res) => {
+    db.get(
+        "SELECT COUNT(*) AS confirmedCount FROM appointments WHERE status = 'confirmed'",
+        (countErr, countRow) => {
+            if (countErr) {
+                return res.status(500).json({ error: "Erreur statut synchro" });
+            }
+
+            db.all(
+                "SELECT key, value FROM site_settings WHERE key IN ('vroomly_last_export_at', 'vroomly_last_export_scope', 'vroomly_last_export_count', 'vroomly_last_reminder_ack_at')",
+                (settingsErr, rows) => {
+                    if (settingsErr) {
+                        return res.status(500).json({ error: "Erreur statut synchro" });
+                    }
+
+                    const settings = {};
+                    (rows || []).forEach((row) => {
+                        settings[row.key] = row.value;
+                    });
+
+                    const confirmedCount = Number(countRow?.confirmedCount || 0);
+                    const lastExportAt = settings.vroomly_last_export_at || null;
+                    const lastReminderAckAt = settings.vroomly_last_reminder_ack_at || null;
+                    const today = isoDateOnly();
+                    const exportedToday = lastExportAt ? isoDateOnly(lastExportAt) === today : false;
+                    const reminderAckToday = lastReminderAckAt ? isoDateOnly(lastReminderAckAt) === today : false;
+
+                    const needsReminder = confirmedCount > 0 && !exportedToday && !reminderAckToday;
+
+                    res.json({
+                        confirmedCount,
+                        lastExportAt,
+                        lastExportScope: settings.vroomly_last_export_scope || null,
+                        lastExportCount: Number(settings.vroomly_last_export_count || 0),
+                        lastReminderAckAt,
+                        exportedToday,
+                        reminderAckToday,
+                        needsReminder
+                    });
+                }
+            );
+        }
+    );
+});
+
+app.post("/admin/appointments/vroomly-reminder-ack", requireAuth, requireAdmin, (_req, res) => {
+    const ackAt = new Date().toISOString();
+    upsertSiteSetting("vroomly_last_reminder_ack_at", ackAt, (err) => {
+        if (err) {
+            return res.status(500).json({ error: "Erreur enregistrement rappel" });
+        }
+        res.json({ message: "Rappel acquitté", at: ackAt });
     });
 });
 
