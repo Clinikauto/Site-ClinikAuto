@@ -2255,6 +2255,30 @@
             }
         }
 
+        function getStoredAuthToken() {
+            const sessionToken = sessionStorage.getItem('token');
+            if (sessionToken) {
+                return sessionToken;
+            }
+            const legacyToken = localStorage.getItem('token');
+            if (legacyToken) {
+                sessionStorage.setItem('token', legacyToken);
+                localStorage.removeItem('token');
+                return legacyToken;
+            }
+            return '';
+        }
+
+        function clearAuthSession() {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('clinikauto_client_token');
+            sessionStorage.removeItem('clinikauto_client_session');
+            sessionStorage.removeItem('clinikauto_client_impersonation_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('clinikauto_client_session');
+            localStorage.removeItem('user');
+        }
+
         function getAnalytics() {
             return state.analytics || { totalViews: 0, sessions: 0, pages: {}, recentVisits: [], events: {} };
         }
@@ -3779,6 +3803,13 @@
                         <button class="btn-inline" data-view-credentials="${user.id}"><i class="fa-solid fa-id-badge"></i> Consulter identifiants et IP</button>
                     </div>
                     <div id="userCredentialsContainer" style="font-size:0.85rem;color:var(--muted);">Cliquez pour afficher les informations de connexion et la dernière IP connue.</div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:12px;">
+                        <div>
+                            <label for="clientTempPassword" style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:6px;">Nouveau mot de passe temporaire</label>
+                            <input id="clientTempPassword" type="text" minlength="8" placeholder="Ex: Client2026!" style="width:100%;">
+                        </div>
+                        <button class="btn-inline btn-inline--danger" data-reset-password-user="${user.id}"><i class="fa-solid fa-key"></i> Réinitialiser le mot de passe</button>
+                    </div>
                 </div>
                 <div class="mini-card" style="margin-bottom:16px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -3862,6 +3893,34 @@
                 `;
             } catch (err) {
                 container.innerHTML = `<span style="color:#b91c1c">${escapeHtml(err.message || 'Erreur chargement identifiants')}</span>`;
+            }
+        }
+
+        async function resetClientPassword(userId) {
+            const input = document.getElementById('clientTempPassword');
+            const newPassword = String(input && input.value || '').trim();
+            if (!newPassword || newPassword.length < 8) {
+                showToast('Le mot de passe temporaire doit contenir au moins 8 caractères.');
+                return;
+            }
+
+            if (!confirm('Confirmer la réinitialisation du mot de passe client et l\'envoi de l\'email automatique ?')) {
+                return;
+            }
+
+            const result = await api('/admin/users/' + userId + '/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ newPassword })
+            });
+
+            if (input) {
+                input.value = '';
+            }
+
+            if (result && result.emailSent) {
+                showToast('Mot de passe réinitialisé. Email envoyé à ' + (result.email || 'ce client') + '.');
+            } else {
+                showToast('Mot de passe réinitialisé mais email non envoyé (SMTP non configuré).');
             }
         }
 
@@ -4130,7 +4189,7 @@
         }
 
         async function initIdentity() {
-            state.token = localStorage.getItem('token');
+            state.token = getStoredAuthToken();
 
             if (!state.token) {
                 window.location.href = 'login.html';
@@ -4144,8 +4203,7 @@
                 }
                 state.admin = profile;
             } catch (_err) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+                clearAuthSession();
                 window.location.href = 'login.html';
                 return false;
             }
@@ -4191,8 +4249,7 @@
                     // On poursuit la déconnexion même si la sauvegarde locale échoue
                 }
 
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                clearAuthSession();
                 window.location.href = 'login.html';
             });
 
@@ -4653,6 +4710,16 @@
                 const credentialsBtn = event.target.closest('[data-view-credentials]');
                 if (credentialsBtn) {
                     await loadUserCredentials(credentialsBtn.dataset.viewCredentials);
+                    return;
+                }
+
+                const resetPasswordBtn = event.target.closest('[data-reset-password-user]');
+                if (resetPasswordBtn) {
+                    try {
+                        await resetClientPassword(resetPasswordBtn.dataset.resetPasswordUser);
+                    } catch (error) {
+                        showToast(error.message || 'Réinitialisation du mot de passe impossible.');
+                    }
                     return;
                 }
 

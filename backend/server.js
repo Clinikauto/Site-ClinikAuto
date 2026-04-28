@@ -1,9 +1,11 @@
-﻿const express = require("express");
+﻿require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
+const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
@@ -17,6 +19,13 @@ const ALLOWED_ORIGINS = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const ADMIN_OWNER_EMAIL = String(process.env.ADMIN_OWNER_EMAIL || process.env.ADMIN_EMAIL || "clinikauto74@gmail.com").trim().toLowerCase();
+const SMTP_HOST = String(process.env.SMTP_HOST || "").trim();
+const SMTP_PORT = Number.parseInt(process.env.SMTP_PORT || "587", 10);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || "false").trim().toLowerCase() === "true";
+const SMTP_USER = String(process.env.SMTP_USER || "").trim();
+const SMTP_PASS = String(process.env.SMTP_PASS || "").trim();
+const SMTP_FROM = String(process.env.SMTP_FROM || SMTP_USER || "no-reply@clinikauto.local").trim();
 const GOOGLE_CALENDAR_ICS_URL = String(process.env.GOOGLE_CALENDAR_ICS_URL || "").trim();
 const GOOGLE_CALENDAR_DEFAULT_SERVICE = String(process.env.GOOGLE_CALENDAR_DEFAULT_SERVICE || "Réparation").trim() || "Réparation";
 const GOOGLE_CALENDAR_SYNC_INTERVAL_MS = Math.max(60000, Number.parseInt(process.env.GOOGLE_CALENDAR_SYNC_INTERVAL_MS || "300000", 10) || 300000);
@@ -296,12 +305,75 @@ function splitDisplayName(fullName) {
     };
 }
 
+function escapeHtmlText(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 function upsertSiteSetting(key, value, callback) {
     db.run(
         "INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         [key, String(value || "")],
         callback
     );
+}
+
+const mailTransport = SMTP_HOST && SMTP_USER && SMTP_PASS
+    ? nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: Number.isFinite(SMTP_PORT) ? SMTP_PORT : 587,
+        secure: SMTP_SECURE,
+        auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS
+        }
+    })
+    : null;
+
+async function sendPasswordResetEmail({ toEmail, newPassword, requestedBy }) {
+    if (!mailTransport) {
+        return { sent: false, reason: "SMTP_NON_CONFIGURE" };
+    }
+
+    const recipient = String(toEmail || "").trim().toLowerCase();
+    const actor = String(requestedBy || "Portail ClinikAuto").trim();
+    const subject = "ClinikAuto - Votre mot de passe temporaire";
+    const text = [
+        "Bonjour,",
+        "",
+        "Votre mot de passe de connexion a été réinitialisé.",
+        "",
+        `Nouveau mot de passe temporaire: ${newPassword}`,
+        "",
+        "Merci de vous connecter puis de changer ce mot de passe dès que possible.",
+        "",
+        `Action demandée par: ${actor}`,
+        "",
+        "Equipe ClinikAuto"
+    ].join("\n");
+
+    const html = `
+        <p>Bonjour,</p>
+        <p>Votre mot de passe de connexion a été réinitialisé.</p>
+        <p><strong>Nouveau mot de passe temporaire:</strong> ${escapeHtmlText(newPassword)}</p>
+        <p>Merci de vous connecter puis de changer ce mot de passe dès que possible.</p>
+        <p>Action demandée par: ${escapeHtmlText(actor)}</p>
+        <p>Equipe ClinikAuto</p>
+    `;
+
+    await mailTransport.sendMail({
+        from: SMTP_FROM,
+        to: recipient,
+        subject,
+        text,
+        html
+    });
+
+    return { sent: true };
 }
 
 function isoDateOnly(dateValue) {
@@ -820,6 +892,10 @@ function normalizeRole(role) {
     return normalized === "admin" ? "admin" : "client";
 }
 
+function isOwnerAdminEmail(email) {
+    return String(email || "").trim().toLowerCase() === ADMIN_OWNER_EMAIL;
+}
+
 function signToken(user) {
     return jwt.sign(
         { id: user.id, email: user.email, role: user.role || "client", name: user.name || "" },
@@ -861,6 +937,9 @@ function requireAuth(req, res, next) {
 function requireAdmin(req, res, next) {
     if (!req.user || req.user.role !== "admin") {
         return res.status(403).json({ error: "Accès administrateur requis" });
+    }
+    if (!isOwnerAdminEmail(req.user.email)) {
+        return res.status(403).json({ error: "Accès administrateur réservé au compte propriétaire" });
     }
     next();
 }
@@ -1046,7 +1125,6 @@ app.get("/client-onboarding-status", (req, res) => {
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = String(email || "").toLowerCase().trim();
-    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
     const ip = getClientIp(req);
     const userAgent = String(req.headers["user-agent"] || "").slice(0, 400);
 
@@ -1103,7 +1181,7 @@ app.post("/login", async (req, res) => {
                 }
 
                 // Verrouillage accès admin: seul l'email ADMIN_EMAIL peut ouvrir une session admin.
-                if (row.role === "admin" && adminEmail && normalizedEmail !== adminEmail) {
+                if (normalizeRole(row.role) === "admin" && !isOwnerAdminEmail(normalizedEmail)) {
                     logAttempt(row.id, false, "Tentative accès admin non autorisé");
                     return res.status(403).json({ error: "Accès administrateur non autorisé" });
                 }
@@ -1129,7 +1207,6 @@ app.post("/login", async (req, res) => {
 app.post("/forgot-password", async (req, res) => {
     const { email, newPassword } = req.body || {};
     const normalizedEmail = (email || "").toLowerCase().trim();
-    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
 
     if (!isValidEmail(email)) {
         return res.status(400).json({ error: "Email invalide" });
@@ -1139,28 +1216,100 @@ app.post("/forgot-password", async (req, res) => {
     }
 
     // Le mot de passe admin doit rester piloté par les variables d'environnement.
-    if (adminEmail && normalizedEmail === adminEmail) {
+    if (isOwnerAdminEmail(normalizedEmail)) {
         return res.status(403).json({ error: "Réinitialisation admin désactivée depuis cette page" });
     }
 
     try {
         const hashedPassword = await hashPassword(newPassword);
 
-        db.run(
+        const update = await dbRunAsync(
             "UPDATE users SET password = ? WHERE email = ?",
-            [hashedPassword, normalizedEmail],
-            function (err) {
-                if (err) {
-                    return res.status(500).json({ error: "Erreur serveur" });
-                }
-                if (!this.changes) {
-                    return res.status(404).json({ error: "Aucun compte trouvé pour cet email" });
-                }
-                res.json({ message: "Mot de passe réinitialisé" });
-            }
+            [hashedPassword, normalizedEmail]
         );
+
+        if (!update.changes) {
+            return res.status(404).json({ error: "Aucun compte trouvé pour cet email" });
+        }
+
+        let emailSent = false;
+        let emailReason = "";
+        try {
+            const emailResult = await sendPasswordResetEmail({
+                toEmail: normalizedEmail,
+                newPassword,
+                requestedBy: "Mot de passe oublié"
+            });
+            emailSent = !!emailResult.sent;
+            emailReason = emailResult.reason || "";
+        } catch (mailError) {
+            emailSent = false;
+            emailReason = String(mailError && mailError.message || "EMAIL_ERREUR");
+        }
+
+        res.json({
+            message: emailSent
+                ? "Mot de passe réinitialisé et email envoyé"
+                : "Mot de passe réinitialisé (email non envoyé)",
+            emailSent,
+            emailReason
+        });
     } catch (_err) {
         res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+app.post("/admin/users/:id/reset-password", requireAuth, requireAdmin, async (req, res) => {
+    const userId = Number(req.params.id);
+    const newPassword = String((req.body && req.body.newPassword) || "");
+
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+        return res.status(400).json({ error: "Le nouveau mot de passe doit contenir au moins 8 caractères" });
+    }
+
+    try {
+        const userRow = await dbGetAsync(
+            "SELECT id, email, role FROM users WHERE id = ?",
+            [userId]
+        );
+        if (!userRow) {
+            return res.status(404).json({ error: "Compte introuvable" });
+        }
+        if (normalizeRole(userRow.role) !== "client") {
+            return res.status(403).json({ error: "Réinitialisation autorisée uniquement pour les comptes client" });
+        }
+
+        const hashedPassword = await hashPassword(newPassword);
+        await dbRunAsync("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+
+        let emailSent = false;
+        let emailReason = "";
+        try {
+            const mailResult = await sendPasswordResetEmail({
+                toEmail: userRow.email,
+                newPassword,
+                requestedBy: req.user.email || "Administrateur"
+            });
+            emailSent = !!mailResult.sent;
+            emailReason = mailResult.reason || "";
+        } catch (mailError) {
+            emailSent = false;
+            emailReason = String(mailError && mailError.message || "EMAIL_ERREUR");
+        }
+
+        return res.json({
+            message: emailSent
+                ? "Mot de passe client réinitialisé et email envoyé"
+                : "Mot de passe client réinitialisé (email non envoyé)",
+            emailSent,
+            emailReason,
+            email: userRow.email
+        });
+    } catch (_err) {
+        return res.status(500).json({ error: "Erreur serveur" });
     }
 });
 
@@ -1451,8 +1600,12 @@ app.put("/admin/profile", requireAuth, requireAdmin, async (req, res) => {
         if (!isValidEmail(email)) {
             return res.status(400).json({ error: "Email invalide" });
         }
+        const normalizedNewEmail = email.toLowerCase().trim();
+        if (!isOwnerAdminEmail(normalizedNewEmail)) {
+            return res.status(403).json({ error: "L'email administrateur propriétaire ne peut pas être modifié" });
+        }
         updates.push("email = ?");
-        params.push(email.toLowerCase().trim());
+        params.push(normalizedNewEmail);
     }
 
     if (password !== undefined) {

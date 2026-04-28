@@ -29,8 +29,14 @@ function escapeHtml(v) {
 }
 
 function authHeaders() {
+  const legacyToken = localStorage.getItem(TOKEN_KEY);
+  if (legacyToken && !sessionStorage.getItem(SESSION_TOKEN_KEY)) {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, legacyToken);
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
   const token = sessionStorage.getItem(IMPERSONATION_TOKEN_KEY)
-    || localStorage.getItem(TOKEN_KEY)
+    || sessionStorage.getItem(TOKEN_KEY)
     || sessionStorage.getItem(SESSION_TOKEN_KEY)
     || runtimeToken
     || '';
@@ -44,9 +50,9 @@ function persistClientToken(token) {
   const value = String(token || '');
   runtimeToken = value;
   try {
-    localStorage.setItem(TOKEN_KEY, value);
+    sessionStorage.setItem(TOKEN_KEY, value);
   } catch (_err) {
-    // Ignore localStorage failure (mode privé, restrictions navigateur, etc.)
+    // Ignore sessionStorage failure silently.
   }
   try {
     sessionStorage.setItem(SESSION_TOKEN_KEY, value);
@@ -58,11 +64,15 @@ function persistClientToken(token) {
 function clearClientToken() {
   runtimeToken = '';
   try {
-    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
   } catch (_err) {
   }
   try {
     sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch (_err) {
+  }
+  try {
+    localStorage.removeItem(TOKEN_KEY);
   } catch (_err) {
   }
 }
@@ -189,6 +199,8 @@ async function seConnecter() {
     const msg = String((err && err.message) || '');
     if (msg && /bloqu/i.test(msg)) {
       errMsg.textContent = msg;
+    } else if (msg && /administrateur/i.test(msg)) {
+      errMsg.textContent = msg;
     } else if (!msg || /fetch|network|Failed/i.test(msg)) {
       errMsg.textContent = 'Impossible de contacter le serveur. Vérifiez votre connexion.';
     } else {
@@ -206,6 +218,10 @@ async function seConnecter() {
   }
 
   if (loginData.user.role === 'admin') {
+    persistClientToken(loginData.token);
+    sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+    sessionStorage.setItem(SESSION_KEY, String(loginData.user.id));
+    errEl.style.display = 'none';
     loginInFlight = false;
     if (loginBtn) {
       loginBtn.disabled = false;
@@ -219,7 +235,7 @@ async function seConnecter() {
   // Étape 2 : login OK → stocker le token et basculer immédiatement vers le dashboard.
   persistClientToken(loginData.token);
   sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
-  localStorage.setItem(SESSION_KEY, String(loginData.user.id));
+  sessionStorage.setItem(SESSION_KEY, String(loginData.user.id));
   localStorage.removeItem('user');
   localStorage.removeItem('clinikauto_clients');
 
@@ -252,12 +268,40 @@ async function seConnecter() {
 
 // ===== MOT DE PASSE OUBLIÉ =====
 function motDePasseOublie() {
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const email = String(document.getElementById('loginEmail').value || '').trim().toLowerCase();
   if (!email) {
     alert('Entrez d\'abord votre email puis cliquez sur "Mot de passe oublié".');
     return;
   }
-  alert('Contactez ClinikAuto au 06 20 18 56 27 ou à clinikauto74@gmail.com pour réinitialiser votre mot de passe.');
+
+  const temporaryPassword = String(window.prompt('Nouveau mot de passe temporaire (8 caractères minimum) :', 'Client2026!') || '').trim();
+  if (!temporaryPassword) {
+    return;
+  }
+  if (temporaryPassword.length < 8) {
+    alert('Le mot de passe temporaire doit contenir au moins 8 caractères.');
+    return;
+  }
+
+  fetch(API_BASE + '/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, newPassword: temporaryPassword })
+  })
+    .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Réinitialisation impossible');
+      }
+      if (data.emailSent) {
+        alert('Mot de passe réinitialisé. Email automatique envoyé à ' + email + '.');
+      } else {
+        alert('Mot de passe réinitialisé. Email non envoyé (SMTP non configuré).');
+      }
+    })
+    .catch((error) => {
+      alert(error.message || 'Erreur serveur.');
+    });
 }
 
 // ===== INSCRIPTION =====
@@ -313,7 +357,7 @@ async function sInscrire() {
 
     persistClientToken(data.token);
     sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
-    localStorage.setItem(SESSION_KEY, String(data.user.id));
+    sessionStorage.setItem(SESSION_KEY, String(data.user.id));
     localStorage.removeItem('user');
     localStorage.removeItem('clinikauto_clients');
 
@@ -404,6 +448,7 @@ function seDeconnecter() {
     return;
   }
 
+  sessionStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem('user');
   clearClientToken();
@@ -639,7 +684,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   const token = sessionStorage.getItem(IMPERSONATION_TOKEN_KEY)
-    || localStorage.getItem(TOKEN_KEY)
+    || sessionStorage.getItem(TOKEN_KEY)
     || sessionStorage.getItem(SESSION_TOKEN_KEY)
     || runtimeToken;
 
@@ -658,6 +703,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       // Ne réinitialiser la session que si le token est réellement invalide / interdit.
       if (status === 401 || status === 403) {
         sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem('user');
         clearClientToken();

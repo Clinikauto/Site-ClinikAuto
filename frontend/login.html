@@ -375,13 +375,11 @@
     <script>
         const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
         const LOGIN_EMAIL_KEY = "clinikauto_login_email";
-        const LOGIN_PASSWORD_KEY = "clinikauto_login_password";
         const messageDiv = document.getElementById("message");
         const resetPanel = document.getElementById("resetPanel");
         const firstLoginModal = document.getElementById("firstLoginModal");
         const firstLoginText = document.getElementById("firstLoginText");
         let dismissedOnboardingEmail = "";
-        let autoLoginAttempted = false;
 
         function isEmailFormatValid(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
@@ -422,19 +420,28 @@
 
         function hasStoredSessionToken() {
             try {
-                return Boolean(localStorage.getItem("token"));
+                return Boolean(sessionStorage.getItem("token") || localStorage.getItem("token"));
             } catch (_error) {
                 return false;
             }
         }
 
-        function saveLoginCredentials(email, password) {
+        function saveLoginEmail(email) {
             localStorage.setItem(LOGIN_EMAIL_KEY, String(email || "").trim().toLowerCase());
-            localStorage.setItem(LOGIN_PASSWORD_KEY, String(password || ""));
         }
 
-        function clearSavedPassword() {
-            localStorage.removeItem(LOGIN_PASSWORD_KEY);
+        function getStoredToken() {
+            const sessionToken = sessionStorage.getItem("token");
+            if (sessionToken) {
+                return sessionToken;
+            }
+            const legacyToken = localStorage.getItem("token");
+            if (legacyToken) {
+                sessionStorage.setItem("token", legacyToken);
+                localStorage.removeItem("token");
+                return legacyToken;
+            }
+            return "";
         }
 
         async function doLogin(rawEmail, rawPassword, silent) {
@@ -460,40 +467,15 @@
                 throw err;
             }
 
-            localStorage.setItem("token", data.token);
+            sessionStorage.setItem("token", data.token);
+            localStorage.removeItem("token");
             localStorage.removeItem("user");
-            saveLoginCredentials(email, password);
+            saveLoginEmail(email);
             if (window.ClinikAutoAnalytics) {
                 window.ClinikAutoAnalytics.trackEvent("login_success", { role: data.user.role });
             }
 
             return data;
-        }
-
-        async function trySilentAutoLogin() {
-            if (autoLoginAttempted) {
-                return false;
-            }
-            autoLoginAttempted = true;
-
-            const savedEmail = String(localStorage.getItem(LOGIN_EMAIL_KEY) || "").trim().toLowerCase();
-            const savedPassword = String(localStorage.getItem(LOGIN_PASSWORD_KEY) || "");
-            if (!savedEmail || !savedPassword) {
-                return false;
-            }
-
-            document.getElementById("email").value = savedEmail;
-            document.getElementById("password").value = savedPassword;
-
-            try {
-                const data = await doLogin(savedEmail, savedPassword, true);
-                window.location.href = data.user.role === "admin" ? "admin.html" : "espace-client.html";
-                return true;
-            } catch (_err) {
-                clearSavedPassword();
-                document.getElementById("password").value = "";
-                return false;
-            }
         }
 
         document.getElementById("adminAccessBtn").addEventListener("click", () => {
@@ -602,7 +584,11 @@
                     document.getElementById("password").value = "";
                     document.getElementById("resetForm").reset();
                     resetPanel.classList.remove("show");
-                    messageDiv.textContent = "✅ Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.";
+                    if (data && data.emailSent) {
+                        messageDiv.textContent = "✅ Mot de passe réinitialisé. Un email automatique a été envoyé au client.";
+                    } else {
+                        messageDiv.textContent = "✅ Mot de passe réinitialisé. Email non envoyé (SMTP non configuré).";
+                    }
                     messageDiv.className = "message success show";
                 } else {
                     messageDiv.textContent = "❌ " + data.error;
@@ -624,23 +610,23 @@
             }
 
             if (hasStoredSessionToken()) {
-                const token = localStorage.getItem("token") || "";
+                const token = getStoredToken();
                 try {
-                    const meResponse = await fetch(API_BASE + "/me/profile", {
+                    const tokenPayload = JSON.parse(atob(token.split(".")[1] || ""));
+                    const role = String(tokenPayload && tokenPayload.role || "client").toLowerCase();
+                    const probeUrl = role === "admin" ? "/admin/profile" : "/me/profile";
+                    const meResponse = await fetch(API_BASE + probeUrl, {
                         headers: { "Authorization": "Bearer " + token }
                     });
                     if (meResponse.ok) {
-                        window.location.href = "espace-client.html";
+                        window.location.href = role === "admin" ? "admin.html" : "espace-client.html";
                         return;
                     }
                 } catch (_err) {
                 }
             }
 
-            const autoLogged = await trySilentAutoLogin();
-            if (!autoLogged) {
-                passwordInput.focus();
-            }
+            passwordInput.focus();
         });
     </script>
 </body>
