@@ -32,7 +32,7 @@ if (-not (Test-Path $dst)) {
 
 # Lancer Robocopy avec exclusions appropriées
 Log-Message "Robocopy: $src => $dst"
-robocopy $src $dst /MIR /R:2 /W:2 /XD node_modules .git .vscode "clinikauto-agenda\vendor" /XF "*.log" | Out-Null
+robocopy $src $dst /MIR /R:2 /W:2 /XD node_modules .git .vscode dist "clinikauto-agenda\vendor" /XF "*.log" | Out-Null
 
 $robocopyCode = $LASTEXITCODE
 
