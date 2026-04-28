@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "vercel dev",
-    "test": "echo \"No tests\"",
+    "test": "node tools/local-runner.js --ci",
     "local:start:test": "node tools/local-runner.js",
     "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe"
   },

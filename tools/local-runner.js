@@ -8,6 +8,7 @@ const BASE_URL = process.env.LOCAL_BASE_URL || "http://127.0.0.1:3000";
 const TEST_DATE = process.env.SMOKE_TEST_DATE || new Date().toISOString().slice(0, 10);
 const STARTUP_TIMEOUT_MS = 30000;
 const POLL_INTERVAL_MS = 800;
+const IS_CI_MODE = process.argv.includes("--ci");
 
 let shuttingDown = false;
 let serverProcess = null;
@@ -27,8 +28,7 @@ function runNodeScript(relativePath, label) {
 
     const child = spawn("node", [scriptPath], {
       cwd: ROOT_DIR,
-      stdio: "inherit",
-      shell: true
+      stdio: "inherit"
     });
 
     child.on("error", (error) => {
@@ -69,6 +69,63 @@ function httpGetJson(pathname) {
   });
 }
 
+function httpRequest(pathname, method = "GET", payload = null, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(pathname, BASE_URL);
+    const body = payload === null ? "" : JSON.stringify(payload);
+
+    const req = http.request(
+      {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port,
+        path: `${url.pathname}${url.search}`,
+        method,
+        headers: {
+          ...(body
+            ? {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(body)
+              }
+            : {}),
+          ...headers
+        }
+      },
+      (res) => {
+        let responseBody = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+        res.on("end", () => {
+          resolve({
+            statusCode: res.statusCode || 0,
+            body: responseBody
+          });
+        });
+      }
+    );
+
+    req.on("error", reject);
+    req.setTimeout(5000, () => {
+      req.destroy(new Error("Timeout HTTP"));
+    });
+
+    if (body) {
+      req.write(body);
+    }
+    req.end();
+  });
+}
+
+function parseJsonOrThrow(body, endpointLabel) {
+  try {
+    return JSON.parse(body);
+  } catch (_error) {
+    throw new Error(`La reponse de ${endpointLabel} n'est pas un JSON valide`);
+  }
+}
+
 async function waitForServer() {
   const startedAt = Date.now();
 
@@ -101,18 +158,41 @@ async function runHttpSmokeTests() {
     throw new Error(`GET /available-times/${TEST_DATE} doit retourner 200 (recu ${slots.statusCode})`);
   }
 
-  let payload;
-  try {
-    payload = JSON.parse(slots.body);
-  } catch (_error) {
-    throw new Error("La reponse de /available-times n'est pas un JSON valide");
-  }
+  const payload = parseJsonOrThrow(slots.body, "/available-times");
 
   if (!Array.isArray(payload.available) || !Array.isArray(payload.booked) || !Array.isArray(payload.all)) {
     throw new Error("Le format JSON de /available-times est invalide");
   }
 
-  console.log("[OK] GET / et /available-times passent.");
+  const slotsInvalidDate = await httpGetJson("/available-times/date-invalide");
+  if (slotsInvalidDate.statusCode !== 400) {
+    throw new Error(`GET /available-times/date-invalide doit retourner 400 (recu ${slotsInvalidDate.statusCode})`);
+  }
+
+  const adminWithoutToken = await httpGetJson("/admin/users");
+  if (adminWithoutToken.statusCode !== 401) {
+    throw new Error(`GET /admin/users sans token doit retourner 401 (recu ${adminWithoutToken.statusCode})`);
+  }
+
+  const onboarding = await httpGetJson("/client-onboarding-status?email=email-invalide");
+  if (onboarding.statusCode !== 200) {
+    throw new Error(`GET /client-onboarding-status avec email invalide doit retourner 200 (recu ${onboarding.statusCode})`);
+  }
+  const onboardingPayload = parseJsonOrThrow(onboarding.body, "/client-onboarding-status");
+  if (typeof onboardingPayload.found !== "boolean" || typeof onboardingPayload.hasPassword !== "boolean") {
+    throw new Error("Le format JSON de /client-onboarding-status est invalide");
+  }
+
+  const loginInvalid = await httpRequest("/login", "POST", { email: "email-invalide", password: "abc123" });
+  if (loginInvalid.statusCode !== 400) {
+    throw new Error(`POST /login avec email invalide doit retourner 400 (recu ${loginInvalid.statusCode})`);
+  }
+  const loginInvalidPayload = parseJsonOrThrow(loginInvalid.body, "/login");
+  if (typeof loginInvalidPayload.error !== "string" || !loginInvalidPayload.error.trim()) {
+    throw new Error("La reponse erreur de /login est invalide");
+  }
+
+  console.log("[OK] Smoke API: /, /available-times, /client-onboarding-status, /login, /admin/users");
 }
 
 function startServer() {
@@ -120,8 +200,7 @@ function startServer() {
 
   serverProcess = spawn("node", [SERVER_ENTRY], {
     cwd: ROOT_DIR,
-    stdio: "inherit",
-    shell: true
+    stdio: "inherit"
   });
 
   serverProcess.on("error", (error) => {
@@ -167,6 +246,12 @@ async function main() {
     await runNodeScript(path.join("backend", "check-db.js"), "check-db.js");
     await runNodeScript(path.join("backend", "test-db.js"), "test-db.js");
     await runHttpSmokeTests();
+
+    if (IS_CI_MODE) {
+      logStep("Tous les tests sont valides. Fin du mode CI.");
+      stopServerAndExit(0);
+      return;
+    }
 
     logStep("Tous les tests sont valides. Le serveur reste actif.");
     console.log("Appuyez sur Ctrl+C pour fermer.");
