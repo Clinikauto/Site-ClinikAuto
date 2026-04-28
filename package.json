@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "vercel dev",
-    "test": "echo \"No tests\""
+    "test": "echo \"No tests\"",
+    "local:start:test": "node tools/local-runner.js",
+    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -17,6 +22,7 @@
     "nodemailer": "^6.9.4",
     "raw-body": "^2.5.1",
     "sqlite3": "^6.0.1",
-    "stripe": "^12.0.0"
+    "stripe": "^12.0.0",
+    "xlsx": "^0.18.5"
   }
 }

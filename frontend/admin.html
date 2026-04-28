@@ -17,17 +17,17 @@
             --blue-dark: #0D47A1;
             --blue-light: #E3F2FD;
             --dark: #111111;
-            --panel: #1a1a1a;
-            --panel-soft: #1f1f1f;
-            --line: rgba(255, 255, 255, 0.09);
-            --text: #f4f4f4;
-            --muted: #9aabb8;
+            --panel: #ffffff;
+            --panel-soft: #ffffff;
+            --line: rgba(0, 0, 0, 0.08);
+            --text: #171717;
+            --muted: #616b75;
             --success: #1fa971;
             --warning: #f7b731;
             --danger: #ef5350;
             --accent: #D32F2F;
             --radius: 16px;
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
         }
 
         * {
@@ -39,10 +39,7 @@
         body {
             font-family: 'Nunito', sans-serif;
             color: var(--text);
-            background:
-                radial-gradient(circle at top left, rgba(211, 47, 47, 0.22), transparent 35%),
-                radial-gradient(circle at bottom right, rgba(21, 101, 192, 0.14), transparent 30%),
-                linear-gradient(180deg, #0d0d0d 0%, #141414 100%);
+            background: #f5f5f5;
             min-height: 100vh;
         }
 
@@ -59,9 +56,20 @@
             z-index: 20;
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
-            background: rgba(15, 10, 10, 0.92);
+            background: rgba(26, 26, 26, 0.97);
             border-bottom: 2px solid var(--red);
             box-shadow: 0 4px 24px rgba(211, 47, 47, 0.18);
+        }
+
+        .topbar .btn--ghost {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .topbar .btn--ghost:hover {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .topbar__inner,
@@ -100,7 +108,7 @@
         }
 
         .brand__sub {
-            color: var(--muted);
+            color: rgba(255, 255, 255, 0.55);
             font-size: 0.92rem;
         }
 
@@ -145,14 +153,14 @@
         }
 
         .btn--ghost {
-            color: var(--text);
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(211, 47, 47, 0.2);
+            color: #1f2937;
+            background: #ffffff;
+            border: 1px solid #d9dfe6;
         }
 
         .btn--ghost:hover {
-            border-color: rgba(211, 47, 47, 0.45);
-            background: rgba(211, 47, 47, 0.08);
+            border-color: rgba(211, 47, 47, 0.4);
+            background: #f9fafb;
         }
 
         .btn--danger {
@@ -172,10 +180,10 @@
         }
 
         .panel {
-            background: linear-gradient(180deg, rgba(25, 22, 22, 0.98), rgba(20, 18, 18, 0.96));
-            border: 1px solid rgba(211, 47, 47, 0.14);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: var(--radius);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: var(--shadow);
         }
 
         .hero-card {
@@ -195,7 +203,7 @@
         }
 
         .eyebrow {
-            color: var(--red-light);
+            color: var(--red);
             text-transform: uppercase;
             letter-spacing: 2.5px;
             font-size: 0.78rem;
@@ -230,8 +238,8 @@
             gap: 8px;
             padding: 10px 14px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid var(--line);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             color: var(--text);
             font-size: 0.92rem;
             font-weight: 700;
@@ -239,14 +247,14 @@
 
         .pill--sync-ok {
             border-color: rgba(31, 169, 113, 0.35);
-            background: rgba(31, 169, 113, 0.14);
-            color: #b9f6d3;
+            background: rgba(31, 169, 113, 0.08);
+            color: #14734a;
         }
 
         .pill--sync-alert {
-            border-color: rgba(255, 107, 107, 0.45);
-            background: rgba(255, 107, 107, 0.14);
-            color: #ffd3d3;
+            border-color: rgba(239, 68, 68, 0.35);
+            background: rgba(239, 68, 68, 0.08);
+            color: #b91c1c;
         }
 
         .admin-card {
@@ -324,8 +332,8 @@
             width: 100%;
             padding: 11px 12px;
             border-radius: 12px;
-            border: 1px solid rgba(211, 47, 47, 0.22);
-            background: rgba(211, 47, 47, 0.07);
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
             color: var(--text);
             text-decoration: none;
             font-weight: 700;
@@ -335,16 +343,16 @@
 
         .hub-link:hover {
             transform: translateY(-2px);
-            border-color: rgba(211, 47, 47, 0.55);
-            background: rgba(211, 47, 47, 0.14);
-            color: #ffcdd2;
+            border-color: rgba(211, 47, 47, 0.5);
+            background: rgba(211, 47, 47, 0.06);
+            color: var(--red-dark);
         }
 
         .stat-card {
             padding: 20px;
             border-radius: var(--radius);
-            border: 1px solid rgba(211, 47, 47, 0.15);
-            background: linear-gradient(180deg, rgba(30, 20, 20, 0.9), rgba(20, 15, 15, 0.9));
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
             cursor: pointer;
             transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
         }
@@ -369,19 +377,19 @@
         }
 
         .stat-card__value--red {
-            color: #ef9a9a;
+            color: #c62828;
         }
 
         .stat-card__value--blue {
-            color: #64b5f6;
+            color: #1565c0;
         }
 
         .stat-card__value--green {
-            color: #69f0ae;
+            color: #2e7d32;
         }
 
         .stat-card__value--yellow {
-            color: #ffe57f;
+            color: #e65100;
         }
 
         .stat-card small {
@@ -436,8 +444,8 @@
         .table-card,
         .client-card,
         .occasion-card {
-            background: var(--panel-soft);
-            border: 1px solid rgba(211, 47, 47, 0.12);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: 14px;
         }
 
@@ -456,7 +464,7 @@
         .progress-bar {
             width: 100%;
             height: 10px;
-            background: rgba(255, 255, 255, 0.07);
+            background: #e5e7eb;
             border-radius: 999px;
             overflow: hidden;
         }
@@ -502,8 +510,8 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 12px;
-            border: 1px solid rgba(211, 47, 47, 0.15);
-            background: #140e0e;
+            border: 1px solid #d9dfe6;
+            background: #ffffff;
             color: var(--text);
             outline: none;
         }
@@ -579,7 +587,7 @@
             border-radius: 14px;
             cursor: pointer;
             transition: border-color .2s, background .2s;
-            background: #140e0e;
+            background: #ffffff;
         }
         .file-import-label:hover {
             border-color: var(--red);
@@ -624,9 +632,9 @@
         }
         /* Collapsible manual section */
         .agenda-manual-toggle {
-            border: 1px solid rgba(211, 47, 47, 0.15);
+            border: 1px solid #d9dfe6;
             border-radius: 12px;
-            background: #140e0e;
+            background: #ffffff;
             padding: 0;
             overflow: hidden;
         }
@@ -651,7 +659,7 @@
             width: 100%;
             padding: 12px 14px;
             border: none;
-            background: #140e0e;
+            background: #ffffff;
             color: var(--text);
             outline: none;
             min-height: 120px;
@@ -693,8 +701,8 @@
         .field-group input {
             padding: 10px 14px;
             border-radius: 10px;
-            border: 1px solid rgba(211, 47, 47, 0.15);
-            background: #140e0e;
+            border: 1px solid #d9dfe6;
+            background: #ffffff;
             color: var(--text);
             outline: none;
             transition: border-color .2s;
@@ -703,9 +711,9 @@
             border-color: var(--red);
         }
         .settings-pwd-toggle {
-            border: 1px solid rgba(211, 47, 47, 0.15);
+            border: 1px solid #d9dfe6;
             border-radius: 12px;
-            background: #140e0e;
+            background: #ffffff;
             overflow: hidden;
         }
         .settings-pwd-toggle summary {
@@ -762,8 +770,8 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 12px;
-            border: 1px solid rgba(211, 47, 47, 0.15);
-            background: #140e0e;
+            border: 1px solid #d9dfe6;
+            background: #ffffff;
             color: var(--text);
             outline: none;
             transition: border-color 0.2s;
@@ -800,6 +808,10 @@
             padding: 18px;
         }
 
+        .client-card--incomplete {
+            border-left: 4px solid #f87171;
+        }
+
         .client-card__head,
         .occasion-card__head,
         .table-card__head {
@@ -827,42 +839,49 @@
             border-radius: 999px;
             font-size: 0.8rem;
             font-weight: 800;
-            background: rgba(255, 255, 255, 0.08);
+            background: #f3f4f6;
+            color: #374151;
         }
 
         .chip--admin {
-            background: rgba(211, 47, 47, 0.2);
-            color: #ffcdd2;
+            background: rgba(211, 47, 47, 0.1);
+            color: #b91c1c;
         }
 
         .chip--client {
-            background: rgba(255, 255, 255, 0.08);
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .chip--blocked {
+            background: rgba(239, 68, 68, 0.15);
+            color: #991b1b;
         }
 
         .chip--pending {
-            background: rgba(247, 183, 49, 0.18);
-            color: #ffe082;
+            background: rgba(245, 158, 11, 0.1);
+            color: #92400e;
         }
 
         .chip--confirmed {
-            background: rgba(31, 169, 113, 0.18);
-            color: #86efac;
+            background: rgba(31, 169, 113, 0.1);
+            color: #065f46;
         }
 
         .chip--cancelled,
         .chip--sold {
-            background: rgba(255, 107, 107, 0.18);
-            color: #ffab91;
+            background: rgba(239, 68, 68, 0.1);
+            color: #b91c1c;
         }
 
         .chip--completed {
-            background: rgba(158, 158, 158, 0.24);
-            color: #e0e0e0;
+            background: rgba(107, 114, 128, 0.12);
+            color: #4b5563;
         }
 
         .chip--available {
-            background: rgba(21, 101, 192, 0.2);
-            color: #90caf9;
+            background: rgba(21, 101, 192, 0.1);
+            color: #1565c0;
         }
 
         .actions {
@@ -909,9 +928,9 @@
         }
 
         .btn-inline {
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text);
+            border: 1px solid #d9dfe6;
+            background: #ffffff;
+            color: #1f2937;
             border-radius: 10px;
             padding: 9px 12px;
             cursor: pointer;
@@ -920,44 +939,44 @@
         }
 
         .btn-inline:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #f9fafb;
         }
 
         .btn-inline--danger {
-            border-color: rgba(255, 107, 107, 0.3);
-            color: #ffb4b4;
+            border-color: rgba(211, 47, 47, 0.4);
+            color: #b91c1c;
         }
 
         .btn-inline--success {
-            border-color: rgba(31, 169, 113, 0.3);
-            color: #86efac;
+            border-color: rgba(31, 169, 113, 0.4);
+            color: #14734a;
         }
 
         .btn-inline--vroomly {
-            border-color: rgba(233, 64, 87, 0.35);
-            color: #f9a8b8;
+            border-color: rgba(233, 64, 87, 0.4);
+            color: #be185d;
         }
         .btn-inline--vroomly:hover {
-            background: rgba(233, 64, 87, 0.15);
+            background: rgba(233, 64, 87, 0.06);
         }
 
         .btn-inline--back {
             border-color: rgba(211, 47, 47, 0.35);
-            color: #ffcdd2;
+            color: var(--red-dark);
             text-decoration: none;
         }
 
         .btn-inline--back:hover {
-            background: rgba(211, 47, 47, 0.12);
+            background: rgba(211, 47, 47, 0.06);
         }
 
         .vroomly-sync-box {
             margin: 10px 0 14px;
             padding: 12px;
             border-radius: 12px;
-            border: 1px solid rgba(233, 64, 87, 0.25);
-            background: rgba(233, 64, 87, 0.08);
-            color: #ffd6de;
+            border: 1px solid rgba(233, 64, 87, 0.3);
+            background: rgba(233, 64, 87, 0.06);
+            color: #9d174d;
             display: none;
             gap: 10px;
             align-items: center;
@@ -970,12 +989,12 @@
             gap: 8px;
             flex-wrap: wrap;
             font-size: 0.9rem;
-            color: #f8b4c2;
+            color: #be185d;
         }
 
         .vroomly-sync-box.is-alert {
-            border-color: rgba(255, 107, 107, 0.45);
-            background: rgba(255, 107, 107, 0.14);
+            border-color: rgba(211, 47, 47, 0.4);
+            background: rgba(211, 47, 47, 0.06);
         }
 
         .form-grid {
@@ -989,7 +1008,7 @@
         }
 
         label small {
-            color: #ffb4b4;
+            color: var(--red-dark);
             font-weight: 700;
         }
 
@@ -1027,10 +1046,10 @@
             width: min(760px, 100%);
             max-height: 90vh;
             overflow: auto;
-            background: #161212;
-            border: 1px solid rgba(211, 47, 47, 0.22);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: 20px;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(211, 47, 47, 0.1);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
             padding: 22px;
         }
 
@@ -1057,10 +1076,10 @@
             z-index: 60;
             padding: 14px 18px;
             border-radius: 14px;
-            background: rgba(20, 14, 14, 0.97);
-            border: 1px solid rgba(211, 47, 47, 0.35);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             color: var(--text);
-            box-shadow: 0 8px 32px rgba(211, 47, 47, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             opacity: 0;
             transform: translateY(18px);
             transition: opacity 0.25s ease, transform 0.25s ease;
@@ -1089,133 +1108,6 @@
                 align-items: stretch;
             }
 
-
-        /* Contact-like admin skin (index.html#contact) */
-        :root {
-            --panel: #ffffff;
-            --panel-soft: #ffffff;
-            --line: rgba(0, 0, 0, 0.08);
-            --text: #171717;
-            --muted: #616b75;
-            --shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
-        }
-
-        body {
-            color: var(--text);
-            background: #f5f5f5;
-        }
-
-        .topbar {
-            background: rgba(255, 255, 255, 0.95);
-            border-bottom: 2px solid var(--red);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
-        }
-
-        .panel,
-        .progress-item,
-        .mini-card,
-        .table-card,
-        .client-card,
-        .occasion-card,
-        .agenda-item,
-        .stat-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            box-shadow: var(--shadow);
-        }
-
-        .hero-card::after {
-            background: radial-gradient(circle, rgba(211, 47, 47, 0.12), transparent 70%);
-        }
-
-        .pill,
-        .chip,
-        .cal-legend__item {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            color: var(--text);
-        }
-
-        .hub-link {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            color: var(--text);
-        }
-
-        .hub-link:hover {
-            border-color: rgba(211, 47, 47, 0.5);
-            background: rgba(211, 47, 47, 0.08);
-            color: var(--red-dark);
-        }
-
-        .toolbar input,
-        .toolbar select,
-        .form-grid input,
-        .form-grid select,
-        .form-grid textarea,
-        .field-group input,
-        .agenda-tools textarea,
-        .agenda-tools input,
-        .agenda-manual-toggle,
-        .agenda-manual-toggle textarea,
-        .settings-pwd-toggle,
-        .file-import-label {
-            background: #ffffff;
-            border-color: #d9dfe6;
-            color: #111111;
-        }
-
-        .toolbar input::placeholder,
-        .form-grid input::placeholder,
-        .form-grid textarea::placeholder,
-        .field-group input::placeholder {
-            color: #8a96a3;
-        }
-
-        .btn--ghost,
-        .btn-inline {
-            background: #ffffff;
-            border-color: #d9dfe6;
-            color: #1f2937;
-        }
-
-        .btn-inline:hover,
-        .btn--ghost:hover {
-            background: #f9fafb;
-            border-color: #c8d0da;
-        }
-
-        .cal-cell {
-            background: #ffffff;
-            border-color: #e5e7eb;
-        }
-
-        .cal-cell:hover {
-            background: #f9fafb;
-            border-color: #cfd8e3;
-        }
-
-        .cal-day-detail {
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .modal {
-            background: rgba(17, 24, 39, 0.38);
-        }
-
-        .modal__box,
-        .toast {
-            background: #ffffff;
-            border-color: #e5e7eb;
-            color: #111111;
-            box-shadow: var(--shadow);
-        }
-
-        .sync-reminder {
-            color: #8a4b00;
-            background: #fff7ed;
-            border-color: #fdba74;
-        }
             .topbar__actions {
                 width: 100%;
             }
@@ -1243,8 +1135,8 @@
 
         /* === CHIP IMMATRICULATION === */
         .chip--immat {
-            background: rgba(21, 101, 192, 0.22);
-            color: #90caf9;
+            background: rgba(21, 101, 192, 0.1);
+            color: #1565c0;
             font-family: monospace;
             letter-spacing: 1.5px;
             font-size: 0.78rem;
@@ -1268,6 +1160,34 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
+        }
+        .cal-view-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid #d9dfe6;
+            border-radius: 999px;
+            background: #ffffff;
+        }
+        .cal-view-switch__btn {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+        .cal-view-switch__btn:hover {
+            background: #f3f4f6;
+            color: var(--text);
+        }
+        .cal-view-switch__btn.is-active {
+            background: var(--red);
+            color: #ffffff;
         }
         .cal-nav__btn {
             padding: 10px 14px;
@@ -1298,6 +1218,13 @@
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
         }
+        .cal-days.cal-days--day {
+            grid-template-columns: 1fr;
+        }
+        .cal-days.cal-days--week {
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            align-items: stretch;
+        }
         .cal-cell {
             aspect-ratio: 1;
             border-radius: 10px;
@@ -1307,8 +1234,8 @@
             justify-content: center;
             gap: 3px;
             cursor: pointer;
-            border: 1px solid rgba(211, 47, 47, 0.12);
-            background: #140e0e;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
             transition: background 0.18s, border-color 0.18s;
             font-size: 0.88rem;
             font-weight: 700;
@@ -1317,7 +1244,114 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        .cal-cell:hover { background: #1f1212; border-color: rgba(211, 47, 47, 0.35); }
+        .cal-cell--agenda {
+            aspect-ratio: auto;
+            align-items: stretch;
+            justify-content: flex-start;
+            min-height: 280px;
+            padding: 14px;
+            gap: 12px;
+            cursor: default;
+        }
+        .cal-cell--agenda.selected {
+            color: var(--text);
+            background: linear-gradient(180deg, rgba(211, 47, 47, 0.08), rgba(211, 47, 47, 0.02));
+            border-color: rgba(211, 47, 47, 0.42);
+        }
+        .cal-cell--agenda.today {
+            border-color: rgba(21, 101, 192, 0.4);
+            box-shadow: inset 0 0 0 1px rgba(21, 101, 192, 0.12);
+            color: var(--text);
+        }
+        .cal-cell__day-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .cal-cell__day-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .cal-cell__day-meta strong {
+            font-size: 0.96rem;
+        }
+        .cal-cell__day-meta span {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .cal-cell__count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #fff4d6;
+            color: #8a4b00;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+        .cal-cell__agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 0;
+        }
+        .cal-slot-card {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            text-align: left;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+        }
+        .cal-slot-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(211, 47, 47, 0.35);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+        }
+        .cal-slot-card.is-selected {
+            border-color: rgba(211, 47, 47, 0.45);
+            background: rgba(211, 47, 47, 0.06);
+        }
+        .cal-slot-card__top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .cal-slot-card__time {
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+        .cal-slot-card__service {
+            font-weight: 800;
+            font-size: 0.88rem;
+        }
+        .cal-slot-card__client {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .cal-slot-card__empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            border: 1px dashed #d9dfe6;
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            background: #fbfbfb;
+        }
+        .cal-cell:hover { background: #f9fafb; border-color: #cfd8e3; }
         .cal-cell.other-month { opacity: 0.25; cursor: default; pointer-events: none; }
         .cal-cell.today { border-color: var(--blue); color: #90caf9; }
         .cal-cell.has-appts { border-color: rgba(211,47,47,0.55); }
@@ -1353,7 +1387,6 @@
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
         }
         .cal-cell__dot--pending { background: #ff9800; }
         .cal-cell__dot--confirmed { background: #4caf50; }
@@ -1374,15 +1407,14 @@
             align-items: center;
             gap: 8px;
             padding: 6px 10px;
-            border: 1px solid var(--line);
+            border: 1px solid #e5e7eb;
             border-radius: 999px;
-            background: rgba(255,255,255,0.02);
+            background: #ffffff;
         }
         .cal-legend__dot {
             width: 9px;
             height: 9px;
             border-radius: 50%;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
         }
         .cal-legend__dot--pending { background: #ff9800; }
         .cal-legend__dot--confirmed { background: #4caf50; }
@@ -1419,9 +1451,9 @@
             margin-top: 12px;
             padding: 12px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 152, 0, 0.45);
-            background: rgba(255, 152, 0, 0.12);
-            color: #ffe0b2;
+            border: 1px solid #fdba74;
+            background: #fff7ed;
+            color: #8a4b00;
             font-size: 0.9rem;
         }
 
@@ -1436,6 +1468,19 @@
         @media (max-width: 640px) {
             .cal-cell { min-height: 36px; font-size: 0.78rem; }
             .cal-cell__badge { width: 14px; height: 14px; font-size: 0.58rem; }
+            .cal-nav {
+                align-items: stretch;
+            }
+            .cal-view-switch {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .cal-days.cal-days--week {
+                grid-template-columns: 1fr;
+            }
+            .cal-cell--agenda {
+                min-height: 0;
+            }
         }
         /* === GALERIE PHOTOS OCCASIONS === */
         .photo-drop-zone {
@@ -1445,7 +1490,7 @@
             text-align: center;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
-            background: #140e0e;
+            background: #ffffff;
             position: relative;
         }
         .photo-drop-zone.dragover {
@@ -1470,8 +1515,8 @@
             aspect-ratio: 1;
             border-radius: 10px;
             overflow: hidden;
-            background: #140e0e;
-            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
         }
         .photo-thumb img {
             width: 100%; height: 100%; object-fit: cover; display: block;
@@ -1504,6 +1549,34 @@
             margin-top: 10px;
             color: var(--muted);
             font-size: 0.9rem;
+        }
+        .login-logs-toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .login-logs-filter {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #d9dfe6;
+            background: #fff;
+            color: #1f2937;
+        }
+        .login-logs-wrap {
+            margin-top: 16px;
+        }
+        .login-logs-loading {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .login-logs-pager {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
         }
     </style>
     <!-- Google tag (gtag.js) -->
@@ -1590,9 +1663,11 @@
                 <a class="hub-link" href="#vroomly-section"><i class="fa-solid fa-car-side"></i> Agenda Vroomly</a>
                 <a class="hub-link" href="#traffic-section"><i class="fa-solid fa-chart-column"></i> Statistiques</a>
                 <a class="hub-link" href="#occasions-section"><i class="fa-solid fa-car"></i> Occasions</a>
+                <a class="hub-link" href="#login-logs-section"><i class="fa-solid fa-shield-halved"></i> Journaux de connexion</a>
                 <a class="hub-link" href="#settings-section"><i class="fa-solid fa-gear"></i> Paramètres</a>
             </div>
             <div class="actions actions--toolbar management-hub__actions">
+                <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('all')" title="Générer et télécharger le fichier ICS à copier dans Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS → Vroomly</button>
                 <button class="btn-inline btn-inline--danger" id="hubDeleteCancelledBtn"><i class="fa-solid fa-trash-can"></i> Supprimer RDV annulés</button>
                 <button class="btn-inline" id="hubCompletePromptBtn"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée (par ID)</button>
             </div>
@@ -1607,14 +1682,19 @@
                 </div>
                 <div class="cal-nav">
                     <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
+                    <div class="cal-view-switch" aria-label="Changer la vue du calendrier">
+                        <button class="cal-view-switch__btn" id="calViewDay" data-cal-view="day" type="button">Jour</button>
+                        <button class="cal-view-switch__btn" id="calViewWeek" data-cal-view="week" type="button">Semaine</button>
+                        <button class="cal-view-switch__btn is-active" id="calViewMonth" data-cal-view="month" type="button">Mois</button>
+                    </div>
                     <button class="btn btn--ghost cal-nav__btn" id="calRefreshBtn" title="Rafraîchir les rendez-vous"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
-                    <button class="btn btn--ghost cal-nav__btn" id="calPrev" title="Mois précédent"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="btn btn--ghost cal-nav__btn" id="calPrev" title="Période précédente"><i class="fa-solid fa-chevron-left"></i></button>
                     <span class="cal-month-label" id="calMonthLabel">--</span>
-                    <button class="btn btn--ghost cal-nav__btn" id="calNext" title="Mois suivant"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="btn btn--ghost cal-nav__btn" id="calNext" title="Période suivante"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
             <div>
-                <div class="cal-day-headers">
+                <div class="cal-day-headers" id="calDayHeaders">
                     <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
                 </div>
                 <div class="cal-days" id="calDays"></div>
@@ -1699,11 +1779,11 @@
                             <button class="btn-inline btn-inline--success" onclick="exportAppointmentsCSV()" title="Exporter les RDV confirmés en CSV"><i class="fa-solid fa-file-arrow-down"></i> Exporter confirmés</button>
                             <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('confirmed')" title="Télécharger l'ICS des RDV confirmés puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-arrow-up"></i> Exporter ICS confirmés</button>
                             <button class="btn-inline btn-inline--vroomly" onclick="exportAppointmentsICS('all')" title="Télécharger l'ICS de tous les statuts puis ouvrir la page d'import Vroomly"><i class="fa-solid fa-calendar-plus"></i> Exporter ICS tous statuts</button>
-                            <button class="btn-inline" onclick="document.getElementById('importCsvInput').click()" title="Importer des RDV depuis un fichier CSV"><i class="fa-solid fa-file-arrow-up"></i> Importer CSV</button>
+                            <button class="btn-inline btn-inline--vroomly" onclick="document.getElementById('importIcsInput').click()" title="Importer des RDV depuis un fichier ICS Vroomly (max. 10 MB)"><i class="fa-solid fa-calendar-arrow-up"></i> Importer ICS Vroomly</button>
                             <button class="btn-inline btn-inline--danger" id="appointmentsDeleteCancelledBtn" title="Supprimer définitivement tous les rendez-vous annulés"><i class="fa-solid fa-trash-can"></i> Purger annulés</button>
                             <button class="btn-inline" id="appointmentsCompletePromptBtn" title="Marquer une prestation effectuée en saisissant son identifiant"><i class="fa-solid fa-clipboard-check"></i> Prestation effectuée (ID)</button>
                             <a class="btn-inline btn-inline--back" href="#managementHub"><i class="fa-solid fa-arrow-up"></i> Retour rapide</a>
-                            <input type="file" id="importCsvInput" class="u-hidden" accept=".csv,text/csv" onchange="importAppointmentsCSV(this)">
+                            <input type="file" id="importIcsInput" class="u-hidden" accept=".ics,text/calendar" onchange="importAppointmentsICS(this)">
                         </div>
                     </div>
 
@@ -1746,6 +1826,7 @@
                         <div class="agenda-actions">
                             <button class="btn btn--primary" id="agendaImportBtn"><i class="fa-solid fa-calendar-plus"></i> Importer dans l'agenda</button>
                             <button class="btn btn--ghost" id="agendaClearBtn"><i class="fa-solid fa-trash"></i> Vider l'agenda</button>
+                            <button class="btn btn--secondary btn-inline--vroomly" onclick="document.getElementById('importIcsInput').click()" title="Importer un fichier ICS Vroomly (max. 10 MB)"><i class="fa-solid fa-calendar-arrow-up"></i> Importer ICS Vroomly</button>
                             <a class="btn btn--secondary" href="https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir Vroomly</a>
                         </div>
                         <p class="agenda-note"><i class="fa-solid fa-circle-info"></i> Utilisez la saisie/copie manuelle puis synchronisez avec Vroomly via le bouton d'ouverture directe de la page d'import.</p>
@@ -1854,6 +1935,33 @@
                     </form>
 
                     <div class="cards-list occasions-gap" id="occasionsList"></div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ══ JOURNAUX DE CONNEXION ═══════════════════════════════════════ -->
+        <section class="content-grid" id="login-logs-section">
+            <div class="stack">
+                <article class="panel section">
+                    <div class="section__head">
+                        <div>
+                            <div class="section__title"><i class="fa-solid fa-shield-halved"></i> Journaux de connexion</div>
+                            <p class="section__sub">Historique de toutes les tentatives de connexion — IP, navigateur, résultat.</p>
+                        </div>
+                        <div class="login-logs-toolbar">
+                            <select id="logsFilterStatus" class="toolbar-select login-logs-filter" title="Filtrer les journaux de connexion par résultat">
+                                <option value="">Tous</option>
+                                <option value="1">Succès</option>
+                                <option value="0">Échecs</option>
+                            </select>
+                            <button class="btn btn--ghost" onclick="adminLoadLoginLogs()"><i class="fa-solid fa-rotate"></i> Actualiser</button>
+                        </div>
+                    </div>
+
+                    <div id="loginLogsWrap" class="login-logs-wrap">
+                        <p class="login-logs-loading">Chargement...</p>
+                    </div>
+                    <div id="loginLogsPager" class="login-logs-pager"></div>
                 </article>
             </div>
         </section>
@@ -2121,6 +2229,7 @@
         };
 
         const calState = {
+            view: 'month',
             year: new Date().getFullYear(),
             month: new Date().getMonth(),
             selectedDay: (() => {
@@ -2260,16 +2369,26 @@
 
         function normalizeImportedClientRow(row) {
             const email = pickSpreadsheetValue(row, ['email', 'mail', 'courriel', 'emailclient']);
-            const prenom = pickSpreadsheetValue(row, ['prenom', 'firstname', 'first', 'givenname']);
-            const nom = pickSpreadsheetValue(row, ['nom', 'lastname', 'surname', 'familyname']);
+            const prenom = pickSpreadsheetValue(row, ['prenom', 'firstname', 'first', 'givenname', 'firstname']);
+            const nom = pickSpreadsheetValue(row, ['nom', 'lastname', 'surname', 'familyname', 'lastname']);
+            const business = pickSpreadsheetValue(row, ['businessname', 'business', 'societe', 'entreprise', 'raisonsociale', 'enseigne']);
             const name = pickSpreadsheetValue(row, ['nomcomplet', 'fullname', 'name', 'client']);
-            const tel = pickSpreadsheetValue(row, ['tel', 'telephone', 'phone', 'mobile']);
-            const adresse = pickSpreadsheetValue(row, ['adresse', 'address']);
-            const notes = pickSpreadsheetValue(row, ['notes', 'note', 'commentaire', 'commentaires']);
+            const tel = pickSpreadsheetValue(row, ['tel', 'telephone', 'phone', 'mobile', 'phonenumber']);
+            // Combine address + postal_code + city into a single address string
+            const addressBase = pickSpreadsheetValue(row, ['adresse', 'address']);
+            const postalCode = pickSpreadsheetValue(row, ['codepostal', 'postalcode', 'cp', 'zipcode', 'zip']);
+            const city = pickSpreadsheetValue(row, ['ville', 'city', 'commune', 'localite']);
+            const adresse = [addressBase, postalCode, city].filter(Boolean).join(' ');
+            // Use business name as nom if no first/last name provided
+            const nomFinal = nom || (business && !prenom ? business : nom);
+            const prenomFinal = prenom === '.' ? '' : prenom;
+            const notesBusiness = business && (nom || prenom) ? `Entreprise : ${business}` : '';
+            const notesRaw = pickSpreadsheetValue(row, ['notes', 'note', 'commentaire', 'commentaires']);
+            const notes = [notesRaw, notesBusiness].filter(Boolean).join(' | ');
             return {
                 email,
-                prenom,
-                nom,
+                prenom: prenomFinal,
+                nom: nomFinal,
                 name,
                 tel,
                 adresse,
@@ -2313,10 +2432,10 @@
 
                 const clients = rows
                     .map((row) => normalizeImportedClientRow(row))
-                    .filter((row) => row.email);
+                    .filter((row) => row.email || row.tel);
 
                 if (!clients.length) {
-                    showToast('Aucune ligne client valide: colonne email manquante ou vide.');
+                    showToast('Aucune ligne client valide: colonnes email et téléphone manquantes.');
                     return;
                 }
 
@@ -2392,42 +2511,154 @@
                 .filter((item) => item.client || item.service);
         }
 
-        function buildCalendar() {
+        function getCalendarBaseDate() {
+            const [year, month, day] = String(calState.selectedDay || '').split('-').map(Number);
+            const baseDate = new Date(year || new Date().getFullYear(), (month || 1) - 1, day || 1);
+            if (Number.isNaN(baseDate.getTime())) {
+                return new Date();
+            }
+            return baseDate;
+        }
+
+        function formatIsoDate(date) {
+            return date.getFullYear()
+                + '-' + String(date.getMonth() + 1).padStart(2, '0')
+                + '-' + String(date.getDate()).padStart(2, '0');
+        }
+
+        function addDays(date, amount) {
+            const next = new Date(date);
+            next.setDate(next.getDate() + amount);
+            return next;
+        }
+
+        function getStartOfWeek(date) {
+            const copy = new Date(date);
+            const diff = (copy.getDay() + 6) % 7;
+            copy.setDate(copy.getDate() - diff);
+            copy.setHours(0, 0, 0, 0);
+            return copy;
+        }
+
+        function getAppointmentsForDate(dateStr) {
+            return state.appointments
+                .filter((appointment) => appointment.date === dateStr)
+                .sort((left, right) => (left.time || '').localeCompare(right.time || ''));
+        }
+
+        function getDayStats(dateStr) {
+            return getAppointmentsForDate(dateStr).reduce((acc, appt) => {
+                const status = appt.status || 'pending';
+                acc.total += 1;
+                if (status === 'pending') acc.pending += 1;
+                if (status === 'confirmed') acc.confirmed += 1;
+                if (status === 'cancelled') acc.cancelled += 1;
+                if (status === 'completed') acc.completed += 1;
+                return acc;
+            }, { total: 0, pending: 0, confirmed: 0, cancelled: 0, completed: 0 });
+        }
+
+        function getStatusLabel(status) {
+            return status === 'confirmed' ? 'Confirmé'
+                : status === 'cancelled' ? 'Annulé'
+                : status === 'completed' ? 'Prestation effectuée'
+                : 'En attente';
+        }
+
+        function getStatusClass(status) {
+            return status === 'confirmed' ? 'chip--confirmed'
+                : status === 'cancelled' ? 'chip--cancelled'
+                : status === 'completed' ? 'chip--completed'
+                : 'chip--pending';
+        }
+
+        function updateCalendarViewButtons() {
+            document.querySelectorAll('[data-cal-view]').forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.calView === calState.view);
+            });
+        }
+
+        function renderCalendarHeaders(labels) {
+            const container = document.getElementById('calDayHeaders');
+            if (!container) return;
+            if (!labels.length) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+            container.style.display = 'grid';
+            container.innerHTML = labels.map((label) => `<span>${escapeHtml(label)}</span>`).join('');
+        }
+
+        function renderCalendarAgendaCard(dateObj) {
+            const dateStr = formatIsoDate(dateObj);
+            const appts = getAppointmentsForDate(dateStr);
+            const stats = getDayStats(dateStr);
+            const isSelected = calState.selectedDay === dateStr;
+            const today = formatIsoDate(new Date()) === dateStr;
+            const title = dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+            const subTitle = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dayClasses = ['cal-cell', 'cal-cell--agenda'];
+
+            if (isSelected) dayClasses.push('selected');
+            if (today) dayClasses.push('today');
+            if (stats.total > 0) dayClasses.push('has-appts');
+
+            const items = appts.length
+                ? appts.map((appt) => {
+                    const user = state.users.find((u) => String(u.id) === String(appt.user_id));
+                    const profile = getClientProfile(appt.user_id);
+                    const clientLabel = user
+                        ? getUserLabel(user)
+                        : [profile && profile.prenom, profile && profile.nom].filter(Boolean).join(' ') || ('Client #' + appt.user_id);
+                    const status = appt.status || 'pending';
+                    return `
+                        <button class="cal-slot-card${isSelected ? ' is-selected' : ''}" type="button" data-cal-day="${dateStr}">
+                            <div class="cal-slot-card__top">
+                                <span class="cal-slot-card__time">${escapeHtml(appt.time || '--:--')}</span>
+                                <span class="chip ${getStatusClass(status)}">${getStatusLabel(status)}</span>
+                            </div>
+                            <div class="cal-slot-card__service">${escapeHtml(appt.service || 'Rendez-vous')}</div>
+                            <div class="cal-slot-card__client">${escapeHtml(clientLabel)}</div>
+                        </button>
+                    `;
+                }).join('')
+                : '<div class="cal-slot-card__empty">Aucun rendez-vous</div>';
+
+            return `
+                <div class="${dayClasses.join(' ')}" data-cal-day="${dateStr}">
+                    <div class="cal-cell__day-head">
+                        <div class="cal-cell__day-meta">
+                            <strong>${escapeHtml(title)}</strong>
+                            <span>${escapeHtml(subTitle)}</span>
+                        </div>
+                        <span class="cal-cell__count">${stats.total}</span>
+                    </div>
+                    <div class="cal-cell__agenda-list">${items}</div>
+                </div>
+            `;
+        }
+
+        function buildCalendarMonthView() {
             const { year, month } = calState;
             const today = new Date();
             const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
             document.getElementById('calMonthLabel').textContent = monthNames[month] + ' ' + year;
+            renderCalendarHeaders(['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']);
 
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-
-            // Regrouper les RDV par date avec détail des statuts pour ce mois
-            const byDate = {};
-            state.appointments.forEach((appt) => {
-                if (!appt.date) return;
-                const [y, m] = appt.date.split('-').map(Number);
-                if (y === year && m - 1 === month) {
-                    const entry = byDate[appt.date] || { total: 0, pending: 0, confirmed: 0, cancelled: 0, completed: 0 };
-                    const status = appt.status || 'pending';
-                    entry.total += 1;
-                    if (status === 'pending') entry.pending += 1;
-                    if (status === 'confirmed') entry.confirmed += 1;
-                    if (status === 'cancelled') entry.cancelled += 1;
-                    if (status === 'completed') entry.completed += 1;
-                    byDate[appt.date] = entry;
-                }
-            });
-
-            // Décalage lundi = 0 … dimanche = 6
             const offset = (firstDay.getDay() + 6) % 7;
             let cells = '';
+
             for (let i = 0; i < offset; i++) {
                 cells += '<div class="cal-cell other-month"></div>';
             }
+
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
                 const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-                const dayStats = byDate[dateStr] || { total: 0, pending: 0, confirmed: 0, cancelled: 0, completed: 0 };
+                const dayStats = getDayStats(dateStr);
                 const count = dayStats.total;
                 const isSelected = calState.selectedDay === dateStr;
                 let cls = 'cal-cell';
@@ -2443,7 +2674,46 @@
                     : '';
                 cells += `<div class="${cls}" data-cal-day="${dateStr}">${d}${count > 0 ? `<span class="cal-cell__badge">${count}</span>` : ''}${statusDots}</div>`;
             }
-            document.getElementById('calDays').innerHTML = cells;
+
+            const calDays = document.getElementById('calDays');
+            calDays.className = 'cal-days';
+            calDays.innerHTML = cells;
+        }
+
+        function buildCalendarWeekView() {
+            const baseDate = getCalendarBaseDate();
+            const start = getStartOfWeek(baseDate);
+            const end = addDays(start, 6);
+            document.getElementById('calMonthLabel').textContent = `${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+            renderCalendarHeaders(['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']);
+
+            const calDays = document.getElementById('calDays');
+            calDays.className = 'cal-days cal-days--week';
+            calDays.innerHTML = Array.from({ length: 7 }, (_, index) => renderCalendarAgendaCard(addDays(start, index))).join('');
+        }
+
+        function buildCalendarDayView() {
+            const baseDate = getCalendarBaseDate();
+            document.getElementById('calMonthLabel').textContent = baseDate.toLocaleDateString('fr-FR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+            renderCalendarHeaders([]);
+
+            const calDays = document.getElementById('calDays');
+            calDays.className = 'cal-days cal-days--day';
+            calDays.innerHTML = renderCalendarAgendaCard(baseDate);
+        }
+
+        function buildCalendar() {
+            updateCalendarViewButtons();
+
+            if (calState.view === 'month') {
+                buildCalendarMonthView();
+            } else if (calState.view === 'week') {
+                buildCalendarWeekView();
+            } else {
+                buildCalendarDayView();
+            }
 
             if (calState.selectedDay) {
                 showCalDayDetail(calState.selectedDay);
@@ -2650,7 +2920,34 @@
             reminderEl.classList.toggle('show', hasReminder);
         }
 
-        function requestGoogleReviewEmail(appointmentId) {
+        const DEFAULT_GOOGLE_REVIEW_URL = 'https://www.google.com/search?q=Clinik+Auto&stick=H4sIAAAAAAAA_-NgU1I1qDAxt0g2ME82SUozNE5LSUmzMqhIs0xNM0pMtjA0sbA0Njc1XcTK7ZyTmZeZreBYWpIPANVypS43AAAA&hl=fr&mat=CS7Z2RoFb9dUElcBTVDHnrryiTJeXDnh-0uZXcoqsIhe93pHbRg4EA_hAA8UQ4hZzGPM14MT7wo3BrLa50LdS27QUm-TNC7fouh-C7ILjo2tkxVS5xqHDyIy4oJFsUf_DxI&authuser=0';
+        let cachedGoogleReviewUrl = '';
+
+        async function getGoogleReviewUrl() {
+            if (cachedGoogleReviewUrl) {
+                return cachedGoogleReviewUrl;
+            }
+
+            const response = await fetch('/google-reviews', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload || !payload.write_review_url) {
+                return DEFAULT_GOOGLE_REVIEW_URL;
+            }
+
+            cachedGoogleReviewUrl = String(payload.write_review_url || '').trim();
+            if (!cachedGoogleReviewUrl) {
+                return DEFAULT_GOOGLE_REVIEW_URL;
+            }
+
+            return cachedGoogleReviewUrl;
+        }
+
+        async function requestGoogleReviewEmail(appointmentId) {
             const appointment = state.appointments.find((item) => String(item.id) === String(appointmentId));
             if (!appointment) {
                 showToast('Rendez-vous introuvable.');
@@ -2666,7 +2963,12 @@
             }
 
             const clientName = (profile && [profile.prenom, profile.nom].filter(Boolean).join(' ')) || targetEmail;
-            const reviewUrl = 'https://g.page/r/Cep8mdufV7wSEAE/review';
+            let reviewUrl = '';
+            try {
+                reviewUrl = await getGoogleReviewUrl();
+            } catch (error) {
+                reviewUrl = DEFAULT_GOOGLE_REVIEW_URL;
+            }
             const subject = encodeURIComponent('Merci pour votre passage chez ClinikAuto');
             const body = encodeURIComponent(
                 `Bonjour ${clientName},\n\n` +
@@ -2918,14 +3220,21 @@
                 const vehiclesCount = vehicles.length;
                 const vehiclesImmat = vehicles.map((v) => v.immat).filter(Boolean);
                 const rdvCount = Number(user.appointments_count || 0);
+                const isBlocked = Number(user.is_blocked || 0) === 1;
+                const isIncomplete = profile && profile.is_complete === false;
+                const missingFields = (profile && Array.isArray(profile.missing_fields)) ? profile.missing_fields : [];
                 return `
-                    <article class="client-card">
+                    <article class="client-card${isIncomplete ? ' client-card--incomplete' : ''}">
                         <div class="client-card__head">
                             <div>
                                 <strong>${escapeHtml(getUserLabel(user))}</strong>
                                 <div class="section__sub">${escapeHtml(user.email)}</div>
                             </div>
-                            <span class="chip ${user.role === 'admin' ? 'chip--admin' : 'chip--client'}">${user.role === 'admin' ? 'Admin' : 'Client'}</span>
+                            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                                ${isIncomplete ? `<span class="chip" style="background:rgba(239,68,68,0.1);color:#b91c1c;" title="Champs manquants: ${escapeHtml(missingFields.join(', '))}"><i class="fa-solid fa-triangle-exclamation"></i> Fiche incomplète</span>` : '<span class="chip" style="background:rgba(31,169,113,0.1);color:#065f46;"><i class="fa-solid fa-circle-check"></i> Fiche complète</span>'}
+                                <span class="chip ${user.role === 'admin' ? 'chip--admin' : 'chip--client'}">${user.role === 'admin' ? 'Admin' : 'Client'}</span>
+                                ${isBlocked ? '<span class="chip chip--blocked"><i class="fa-solid fa-lock"></i> Compte bloqué</span>' : ''}
+                            </div>
                         </div>
 
                         <div class="client-card__meta">
@@ -2935,8 +3244,11 @@
                             ${vehiclesImmat.map((im) => `<span class="chip chip--immat"><i class="fa-solid fa-id-card"></i> ${escapeHtml(im)}</span>`).join('')}
                         </div>
 
+                        ${isIncomplete ? `<div style="font-size:0.82rem;color:#b91c1c;margin-top:6px;padding:6px 10px;background:rgba(239,68,68,0.06);border-radius:8px;"><i class="fa-solid fa-circle-info"></i> Champs manquants : <strong>${escapeHtml(missingFields.join(', '))}</strong></div>` : ''}
+
                         <div class="actions">
                             <button class="btn-inline" data-open-user="${user.id}"><i class="fa-solid fa-eye"></i> Voir le détail</button>
+                            ${user.role !== 'admin' ? `<button class="btn-inline ${isBlocked ? 'btn-inline--success' : 'btn-inline--danger'}" data-toggle-block-user="${user.id}" data-next-blocked="${isBlocked ? '0' : '1'}"><i class="fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-lock'}"></i> ${isBlocked ? 'Débloquer' : 'Bloquer'}</button>` : ''}
                             ${user.role !== 'admin' ? `<button class="btn-inline btn-inline--danger" data-delete-user="${user.id}"><i class="fa-solid fa-trash"></i> Supprimer</button>` : ''}
                         </div>
                     </article>
@@ -3067,15 +3379,34 @@
                 const contentDisposition = response.headers.get('Content-Disposition') || '';
                 const fileMatch = contentDisposition.match(/filename="([^"]+)"/i);
                 const filename = fileMatch ? fileMatch[1] : `rdv-clinikauto-vroomly-${safeScope}-${new Date().toISOString().slice(0, 10)}.ics`;
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+                if (window.showSaveFilePicker) {
+                    // Ouvre "Enregistrer sous" → l'utilisateur choisit le dossier de destination
+                    try {
+                        const fileHandle = await window.showSaveFilePicker({
+                            suggestedName: filename,
+                            types: [{ description: 'Fichier iCalendar', accept: { 'text/calendar': ['.ics'] } }]
+                        });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        showToast('✓ Fichier ICS enregistré. Ouvrez Vroomly pour l\'importer.');
+                    } catch (saveErr) {
+                        if (saveErr.name !== 'AbortError') throw saveErr;
+                        return; // annulé par l'utilisateur
+                    }
+                } else {
+                    // Fallback : téléchargement automatique dans le dossier Téléchargements
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    showToast(`✓ Fichier « ${filename} » enregistré dans vos Téléchargements.`);
+                }
 
                 window.open('https://www.vroomly.com/professional/calendar/settings/?tab=importer_rdv', '_blank', 'noopener');
-                showToast('ICS serveur téléchargé (' + (safeScope === 'all' ? 'tous statuts' : 'confirmés') + '). La page d\'import Vroomly est ouverte.');
                 await refreshVroomlySyncStatus();
             } catch (error) {
                 showToast(error.message || 'Erreur lors de l\'export ICS');
@@ -3177,6 +3508,55 @@
                 }
             } catch (e) {
                 showToast('Erreur réseau lors de l\'import.');
+            }
+        }
+        async function importAppointmentsICS(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+
+            const MAX_ICS_SIZE = 10 * 1024 * 1024; // 10 MB
+            if (file.size > MAX_ICS_SIZE) {
+                showToast('Fichier trop volumineux (max. 10 MB). Veuillez réduire la taille du fichier ICS.');
+                return;
+            }
+
+            const text = await file.text();
+            const events = parseICS(text);
+            if (!events.length) {
+                showToast('Aucun événement valide trouvé dans le fichier ICS.');
+                return;
+            }
+
+            const appointments = events.map((ev) => ({
+                service: ev.service || ev.client || '',
+                date:    ev.date   || '',
+                time:    ev.time   || '',
+                email:   '',
+                status:  ev.status === 'Confirmé'    ? 'confirmed'
+                       : ev.status === 'Annulé'      ? 'cancelled'
+                       : ev.status === 'À confirmer' ? 'pending'
+                       : 'pending'
+            }));
+
+            showToast(`Import ICS de ${appointments.length} événement(s) en cours…`);
+
+            try {
+                const result = await api('/admin/appointments/import', {
+                    method: 'POST',
+                    body: JSON.stringify({ appointments })
+                });
+                if (result.imported !== undefined) {
+                    const msg = `✓ ${result.imported} RDV importés depuis ICS` + (result.errors && result.errors.length ? ` · ${result.errors.length} erreurs` : '');
+                    showToast(msg);
+                    if (result.imported > 0) { setVroomlySyncReminder(); }
+                    if (result.errors && result.errors.length) { console.warn('Erreurs import ICS:', result.errors); }
+                    await loadDashboard();
+                } else {
+                    showToast(result.error || 'Erreur lors de l\'import ICS.');
+                }
+            } catch (e) {
+                showToast('Erreur réseau lors de l\'import ICS.');
             }
         }
         // ─────────────────────────────────────────────────────────
@@ -3345,9 +3725,12 @@
             const profile = getClientProfile(user.id);
             const appointments = state.appointments.filter((appointment) => String(appointment.user_id) === String(user.id));
             const vehicles = profile && Array.isArray(profile.vehicules) ? profile.vehicules : [];
+            const isIncomplete = profile && profile.is_complete === false;
+            const missingFields = (profile && Array.isArray(profile.missing_fields)) ? profile.missing_fields : [];
 
             document.getElementById('userModalSub').textContent = user.email;
             document.getElementById('userModalBody').innerHTML = `
+                ${isIncomplete ? `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;color:#b91c1c;font-size:0.9rem;"><i class="fa-solid fa-triangle-exclamation"></i> <strong>Fiche incomplète</strong> — Champs manquants : ${escapeHtml(missingFields.join(', '))}</div>` : `<div style="background:rgba(31,169,113,0.08);border:1px solid rgba(31,169,113,0.2);border-radius:12px;padding:10px 14px;margin-bottom:16px;color:#065f46;font-size:0.9rem;"><i class="fa-solid fa-circle-check"></i> Fiche complète</div>`}
                 <div class="mini-grid" style="margin-bottom:16px;">
                     <div class="mini-card"><h4>Nom</h4><strong>${escapeHtml(profile ? [profile.prenom, profile.nom].filter(Boolean).join(' ') || 'Non renseigné' : 'Non renseigné')}</strong></div>
                     <div class="mini-card"><h4>Email compte</h4><strong>${escapeHtml(user.email || 'Non renseigné')}</strong></div>
@@ -3358,37 +3741,51 @@
                     <h4>Modifier la fiche client</h4>
                     <div class="form-grid" style="margin-top:12px;">
                         <div>
-                            <label for="clientEditPrenom">Prénom</label>
-                            <input id="clientEditPrenom" type="text" value="${escapeHtml((profile && profile.prenom) || '')}" maxlength="120">
+                            <label for="clientEditPrenom">Prénom ${isIncomplete && missingFields.includes('Prénom') ? '<span style="color:#b91c1c">*</span>' : ''}</label>
+                            <input id="clientEditPrenom" type="text" value="${escapeHtml((profile && profile.prenom) || '')}" maxlength="120" ${isIncomplete && missingFields.includes('Prénom') ? 'style="border-color:#f87171"' : ''}>
                         </div>
                         <div>
-                            <label for="clientEditNom">Nom</label>
-                            <input id="clientEditNom" type="text" value="${escapeHtml((profile && profile.nom) || '')}" maxlength="120">
+                            <label for="clientEditNom">Nom ${isIncomplete && missingFields.includes('Nom') ? '<span style="color:#b91c1c">*</span>' : ''}</label>
+                            <input id="clientEditNom" type="text" value="${escapeHtml((profile && profile.nom) || '')}" maxlength="120" ${isIncomplete && missingFields.includes('Nom') ? 'style="border-color:#f87171"' : ''}>
                         </div>
                         <div>
-                            <label for="clientEditEmail">Email</label>
-                            <input id="clientEditEmail" type="email" value="${escapeHtml((profile && profile.email) || user.email || '')}" maxlength="180">
+                            <label for="clientEditEmail">Email ${isIncomplete && missingFields.includes('Email') ? '<span style="color:#b91c1c">*</span>' : ''}</label>
+                            <input id="clientEditEmail" type="email" value="${escapeHtml((profile && profile.email) || user.email || '')}" maxlength="180" ${isIncomplete && missingFields.includes('Email') ? 'style="border-color:#f87171"' : ''}>
                         </div>
                         <div>
-                            <label for="clientEditTel">Téléphone</label>
-                            <input id="clientEditTel" type="text" value="${escapeHtml((profile && profile.tel) || '')}" maxlength="40">
+                            <label for="clientEditTel">Téléphone ${isIncomplete && missingFields.includes('Téléphone') ? '<span style="color:#b91c1c">*</span>' : ''}</label>
+                            <input id="clientEditTel" type="text" value="${escapeHtml((profile && profile.tel) || '')}" maxlength="40" ${isIncomplete && missingFields.includes('Téléphone') ? 'style="border-color:#f87171"' : ''}>
                         </div>
                         <div class="full">
-                            <label for="clientEditAdresse">Adresse</label>
-                            <input id="clientEditAdresse" type="text" value="${escapeHtml((profile && profile.adresse) || '')}" maxlength="220">
+                            <label for="clientEditAdresse">Adresse ${isIncomplete && missingFields.includes('Adresse') ? '<span style="color:#b91c1c">*</span>' : ''}</label>
+                            <input id="clientEditAdresse" type="text" value="${escapeHtml((profile && profile.adresse) || '')}" maxlength="220" ${isIncomplete && missingFields.includes('Adresse') ? 'style="border-color:#f87171"' : ''}>
                         </div>
                         <div class="full">
                             <label for="clientEditNotes">Notes admin</label>
                             <textarea id="clientEditNotes" rows="3" placeholder="Suivi interne client...">${escapeHtml((profile && profile.notes) || '')}</textarea>
                         </div>
                         <div class="full">
-                            <label for="clientEditVehicules">Véhicules (1 ligne: immat;marque;modele;annee;carburant;km)</label>
-                            <textarea id="clientEditVehicules" rows="4" placeholder="AB-123-CD;Renault;Clio;2019;Essence;85000">${escapeHtml(formatVehiclesText(vehicles))}</textarea>
+                            <label for="clientEditVehicules">Véhicules (1 ligne: immat;marque;modele;annee;carburant;km) ${isIncomplete && missingFields.includes('Immatriculation') ? '<span style="color:#b91c1c">* Immatriculation manquante</span>' : ''}</label>
+                            <textarea id="clientEditVehicules" rows="4" placeholder="AB-123-CD;Renault;Clio;2019;Essence;85000" ${isIncomplete && missingFields.includes('Immatriculation') ? 'style="border-color:#f87171"' : ''}>${escapeHtml(formatVehiclesText(vehicles))}</textarea>
                         </div>
                     </div>
                     <div class="form-actions">
                         <button class="btn btn--primary" data-save-user="${user.id}"><i class="fa-solid fa-floppy-disk"></i> Enregistrer la fiche</button>
                     </div>
+                </div>
+                <div class="mini-card" style="margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap;">
+                        <h4 style="margin:0;">Identifiants et IP</h4>
+                        <button class="btn-inline" data-view-credentials="${user.id}"><i class="fa-solid fa-id-badge"></i> Consulter identifiants et IP</button>
+                    </div>
+                    <div id="userCredentialsContainer" style="font-size:0.85rem;color:var(--muted);">Cliquez pour afficher les informations de connexion et la dernière IP connue.</div>
+                </div>
+                <div class="mini-card" style="margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <h4 style="margin:0;">Journaux de connexion</h4>
+                        <button class="btn-inline" onclick="loadUserLogs(${user.id})" id="userLogsBtn"><i class="fa-solid fa-shield-halved"></i> Charger les logs</button>
+                    </div>
+                    <div id="userLogsContainer" style="font-size:0.85rem;color:var(--muted);">Cliquez sur "Charger les logs" pour voir l'historique.</div>
                 </div>
                 <div class="mini-card">
                     <h4>Rendez-vous du client</h4>
@@ -3399,6 +3796,73 @@
             `;
 
             document.getElementById('userModal').classList.add('open');
+        }
+
+        async function loadUserLogs(userId) {
+            const container = document.getElementById('userLogsContainer');
+            if (!container) return;
+            container.innerHTML = '<span style="color:var(--muted)">Chargement...</span>';
+            try {
+                const logs = await api('/admin/login-logs/' + userId);
+                if (!logs.length) {
+                    container.innerHTML = '<span style="color:var(--muted)">Aucun journal de connexion.</span>';
+                    return;
+                }
+                container.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+                    <thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
+                        <th style="padding:7px 10px;text-align:left;">Date</th>
+                        <th style="padding:7px 10px;text-align:left;">IP</th>
+                        <th style="padding:7px 10px;text-align:left;">Résultat</th>
+                        <th style="padding:7px 10px;text-align:left;">Détail</th>
+                        <th style="padding:7px 10px;text-align:left;">Navigateur</th>
+                    </tr></thead>
+                    <tbody>${logs.map((log) => `<tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:6px 10px;">${escapeHtml(formatDate(log.logged_at))}</td>
+                        <td style="padding:6px 10px;font-family:monospace;">${escapeHtml(log.ip)}</td>
+                        <td style="padding:6px 10px;">${log.success ? '<span style="color:#065f46;font-weight:700;">✓ Succès</span>' : '<span style="color:#b91c1c;font-weight:700;">✗ Échec</span>'}</td>
+                        <td style="padding:6px 10px;color:var(--muted);">${escapeHtml(log.fail_reason || '—')}</td>
+                        <td style="padding:6px 10px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(log.user_agent)}">${escapeHtml(log.user_agent.slice(0, 60))}${log.user_agent.length > 60 ? '…' : ''}</td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+            } catch (err) {
+                container.innerHTML = `<span style="color:#b91c1c">${escapeHtml(err.message || 'Erreur chargement logs')}</span>`;
+            }
+        }
+
+        async function loadUserCredentials(userId) {
+            const container = document.getElementById('userCredentialsContainer');
+            if (!container) return;
+            container.innerHTML = '<span style="color:var(--muted)">Chargement...</span>';
+
+            const user = state.users.find((item) => String(item.id) === String(userId));
+            if (!user) {
+                container.innerHTML = '<span style="color:#b91c1c">Compte introuvable.</span>';
+                return;
+            }
+
+            try {
+                const logs = await api('/admin/login-logs/' + userId);
+                const sortedLogs = Array.isArray(logs)
+                    ? [...logs].sort((a, b) => new Date(b.logged_at || 0) - new Date(a.logged_at || 0))
+                    : [];
+                const latestLog = sortedLogs[0] || null;
+                const latestSuccess = sortedLogs.find((log) => !!log.success) || null;
+
+                container.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+                        <tbody>
+                            <tr style="border-bottom:1px solid #eef2f7;"><th style="padding:7px 10px;text-align:left;width:220px;">ID client</th><td style="padding:7px 10px;font-family:monospace;">${escapeHtml(user.id)}</td></tr>
+                            <tr style="border-bottom:1px solid #eef2f7;"><th style="padding:7px 10px;text-align:left;">Email de connexion</th><td style="padding:7px 10px;">${escapeHtml(user.email || 'Non renseigné')}</td></tr>
+                            <tr style="border-bottom:1px solid #eef2f7;"><th style="padding:7px 10px;text-align:left;">Rôle</th><td style="padding:7px 10px;">${escapeHtml(user.role || 'client')}</td></tr>
+                            <tr style="border-bottom:1px solid #eef2f7;"><th style="padding:7px 10px;text-align:left;">Dernière IP connue</th><td style="padding:7px 10px;font-family:monospace;">${escapeHtml((latestSuccess && latestSuccess.ip) || (latestLog && latestLog.ip) || 'Aucune IP disponible')}</td></tr>
+                            <tr style="border-bottom:1px solid #eef2f7;"><th style="padding:7px 10px;text-align:left;">Dernière tentative</th><td style="padding:7px 10px;">${escapeHtml(latestLog && latestLog.logged_at ? formatDate(latestLog.logged_at) : 'Aucune')}</td></tr>
+                            <tr><th style="padding:7px 10px;text-align:left;">Résultat</th><td style="padding:7px 10px;">${latestLog ? (latestLog.success ? '<span style="color:#065f46;font-weight:700;">Succès</span>' : '<span style="color:#b91c1c;font-weight:700;">Échec</span>') : 'Aucun historique'}</td></tr>
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                container.innerHTML = `<span style="color:#b91c1c">${escapeHtml(err.message || 'Erreur chargement identifiants')}</span>`;
+            }
         }
 
         async function saveClientProfile(userId) {
@@ -3417,13 +3881,120 @@
                 body: JSON.stringify(payload)
             });
 
+            const hasVehicleImmat = Array.isArray(payload.vehicules)
+                && payload.vehicules.some((v) => String(v && v.immat || '').trim().length > 0);
+            const isComplete = !!payload.prenom
+                && !!payload.nom
+                && !!payload.email
+                && !!payload.tel
+                && !!payload.adresse
+                && hasVehicleImmat;
+
+            if (isComplete) {
+                try {
+                    const data = await api('/admin/users/' + userId + '/impersonate', {
+                        method: 'POST'
+                    });
+                    loadDashboard().catch((err) => {
+                        console.warn('Rafraîchissement dashboard après sauvegarde:', err && err.message ? err.message : err);
+                    });
+                    closeUserModal();
+                    const targetUrl = 'espace-client.html#impersonate=' + encodeURIComponent(data.token || '');
+                    window.open(targetUrl, '_blank', 'noopener');
+                    showToast('Fiche complète enregistrée. Espace client ouvert automatiquement.');
+                } catch (error) {
+                    await loadDashboard().catch((err) => {
+                        console.warn('Rafraîchissement dashboard après sauvegarde:', err && err.message ? err.message : err);
+                    });
+                    openUserModal(userId);
+                    showToast(error.message || 'Fiche enregistrée, mais ouverture de l\'espace client impossible.');
+                }
+                return;
+            }
+
+            await loadDashboard().catch((err) => {
+                console.warn('Rafraîchissement dashboard après sauvegarde:', err && err.message ? err.message : err);
+            });
             showToast('Fiche client enregistrée.');
-            await loadDashboard();
             openUserModal(userId);
         }
 
         function closeUserModal() {
             document.getElementById('userModal').classList.remove('open');
+        }
+
+        // ── JOURNAUX DE CONNEXION (vue globale admin) ─────────────────────
+        const loginLogsState = { offset: 0, limit: 50, total: 0, data: [] };
+
+        async function adminLoadLoginLogs(resetOffset = true) {
+            if (resetOffset) loginLogsState.offset = 0;
+            const statusFilter = document.getElementById('logsFilterStatus') ? document.getElementById('logsFilterStatus').value : '';
+            const wrap = document.getElementById('loginLogsWrap');
+            const pager = document.getElementById('loginLogsPager');
+            if (!wrap) return;
+            wrap.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">Chargement...</p>';
+
+            try {
+                const qs = new URLSearchParams({
+                    limit: loginLogsState.limit,
+                    offset: loginLogsState.offset
+                });
+                const data = await api('/admin/login-logs?' + qs.toString());
+                loginLogsState.total = data.total || 0;
+                loginLogsState.data = data.logs || [];
+
+                const logs = statusFilter === '' ? loginLogsState.data
+                    : loginLogsState.data.filter((l) => statusFilter === '1' ? l.success : !l.success);
+
+                if (!logs.length) {
+                    wrap.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">Aucun journal correspondant.</p>';
+                    pager.innerHTML = '';
+                    return;
+                }
+
+                wrap.innerHTML = `<div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;min-width:700px;">
+                        <thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
+                            <th style="padding:8px 12px;text-align:left;">Date</th>
+                            <th style="padding:8px 12px;text-align:left;">Email</th>
+                            <th style="padding:8px 12px;text-align:left;">IP</th>
+                            <th style="padding:8px 12px;text-align:left;">Résultat</th>
+                            <th style="padding:8px 12px;text-align:left;">Détail échec</th>
+                            <th style="padding:8px 12px;text-align:left;">Navigateur</th>
+                        </tr></thead>
+                        <tbody>${logs.map((log) => `<tr style="border-bottom:1px solid #f3f4f6;${!log.success ? 'background:rgba(239,68,68,0.03)' : ''}">
+                            <td style="padding:7px 12px;white-space:nowrap;">${escapeHtml(log.logged_at ? new Date(log.logged_at).toLocaleString('fr-FR') : '—')}</td>
+                            <td style="padding:7px 12px;">${escapeHtml(log.email)}</td>
+                            <td style="padding:7px 12px;font-family:monospace;font-size:0.82rem;">${escapeHtml(log.ip)}</td>
+                            <td style="padding:7px 12px;">${log.success
+                                ? '<span style="color:#065f46;font-weight:700;">✓ Succès</span>'
+                                : '<span style="color:#b91c1c;font-weight:700;">✗ Échec</span>'}</td>
+                            <td style="padding:7px 12px;color:var(--muted);font-size:0.82rem;">${escapeHtml(log.fail_reason || '—')}</td>
+                            <td style="padding:7px 12px;color:var(--muted);font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(log.user_agent)}">${escapeHtml(log.user_agent.slice(0, 55))}${log.user_agent.length > 55 ? '…' : ''}</td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+
+                // Pagination
+                const totalPages = Math.ceil(loginLogsState.total / loginLogsState.limit);
+                const currentPage = Math.floor(loginLogsState.offset / loginLogsState.limit) + 1;
+                pager.innerHTML = `<span style="font-size:0.85rem;color:var(--muted);">${loginLogsState.total} entrée(s) · Page ${currentPage}/${Math.max(1, totalPages)}</span>
+                    <button class="btn-inline" ${loginLogsState.offset === 0 ? 'disabled' : ''} onclick="loginLogsPrev()"><i class="fa-solid fa-chevron-left"></i> Précédent</button>
+                    <button class="btn-inline" ${loginLogsState.offset + loginLogsState.limit >= loginLogsState.total ? 'disabled' : ''} onclick="loginLogsNext()"><i class="fa-solid fa-chevron-right"></i> Suivant</button>`;
+            } catch (err) {
+                wrap.innerHTML = `<p style="color:#b91c1c;">${escapeHtml(err.message || 'Erreur de chargement des logs')}</p>`;
+            }
+        }
+
+        function loginLogsPrev() {
+            loginLogsState.offset = Math.max(0, loginLogsState.offset - loginLogsState.limit);
+            adminLoadLoginLogs(false);
+        }
+        function loginLogsNext() {
+            if (loginLogsState.offset + loginLogsState.limit < loginLogsState.total) {
+                loginLogsState.offset += loginLogsState.limit;
+                adminLoadLoginLogs(false);
+            }
         }
 
         async function updateAppointmentStatus(id, status, options) {
@@ -3502,6 +4073,25 @@
                 window.ClinikAutoAnalytics.trackEvent('admin_user_deleted', { userId: id });
             }
             showToast('Compte client supprimé.');
+            await loadDashboard();
+        }
+
+        async function toggleUserBlocked(id, blocked) {
+            const user = state.users.find((item) => String(item.id) === String(id));
+            if (!user) {
+                showToast('Compte introuvable.');
+                return;
+            }
+            const actionLabel = blocked ? 'bloquer' : 'débloquer';
+            if (!confirm('Voulez-vous ' + actionLabel + ' le compte ' + user.email + ' ?')) {
+                return;
+            }
+
+            await api('/admin/users/' + id + '/block', {
+                method: 'PUT',
+                body: JSON.stringify({ blocked: !!blocked })
+            });
+            showToast(blocked ? 'Compte client bloqué.' : 'Compte client débloqué.');
             await loadDashboard();
         }
 
@@ -3677,20 +4267,64 @@
 
             // Calendrier — navigation mois
             document.getElementById('calPrev').addEventListener('click', () => {
-                calState.month--;
-                if (calState.month < 0) { calState.month = 11; calState.year--; }
+                if (calState.view === 'month') {
+                    calState.month--;
+                    if (calState.month < 0) { calState.month = 11; calState.year--; }
+                    const targetDate = new Date(calState.year, calState.month, 1);
+                    if (!Number.isNaN(targetDate.getTime())) {
+                        calState.selectedDay = formatIsoDate(targetDate);
+                    }
+                } else if (calState.view === 'week') {
+                    const target = addDays(getCalendarBaseDate(), -7);
+                    calState.selectedDay = formatIsoDate(target);
+                    calState.year = target.getFullYear();
+                    calState.month = target.getMonth();
+                } else {
+                    const target = addDays(getCalendarBaseDate(), -1);
+                    calState.selectedDay = formatIsoDate(target);
+                    calState.year = target.getFullYear();
+                    calState.month = target.getMonth();
+                }
                 buildCalendar();
             });
             document.getElementById('calNext').addEventListener('click', () => {
-                calState.month++;
-                if (calState.month > 11) { calState.month = 0; calState.year++; }
+                if (calState.view === 'month') {
+                    calState.month++;
+                    if (calState.month > 11) { calState.month = 0; calState.year++; }
+                    const targetDate = new Date(calState.year, calState.month, 1);
+                    if (!Number.isNaN(targetDate.getTime())) {
+                        calState.selectedDay = formatIsoDate(targetDate);
+                    }
+                } else if (calState.view === 'week') {
+                    const target = addDays(getCalendarBaseDate(), 7);
+                    calState.selectedDay = formatIsoDate(target);
+                    calState.year = target.getFullYear();
+                    calState.month = target.getMonth();
+                } else {
+                    const target = addDays(getCalendarBaseDate(), 1);
+                    calState.selectedDay = formatIsoDate(target);
+                    calState.year = target.getFullYear();
+                    calState.month = target.getMonth();
+                }
                 buildCalendar();
+            });
+            document.querySelectorAll('[data-cal-view]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    calState.view = button.dataset.calView || 'month';
+                    const baseDate = getCalendarBaseDate();
+                    calState.year = baseDate.getFullYear();
+                    calState.month = baseDate.getMonth();
+                    buildCalendar();
+                });
             });
             // Calendrier — clic sur un jour
             document.getElementById('calDays').addEventListener('click', (event) => {
                 const cell = event.target.closest('[data-cal-day]');
                 if (!cell) return;
                 calState.selectedDay = cell.dataset.calDay;
+                const nextDate = getCalendarBaseDate();
+                calState.year = nextDate.getFullYear();
+                calState.month = nextDate.getMonth();
                 buildCalendar();
             });
             // Calendrier — actions RDV du jour sélectionné
@@ -3924,6 +4558,16 @@
                     return;
                 }
 
+                const toggleBlockBtn = event.target.closest('[data-toggle-block-user]');
+                if (toggleBlockBtn) {
+                    try {
+                        await toggleUserBlocked(toggleBlockBtn.dataset.toggleBlockUser, toggleBlockBtn.dataset.nextBlocked === '1');
+                    } catch (error) {
+                        showToast(error.message || 'Action de blocage impossible.');
+                    }
+                    return;
+                }
+
                 const deleteBtn = event.target.closest('[data-delete-user]');
                 if (deleteBtn) {
                     try {
@@ -4006,6 +4650,12 @@
 
             document.getElementById('closeUserModal').addEventListener('click', closeUserModal);
             document.getElementById('userModalBody').addEventListener('click', async (event) => {
+                const credentialsBtn = event.target.closest('[data-view-credentials]');
+                if (credentialsBtn) {
+                    await loadUserCredentials(credentialsBtn.dataset.viewCredentials);
+                    return;
+                }
+
                 const saveBtn = event.target.closest('[data-save-user]');
                 if (!saveBtn) {
                     return;

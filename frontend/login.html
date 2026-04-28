@@ -309,6 +309,11 @@
     </script>
 </head>
 <body>
+    <script>
+      // login.html est conservé pour compatibilité - l'espace client est sur espace-client.html
+      // Si l'utilisateur arrive ici, on le redirige directement
+      window.location.replace('espace-client.html');
+    </script>
     <div class="container">
         <a href="index.html" class="back-btn">← Retour</a>
         <img src="images/logo.jpg" alt="Logo ClinikAuto" class="brand-logo">
@@ -369,11 +374,14 @@
     <script src="js/analytics.js"></script>
     <script>
         const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const LOGIN_EMAIL_KEY = "clinikauto_login_email";
+        const LOGIN_PASSWORD_KEY = "clinikauto_login_password";
         const messageDiv = document.getElementById("message");
         const resetPanel = document.getElementById("resetPanel");
         const firstLoginModal = document.getElementById("firstLoginModal");
         const firstLoginText = document.getElementById("firstLoginText");
         let dismissedOnboardingEmail = "";
+        let autoLoginAttempted = false;
 
         function isEmailFormatValid(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
@@ -416,6 +424,74 @@
             try {
                 return Boolean(localStorage.getItem("token"));
             } catch (_error) {
+                return false;
+            }
+        }
+
+        function saveLoginCredentials(email, password) {
+            localStorage.setItem(LOGIN_EMAIL_KEY, String(email || "").trim().toLowerCase());
+            localStorage.setItem(LOGIN_PASSWORD_KEY, String(password || ""));
+        }
+
+        function clearSavedPassword() {
+            localStorage.removeItem(LOGIN_PASSWORD_KEY);
+        }
+
+        async function doLogin(rawEmail, rawPassword, silent) {
+            const email = String(rawEmail || "").trim().toLowerCase();
+            const password = String(rawPassword || "");
+
+            const response = await fetch(API_BASE + "/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (!silent && data && data.code === "FIRST_LOGIN_SETUP_REQUIRED") {
+                    openFirstLoginModal("", email);
+                }
+                const err = new Error((data && data.error) || "Erreur de connexion");
+                err.code = data && data.code ? data.code : "";
+                throw err;
+            }
+
+            localStorage.setItem("token", data.token);
+            localStorage.removeItem("user");
+            saveLoginCredentials(email, password);
+            if (window.ClinikAutoAnalytics) {
+                window.ClinikAutoAnalytics.trackEvent("login_success", { role: data.user.role });
+            }
+
+            return data;
+        }
+
+        async function trySilentAutoLogin() {
+            if (autoLoginAttempted) {
+                return false;
+            }
+            autoLoginAttempted = true;
+
+            const savedEmail = String(localStorage.getItem(LOGIN_EMAIL_KEY) || "").trim().toLowerCase();
+            const savedPassword = String(localStorage.getItem(LOGIN_PASSWORD_KEY) || "");
+            if (!savedEmail || !savedPassword) {
+                return false;
+            }
+
+            document.getElementById("email").value = savedEmail;
+            document.getElementById("password").value = savedPassword;
+
+            try {
+                const data = await doLogin(savedEmail, savedPassword, true);
+                window.location.href = data.user.role === "admin" ? "admin.html" : "espace-client.html";
+                return true;
+            } catch (_err) {
+                clearSavedPassword();
+                document.getElementById("password").value = "";
                 return false;
             }
         }
@@ -477,38 +553,15 @@
             const password = document.getElementById("password").value;
 
             try {
-                const response = await fetch(API_BASE + "/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+                const data = await doLogin(email, password, false);
+                messageDiv.textContent = "✅ Connexion réussie ! Bienvenue " + data.user.email;
+                messageDiv.className = "message success show";
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    messageDiv.textContent = "✅ Connexion réussie ! Bienvenue " + data.user.email;
-                    messageDiv.className = "message success show";
-                    
-                    localStorage.setItem("token", data.token);
-                    localStorage.removeItem("user");
-                    if (window.ClinikAutoAnalytics) {
-                        window.ClinikAutoAnalytics.trackEvent("login_success", { role: data.user.role });
-                    }
-                    
-                    setTimeout(() => {
-                        window.location.href = data.user.role === "admin" ? "admin.html" : "dashboard.html";
-                    }, 2000);
-                } else {
-                    if (data && data.code === "FIRST_LOGIN_SETUP_REQUIRED") {
-                        openFirstLoginModal("", String(email || "").trim().toLowerCase());
-                    }
-                    messageDiv.textContent = "❌ " + data.error;
-                    messageDiv.className = "message error show";
-                }
+                setTimeout(() => {
+                    window.location.href = data.user.role === "admin" ? "admin.html" : "espace-client.html";
+                }, 500);
             } catch (error) {
-                messageDiv.textContent = "❌ Erreur de connexion au serveur";
+                messageDiv.textContent = "❌ " + (error && error.message ? error.message : "Erreur de connexion au serveur");
                 messageDiv.className = "message error show";
                 console.error("Erreur:", error);
             }
@@ -559,6 +612,34 @@
                 messageDiv.textContent = "❌ Erreur de connexion au serveur";
                 messageDiv.className = "message error show";
                 console.error("Erreur:", error);
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            const emailInput = document.getElementById("email");
+            const passwordInput = document.getElementById("password");
+            const savedEmail = String(localStorage.getItem(LOGIN_EMAIL_KEY) || "").trim().toLowerCase();
+            if (savedEmail && !emailInput.value) {
+                emailInput.value = savedEmail;
+            }
+
+            if (hasStoredSessionToken()) {
+                const token = localStorage.getItem("token") || "";
+                try {
+                    const meResponse = await fetch(API_BASE + "/me/profile", {
+                        headers: { "Authorization": "Bearer " + token }
+                    });
+                    if (meResponse.ok) {
+                        window.location.href = "espace-client.html";
+                        return;
+                    }
+                } catch (_err) {
+                }
+            }
+
+            const autoLogged = await trySilentAutoLogin();
+            if (!autoLogged) {
+                passwordInput.focus();
             }
         });
     </script>

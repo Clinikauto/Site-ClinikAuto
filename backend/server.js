@@ -86,6 +86,12 @@ db.run("ALTER TABLE users ADD COLUMN name TEXT DEFAULT ''", (err) => {
     }
 });
 
+db.run("ALTER TABLE users ADD COLUMN is_blocked INTEGER NOT NULL DEFAULT 0", (err) => {
+    if (err && !String(err.message || "").includes("duplicate column name")) {
+        console.error("Erreur migration is_blocked:", err.message);
+    }
+});
+
 // Table paramètres du site (clé/valeur)
 db.run(`
 CREATE TABLE IF NOT EXISTS site_settings (
@@ -197,6 +203,24 @@ CREATE TABLE IF NOT EXISTS site_events (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )
 `);
+
+// Journaux de connexion (admin: traçabilité IP/UA/succès)
+db.run(`
+CREATE TABLE IF NOT EXISTS login_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    email TEXT NOT NULL,
+    ip TEXT,
+    user_agent TEXT,
+    success INTEGER NOT NULL DEFAULT 0,
+    fail_reason TEXT,
+    logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+`);
+
+// Index pour accélérer les requêtes par user_id et par date
+db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id)");
+db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_at ON login_logs(logged_at)");
 
 // Normalise les doublons existants puis applique la contrainte d'unicité de créneau actif.
 db.serialize(() => {
@@ -417,6 +441,62 @@ function dbAllAsync(query, params = []) {
             resolve(Array.isArray(rows) ? rows : []);
         });
     });
+}
+
+let loginLogsSchemaReadyPromise = null;
+
+function ensureLoginLogsSchemaAsync() {
+    if (loginLogsSchemaReadyPromise) {
+        return loginLogsSchemaReadyPromise;
+    }
+
+    loginLogsSchemaReadyPromise = (async () => {
+        await dbRunAsync(`
+            CREATE TABLE IF NOT EXISTS login_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                email TEXT NOT NULL,
+                ip TEXT,
+                user_agent TEXT,
+                success INTEGER NOT NULL DEFAULT 0,
+                fail_reason TEXT,
+                logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        const columns = await dbAllAsync("PRAGMA table_info(login_logs)");
+        const existing = new Set(columns.map((c) => c.name));
+
+        if (!existing.has("user_id")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN user_id INTEGER");
+        }
+        if (!existing.has("email")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN email TEXT NOT NULL DEFAULT ''");
+        }
+        if (!existing.has("ip")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN ip TEXT");
+        }
+        if (!existing.has("user_agent")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN user_agent TEXT");
+        }
+        if (!existing.has("success")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN success INTEGER NOT NULL DEFAULT 0");
+        }
+        if (!existing.has("fail_reason")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN fail_reason TEXT");
+        }
+        if (!existing.has("logged_at")) {
+            await dbRunAsync("ALTER TABLE login_logs ADD COLUMN logged_at DATETIME DEFAULT CURRENT_TIMESTAMP");
+        }
+
+        await dbRunAsync("CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id)");
+        await dbRunAsync("CREATE INDEX IF NOT EXISTS idx_login_logs_at ON login_logs(logged_at)");
+    })().catch((error) => {
+        loginLogsSchemaReadyPromise = null;
+        throw error;
+    });
+
+    return loginLogsSchemaReadyPromise;
 }
 
 function getSettingAsync(key) {
@@ -696,12 +776,48 @@ function upsertClientProfileAsync(userId, payload) {
     });
 }
 
+/**
+ * Extrait l'IP réelle du client (supporte les proxies avec X-Forwarded-For).
+ * Seules les adresses IPv4/IPv6 valides sont retournées, sinon "inconnue".
+ */
+function getClientIp(req) {
+    const forwarded = req.headers["x-forwarded-for"];
+    if (forwarded) {
+        const first = String(forwarded).split(",")[0].trim();
+        if (first) return first.slice(0, 60);
+    }
+    const ip = req.socket?.remoteAddress || req.connection?.remoteAddress || "";
+    return String(ip).slice(0, 60) || "inconnue";
+}
+
+/**
+ * Calcule les champs manquants d'une fiche client.
+ * Champs obligatoires : nom, prenom, tel, email, adresse, immatriculation (≥1 véhicule)
+ */
+function getProfileCompleteness(profile) {
+    const missing = [];
+    if (!String(profile.nom || "").trim()) missing.push("Nom");
+    if (!String(profile.prenom || "").trim()) missing.push("Prénom");
+    if (!String(profile.tel || "").trim()) missing.push("Téléphone");
+    if (!String(profile.email || profile.account_email || "").trim()) missing.push("Email");
+    if (!String(profile.adresse || "").trim()) missing.push("Adresse");
+    const vehicles = Array.isArray(profile.vehicules) ? profile.vehicules : [];
+    const hasImmat = vehicles.some((v) => String(v.immat || "").trim().length > 0);
+    if (!hasImmat) missing.push("Immatriculation");
+    return { is_complete: missing.length === 0, missing_fields: missing };
+}
+
 function mapOccasionRow(row) {
     return {
         ...row,
         photos: safeJsonParse(row.photos, []),
         image: row.image || null
     };
+}
+
+function normalizeRole(role) {
+    const normalized = String(role || "client").trim().toLowerCase();
+    return normalized === "admin" ? "admin" : "client";
 }
 
 function signToken(user) {
@@ -721,6 +837,21 @@ function requireAuth(req, res, next) {
     const token = authHeader.slice(7);
     try {
         req.user = jwt.verify(token, JWT_SECRET);
+        req.user.role = normalizeRole(req.user.role);
+
+        if (req.user.role === "client") {
+            db.get("SELECT COALESCE(is_blocked, 0) AS is_blocked FROM users WHERE id = ?", [req.user.id], (err, row) => {
+                if (err || !row) {
+                    return res.status(401).json({ error: "Session utilisateur introuvable" });
+                }
+                if (Number(row.is_blocked || 0) === 1) {
+                    return res.status(403).json({ error: "Compte bloqué" });
+                }
+                next();
+            });
+            return;
+        }
+
         next();
     } catch (_err) {
         return res.status(401).json({ error: "Token invalide ou expiré" });
@@ -916,49 +1047,75 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = String(email || "").toLowerCase().trim();
     const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+    const ip = getClientIp(req);
+    const userAgent = String(req.headers["user-agent"] || "").slice(0, 400);
+
+    try {
+        await ensureLoginLogsSchemaAsync();
+    } catch (schemaError) {
+        console.error("Erreur migration login_logs:", schemaError.message);
+    }
 
     if (!isValidEmail(email) || typeof password !== "string") {
         return res.status(400).json({ error: "Identifiants invalides" });
     }
 
+    const logAttempt = (userId, success, failReason = "") => {
+        db.run(
+            "INSERT INTO login_logs (user_id, email, ip, user_agent, success, fail_reason) VALUES (?, ?, ?, ?, ?, ?)",
+            [userId || null, normalizedEmail, ip, userAgent, success ? 1 : 0, failReason || null],
+            () => {}
+        );
+    };
+
     try {
         db.get(
-            "SELECT id, email, password, role, name FROM users WHERE email = ?",
+            "SELECT id, email, password, role, name, COALESCE(is_blocked, 0) AS is_blocked FROM users WHERE email = ?",
             [normalizedEmail],
             async (err, row) => {
                 if (err) {
                     return res.status(500).json({ error: "Erreur serveur" });
                 }
                 if (!row) {
+                    logAttempt(null, false, "Compte introuvable");
                     return res.status(401).json({ error: "Identifiants invalides" });
                 }
 
                 const hasPassword = typeof row.password === "string" && row.password.trim().length > 0;
                 if (!hasPassword) {
+                    logAttempt(row.id, false, "Première connexion — mot de passe non défini");
                     return res.status(403).json({
                         error: "Première connexion détectée : créez votre mot de passe depuis 'Mot de passe oublié'.",
                         code: "FIRST_LOGIN_SETUP_REQUIRED"
                     });
                 }
 
+                if (Number(row.is_blocked || 0) === 1) {
+                    logAttempt(row.id, false, "Compte client bloqué");
+                    return res.status(403).json({ error: "Compte bloqué. Contactez l'administrateur." });
+                }
+
                 const passwordMatch = await bcrypt.compare(password, row.password);
 
                 if (!passwordMatch) {
+                    logAttempt(row.id, false, "Mot de passe incorrect");
                     return res.status(401).json({ error: "Identifiants invalides" });
                 }
 
                 // Verrouillage accès admin: seul l'email ADMIN_EMAIL peut ouvrir une session admin.
                 if (row.role === "admin" && adminEmail && normalizedEmail !== adminEmail) {
+                    logAttempt(row.id, false, "Tentative accès admin non autorisé");
                     return res.status(403).json({ error: "Accès administrateur non autorisé" });
                 }
 
                 const user = {
                     id: row.id,
                     email: row.email,
-                    role: row.role || "client",
+                    role: normalizeRole(row.role),
                     name: row.name || ""
                 };
                 const token = signToken(user);
+                logAttempt(row.id, true);
 
                 res.json({ message: "Connexion OK", user, token });
             }
@@ -1363,6 +1520,7 @@ app.get("/admin/users", requireAuth, requireAdmin, (_req, res) => {
             u.email,
             u.role,
             u.name,
+            COALESCE(u.is_blocked, 0) AS is_blocked,
             COUNT(a.id) AS appointments_count,
             COALESCE(SUM(CASE WHEN a.status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_count,
             COALESCE(SUM(CASE WHEN a.status = 'confirmed' THEN 1 ELSE 0 END), 0) AS confirmed_count,
@@ -1380,6 +1538,81 @@ app.get("/admin/users", requireAuth, requireAdmin, (_req, res) => {
             res.json(rows || []);
         }
     );
+});
+
+app.post("/admin/users/:userId/impersonate", requireAuth, requireAdmin, (req, res) => {
+    const userId = Number(req.params.userId);
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+
+    db.get("SELECT id, email, role, name, COALESCE(is_blocked, 0) AS is_blocked FROM users WHERE id = ?", [userId], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: "Erreur serveur" });
+        }
+        if (!row) {
+            return res.status(404).json({ error: "Utilisateur introuvable" });
+        }
+        if (row.role !== "client") {
+            return res.status(403).json({ error: "Impersonation réservée aux comptes client" });
+        }
+        if (Number(row.is_blocked || 0) === 1) {
+            return res.status(403).json({ error: "Ce compte client est bloqué" });
+        }
+
+        const token = jwt.sign(
+            {
+                id: row.id,
+                email: row.email,
+                role: "client",
+                name: row.name || "",
+                impersonatedBy: req.user.id
+            },
+            JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        res.json({
+            token,
+            user: {
+                id: row.id,
+                email: row.email,
+                role: "client",
+                name: row.name || ""
+            }
+        });
+    });
+});
+
+app.put("/admin/users/:id/block", requireAuth, requireAdmin, (req, res) => {
+    const userId = Number(req.params.id);
+    const blocked = req.body && req.body.blocked ? 1 : 0;
+
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Identifiant utilisateur invalide" });
+    }
+    if (req.user.id === userId) {
+        return res.status(400).json({ error: "Vous ne pouvez pas modifier votre propre compte admin" });
+    }
+
+    db.get("SELECT id, role FROM users WHERE id = ?", [userId], (findErr, userRow) => {
+        if (findErr) {
+            return res.status(500).json({ error: "Erreur serveur" });
+        }
+        if (!userRow) {
+            return res.status(404).json({ error: "Compte introuvable" });
+        }
+        if (userRow.role === "admin") {
+            return res.status(403).json({ error: "Action interdite sur un compte admin" });
+        }
+
+        db.run("UPDATE users SET is_blocked = ? WHERE id = ?", [blocked, userId], (updateErr) => {
+            if (updateErr) {
+                return res.status(500).json({ error: "Erreur lors de la mise à jour du blocage" });
+            }
+            res.json({ message: blocked ? "Compte client bloqué" : "Compte client débloqué", blocked: !!blocked });
+        });
+    });
 });
 
 app.get("/admin/client-profiles", requireAuth, requireAdmin, (_req, res) => {
@@ -1407,22 +1640,25 @@ app.get("/admin/client-profiles", requireAuth, requireAdmin, (_req, res) => {
             if (err) {
                 return res.status(500).json({ error: "Erreur lors du chargement des fiches clients" });
             }
-            const mapped = (rows || []).map((row) => ({
-                user_id: row.user_id,
-                account_email: row.account_email,
-                role: row.role,
-                name: row.name || "",
-                nom: row.nom || "",
-                prenom: row.prenom || "",
-                tel: row.tel || "",
-                email: row.email || row.account_email || "",
-                adresse: row.adresse || "",
-                notes: row.notes || "",
-                vehicules: safeJsonParse(row.vehicules, []),
-                updated_at: row.updated_at || null
-            }));
-            res.json(mapped);
-        }
+            const mapped = (rows || []).map((row) => {
+                const vehicules = safeJsonParse(row.vehicules, []);
+                const base = {
+                    user_id: row.user_id,
+                    account_email: row.account_email,
+                    role: row.role,
+                    name: row.name || "",
+                    nom: row.nom || "",
+                    prenom: row.prenom || "",
+                    tel: row.tel || "",
+                    email: row.email || row.account_email || "",
+                    adresse: row.adresse || "",
+                    notes: row.notes || "",
+                    vehicules,
+                    updated_at: row.updated_at || null
+                };
+                return { ...base, ...getProfileCompleteness(base) };
+            });
+            res.json(mapped);        }
     );
 });
 
@@ -1448,10 +1684,18 @@ app.post("/admin/clients/import", requireAuth, requireAdmin, async (req, res) =>
     };
 
     for (const line of rawClients) {
-        const email = String(line?.email || "").trim().toLowerCase();
+        let email = String(line?.email || "").trim().toLowerCase();
+        const tel = String(line?.tel || "").trim();
+
+        // Si pas d'email valide mais un téléphone, on génère un placeholder
         if (!isValidEmail(email)) {
-            summary.skippedInvalid += 1;
-            continue;
+            if (tel) {
+                const telClean = tel.replace(/[^0-9+]/g, '').slice(0, 20);
+                email = `import_${telClean}@clinikauto.local`;
+            } else {
+                summary.skippedInvalid += 1;
+                continue;
+            }
         }
         if (adminEmail && email === adminEmail) {
             summary.skippedAdmin += 1;
@@ -1461,7 +1705,6 @@ app.post("/admin/clients/import", requireAuth, requireAdmin, async (req, res) =>
         const nom = String(line?.nom || "").trim();
         const prenom = String(line?.prenom || "").trim();
         const providedName = String(line?.name || "").trim();
-        const tel = String(line?.tel || "").trim();
         const adresse = String(line?.adresse || "").trim();
         const notes = String(line?.notes || "").trim();
         const fullName = [prenom, nom].filter(Boolean).join(" ").trim() || providedName;
@@ -1600,7 +1843,7 @@ app.put("/admin/client-profiles/:userId", requireAuth, requireAdmin, (req, res) 
 
 // Profil du client connecté (accès strictement privé au compte courant)
 app.get("/me/profile", requireAuth, (req, res) => {
-    if (req.user.role !== "client") {
+    if (normalizeRole(req.user.role) !== "client") {
         return res.status(403).json({ error: "Accès client requis" });
     }
 
@@ -1628,7 +1871,7 @@ app.get("/me/profile", requireAuth, (req, res) => {
                 return res.status(500).json({ error: "Erreur lors du chargement du profil" });
             }
 
-            res.json({
+            const profile = {
                 user_id: row.user_id,
                 account_email: row.account_email,
                 name: row.name || "",
@@ -1639,7 +1882,8 @@ app.get("/me/profile", requireAuth, (req, res) => {
                 adresse: row.adresse || "",
                 vehicules: safeJsonParse(row.vehicules, []),
                 updated_at: row.updated_at || null
-            });
+            };
+            res.json({ ...profile, ...getProfileCompleteness(profile) });
         }
     );
 });
@@ -2249,6 +2493,104 @@ app.get("/google-reviews", async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// JOURNAUX DE CONNEXION (admin)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Liste paginée des derniers logs (tous utilisateurs ou filtré par user_id)
+app.get("/admin/login-logs", requireAuth, requireAdmin, async (req, res) => {
+    const limit = Math.min(Number(req.query.limit || 100), 500);
+    const offset = Math.max(Number(req.query.offset || 0), 0);
+    const userId = req.query.user_id ? Number(req.query.user_id) : null;
+
+    const whereClauses = [];
+    const params = [];
+
+    if (userId && !Number.isNaN(userId)) {
+        whereClauses.push("ll.user_id = ?");
+        params.push(userId);
+    }
+
+    const where = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    try {
+        await ensureLoginLogsSchemaAsync();
+
+        const countRow = await dbGetAsync(
+            `SELECT COUNT(*) AS total FROM login_logs ll ${where}`,
+            params
+        );
+
+        const rows = await dbAllAsync(
+            `
+            SELECT
+                ll.id,
+                ll.user_id,
+                ll.email,
+                ll.ip,
+                ll.user_agent,
+                ll.success,
+                ll.fail_reason,
+                ll.logged_at,
+                u.name AS user_name,
+                u.role AS user_role
+            FROM login_logs ll
+            LEFT JOIN users u ON u.id = ll.user_id
+            ${where}
+            ORDER BY ll.logged_at DESC
+            LIMIT ? OFFSET ?
+            `,
+            [...params, limit, offset]
+        );
+
+        res.json({
+            total: countRow?.total || 0,
+            limit,
+            offset,
+            logs: (rows || []).map((r) => ({
+                id: r.id,
+                user_id: r.user_id,
+                email: r.email,
+                ip: r.ip || "—",
+                user_agent: r.user_agent || "—",
+                success: r.success === 1,
+                fail_reason: r.fail_reason || null,
+                logged_at: r.logged_at,
+                user_name: r.user_name || "",
+                user_role: r.user_role || "client"
+            }))
+        });
+    } catch (_error) {
+        return res.status(500).json({ error: "Erreur chargement logs" });
+    }
+});
+
+// Résumé des logs pour un client spécifique
+app.get("/admin/login-logs/:userId", requireAuth, requireAdmin, async (req, res) => {
+    const userId = Number(req.params.userId);
+    if (Number.isNaN(userId)) return res.status(400).json({ error: "Identifiant invalide" });
+
+    try {
+        await ensureLoginLogsSchemaAsync();
+        const rows = await dbAllAsync(
+            `SELECT id, email, ip, user_agent, success, fail_reason, logged_at
+             FROM login_logs WHERE user_id = ? ORDER BY logged_at DESC LIMIT 50`,
+            [userId]
+        );
+        res.json((rows || []).map((r) => ({
+            id: r.id,
+            email: r.email,
+            ip: r.ip || "—",
+            user_agent: r.user_agent || "—",
+            success: r.success === 1,
+            fail_reason: r.fail_reason || null,
+            logged_at: r.logged_at
+        })));
+    } catch (_error) {
+        return res.status(500).json({ error: "Erreur chargement logs" });
+    }
+});
+
 // Servir frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
@@ -2278,6 +2620,10 @@ app.get("/occasions", (req, res) => {
 
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/register.html"));
+});
+
+ensureLoginLogsSchemaAsync().catch((error) => {
+    console.error("Erreur initialisation login_logs:", error.message);
 });
 
 // Start server

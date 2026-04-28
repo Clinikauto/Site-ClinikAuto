@@ -2,10 +2,15 @@
 
 const SESSION_KEY = 'clinikauto_client_session';
 const TOKEN_KEY = 'token';
+const SESSION_TOKEN_KEY = 'clinikauto_client_token';
+const IMPERSONATION_TOKEN_KEY = 'clinikauto_client_impersonation_token';
+const SESSION_OK_HASH = 'session-ok';
 const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
 
 let currentClient = null;
 let currentAppointments = [];
+let loginInFlight = false;
+let runtimeToken = '';
 
 // ===== UTILS =====
 function genId() {
@@ -24,11 +29,42 @@ function escapeHtml(v) {
 }
 
 function authHeaders() {
-  const token = localStorage.getItem(TOKEN_KEY) || '';
+  const token = sessionStorage.getItem(IMPERSONATION_TOKEN_KEY)
+    || localStorage.getItem(TOKEN_KEY)
+    || sessionStorage.getItem(SESSION_TOKEN_KEY)
+    || runtimeToken
+    || '';
   return {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ' + token
   };
+}
+
+function persistClientToken(token) {
+  const value = String(token || '');
+  runtimeToken = value;
+  try {
+    localStorage.setItem(TOKEN_KEY, value);
+  } catch (_err) {
+    // Ignore localStorage failure (mode privé, restrictions navigateur, etc.)
+  }
+  try {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, value);
+  } catch (_err) {
+    // Ignore sessionStorage failure silently.
+  }
+}
+
+function clearClientToken() {
+  runtimeToken = '';
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch (_err) {
+  }
+  try {
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch (_err) {
+  }
 }
 
 async function postJson(url, payload) {
@@ -49,8 +85,25 @@ async function apiAuth(url, method = 'GET', payload = null) {
     body: payload ? JSON.stringify(payload) : undefined
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Erreur serveur');
+  if (!response.ok) {
+    const err = new Error(data.error || 'Erreur serveur');
+    err.status = response.status;
+    throw err;
+  }
   return data;
+}
+
+function setAuthenticatedUI(isAuthenticated) {
+  const screenConnexion = document.getElementById('screenConnexion');
+  const screenDashboard = document.getElementById('screenDashboard');
+  if (!screenConnexion || !screenDashboard) {
+    return;
+  }
+
+  screenConnexion.classList.toggle('is-hidden', isAuthenticated);
+  screenDashboard.classList.toggle('is-hidden', !isAuthenticated);
+  screenConnexion.style.display = isAuthenticated ? 'none' : 'block';
+  screenDashboard.style.display = isAuthenticated ? 'block' : 'none';
 }
 
 async function loadMyProfile() {
@@ -105,10 +158,15 @@ function setAuthTab(tab) {
 
 // ===== CONNEXION =====
 async function seConnecter() {
+  if (loginInFlight) {
+    return;
+  }
+
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pwd = document.getElementById('loginPwd').value;
   const errEl = document.getElementById('loginError');
   const errMsg = document.getElementById('loginErrorMsg');
+  const loginBtn = document.querySelector('#panelLogin .btn--primary');
 
   if (!email || !pwd) {
     errMsg.textContent = 'Veuillez remplir email et mot de passe.';
@@ -116,28 +174,79 @@ async function seConnecter() {
     return;
   }
 
+  loginInFlight = true;
+  if (loginBtn) {
+    loginBtn.disabled = true;
+    loginBtn.style.opacity = '0.7';
+    loginBtn.style.cursor = 'wait';
+  }
+
+  // Étape 1 : tentative de connexion (seules erreurs = mauvais identifiants / compte bloqué / réseau)
+  let loginData;
   try {
-    const data = await postJson('/login', { email, password: pwd });
-
-    if (data.user.role === 'admin') {
-      window.location.href = 'admin.html';
-      return;
+    loginData = await postJson('/login', { email, password: pwd });
+  } catch (err) {
+    const msg = String((err && err.message) || '');
+    if (msg && /bloqu/i.test(msg)) {
+      errMsg.textContent = msg;
+    } else if (!msg || /fetch|network|Failed/i.test(msg)) {
+      errMsg.textContent = 'Impossible de contacter le serveur. Vérifiez votre connexion.';
+    } else {
+      errMsg.textContent = 'Email ou mot de passe incorrect.';
     }
-
-    localStorage.setItem(TOKEN_KEY, data.token);
-    localStorage.setItem(SESSION_KEY, String(data.user.id));
-    localStorage.removeItem('user');
-    localStorage.removeItem('clinikauto_clients');
-
-    await loadMyProfile();
-    await loadMyAppointments();
-
-    errEl.style.display = 'none';
-    afficherDashboard(currentClient);
-  } catch (_err) {
-    errMsg.textContent = 'Email ou mot de passe incorrect.';
     errEl.style.display = 'flex';
     document.getElementById('loginPwd').value = '';
+    loginInFlight = false;
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.style.opacity = '';
+      loginBtn.style.cursor = '';
+    }
+    return;
+  }
+
+  if (loginData.user.role === 'admin') {
+    loginInFlight = false;
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.style.opacity = '';
+      loginBtn.style.cursor = '';
+    }
+    window.location.href = 'admin.html';
+    return;
+  }
+
+  // Étape 2 : login OK → stocker le token et basculer immédiatement vers le dashboard.
+  persistClientToken(loginData.token);
+  sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+  localStorage.setItem(SESSION_KEY, String(loginData.user.id));
+  localStorage.removeItem('user');
+  localStorage.removeItem('clinikauto_clients');
+
+  errEl.style.display = 'none';
+  setAuthenticatedUI(true);
+  document.getElementById('dashPrenom').textContent = (loginData.user.name || '').split(' ')[0];
+
+  // Étape 3 : charger le profil complet en arrière-plan (échec non bloquant)
+  try {
+    await loadMyProfile();
+    await loadMyAppointments();
+    document.getElementById('dashPrenom').textContent = currentClient.prenom || (loginData.user.name || '').split(' ')[0];
+    afficherVehicules(currentClient);
+    afficherInfos(currentClient);
+    afficherInterventions(currentAppointments);
+  } catch (_profileErr) {
+    // Profil non chargé — afficher données minimales sans bloquer
+    afficherVehicules({ vehicules: [] });
+    afficherInfos({ nom: '', prenom: '', tel: '', email: loginData.user.email, adresse: '' });
+    afficherInterventions([]);
+  } finally {
+    loginInFlight = false;
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.style.opacity = '';
+      loginBtn.style.cursor = '';
+    }
   }
 }
 
@@ -202,7 +311,8 @@ async function sInscrire() {
     await postJson('/register', { email, password: pwd, name: prenom + ' ' + nom });
     const data = await postJson('/login', { email, password: pwd });
 
-    localStorage.setItem(TOKEN_KEY, data.token);
+    persistClientToken(data.token);
+    sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
     localStorage.setItem(SESSION_KEY, String(data.user.id));
     localStorage.removeItem('user');
     localStorage.removeItem('clinikauto_clients');
@@ -228,8 +338,7 @@ async function sInscrire() {
 
 // ===== DASHBOARD =====
 function afficherDashboard(client) {
-  document.getElementById('screenConnexion').style.display = 'none';
-  document.getElementById('screenDashboard').style.display = 'block';
+  setAuthenticatedUI(true);
   document.getElementById('dashPrenom').textContent = client.prenom || '';
   afficherVehicules(client);
   afficherInfos(client);
@@ -297,7 +406,8 @@ function seDeconnecter() {
 
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem('user');
-  localStorage.removeItem(TOKEN_KEY);
+  clearClientToken();
+  sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
   location.reload();
 }
 
@@ -432,12 +542,17 @@ async function supprimerVehicule(vehId) {
 
 // ===== INFOS CLIENT =====
 function afficherInfos(client) {
+  const isIncomplete = client.is_complete === false;
+  const missingFields = Array.isArray(client.missing_fields) ? client.missing_fields : [];
   document.getElementById('infosDisplay').innerHTML = `
-    <div class="ec-info-item"><span>Nom</span><strong>${escapeHtml(client.nom)}</strong></div>
-    <div class="ec-info-item"><span>Prénom</span><strong>${escapeHtml(client.prenom)}</strong></div>
-    <div class="ec-info-item"><span>Portable</span><strong>${escapeHtml(client.tel)}</strong></div>
-    <div class="ec-info-item"><span>Email</span><strong>${escapeHtml(client.email)}</strong></div>
-    <div class="ec-info-item ec-info-item--full"><span>Adresse</span><strong>${escapeHtml(client.adresse)}</strong></div>
+    ${isIncomplete ? `<div style="grid-column:1/-1;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 14px;color:#8a4b00;font-size:0.9rem;margin-bottom:4px;">
+      <i class="fa-solid fa-triangle-exclamation"></i> <strong>Fiche incomplète</strong> — Merci de compléter : ${missingFields.join(', ')}
+    </div>` : ''}
+    <div class="ec-info-item"><span>Nom</span><strong>${escapeHtml(client.nom) || '<em style="color:#b91c1c">Non renseigné</em>'}</strong></div>
+    <div class="ec-info-item"><span>Prénom</span><strong>${escapeHtml(client.prenom) || '<em style="color:#b91c1c">Non renseigné</em>'}</strong></div>
+    <div class="ec-info-item"><span>Portable</span><strong>${escapeHtml(client.tel) || '<em style="color:#b91c1c">Non renseigné</em>'}</strong></div>
+    <div class="ec-info-item"><span>Email</span><strong>${escapeHtml(client.email) || '<em style="color:#b91c1c">Non renseigné</em>'}</strong></div>
+    <div class="ec-info-item ec-info-item--full"><span>Adresse</span><strong>${escapeHtml(client.adresse) || '<em style="color:#b91c1c">Non renseigné</em>'}</strong></div>
   `;
 }
 
@@ -500,16 +615,57 @@ async function sauvegarderInfos() {
 
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', async () => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  setAuthenticatedUI(false);
+
+  const hash = String(window.location.hash || '').replace(/^#/, '').trim();
+  const hashParams = new URLSearchParams(hash);
+  const hasSessionOk = hash === SESSION_OK_HASH || hashParams.get('session') === 'ok';
+  const tokenFromHash = String(hashParams.get('token') || '').trim();
+  const impersonationToken = hashParams.get('impersonate');
+
+  if (tokenFromHash) {
+    persistClientToken(tokenFromHash);
+  }
+
+  if (impersonationToken || hasSessionOk) {
+    // Nettoyer le hash d'URL après lecture du marqueur de session/impersonation.
+    if (impersonationToken) {
+      sessionStorage.setItem(IMPERSONATION_TOKEN_KEY, impersonationToken);
+    }
+    if (!impersonationToken) {
+      sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+    }
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+
+  const token = sessionStorage.getItem(IMPERSONATION_TOKEN_KEY)
+    || localStorage.getItem(TOKEN_KEY)
+    || sessionStorage.getItem(SESSION_TOKEN_KEY)
+    || runtimeToken;
+
+  // Si la session vient d'être validée, forcer l'affichage du dashboard avant les appels réseau.
+  if (token && hasSessionOk) {
+    setAuthenticatedUI(true);
+  }
+
   if (token) {
     try {
       await loadMyProfile();
       await loadMyAppointments();
       afficherDashboard(currentClient);
-    } catch (_err) {
-      localStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem('user');
-      localStorage.removeItem(TOKEN_KEY);
+    } catch (err) {
+      const status = Number(err && err.status);
+      // Ne réinitialiser la session que si le token est réellement invalide / interdit.
+      if (status === 401 || status === 403) {
+        sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem('user');
+        clearClientToken();
+        setAuthenticatedUI(false);
+      } else {
+        // Erreur technique temporaire: garder la session pour éviter une boucle retour connexion.
+        setAuthenticatedUI(true);
+      }
     }
   }
   document.addEventListener('keydown', (e) => {
