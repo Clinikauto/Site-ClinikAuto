@@ -3,6 +3,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
+const fs = require('fs');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -57,7 +58,16 @@ app.use(
         }
     })
 );
-app.use(express.json({ limit: '30mb' }));
+app.use(express.json({
+    limit: '30mb',
+    verify: (req, res, buf, encoding) => {
+        try {
+            req.rawBody = buf && buf.toString(encoding || 'utf8');
+        } catch (_) {
+            req.rawBody = '';
+        }
+    }
+}));
 
 // Base de donnees (chemin absolu basé sur __dirname)
 const dbPath = path.join(__dirname, 'database.db');
@@ -231,6 +241,22 @@ CREATE TABLE IF NOT EXISTS login_logs (
 // Index pour accélérer les requêtes par user_id et par date
 db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id)");
 db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_at ON login_logs(logged_at)");
+
+// Run CRM migrations (clients, vehicles)
+try {
+    const runCrm = require('./migrations/crm');
+    runCrm(db).then(() => console.log('CRM migrations applied')).catch((e) => console.error('CRM migrations error:', e && e.message));
+} catch (e) {
+    console.error('CRM migrations load failed:', e && e.message);
+}
+
+// Register simple CRUD routes for CRM entities
+try {
+    require('./routes/clients')(app, db);
+    require('./routes/vehicles')(app, db);
+} catch (e) {
+    console.error('Failed to register CRM routes:', e && e.message);
+}
 
 // Normalise les doublons existants puis applique la contrainte d'unicité de créneau actif.
 db.serialize(() => {
@@ -2820,6 +2846,30 @@ app.get("/register", (req, res) => {
 
 ensureLoginLogsSchemaAsync().catch((error) => {
     console.error("Erreur initialisation login_logs:", error.message);
+});
+
+// Middleware global de gestion des erreurs de parsing JSON
+app.use((err, req, res, next) => {
+    if (err && err.type === 'entity.parse.failed') {
+        try {
+            const logsDir = path.join(__dirname, 'logs');
+            if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+            const logFile = path.join(logsDir, 'malformed-json.log');
+            const entry = {
+                at: new Date().toISOString(),
+                method: req.method,
+                url: req.originalUrl || req.url,
+                message: err.message,
+                rawBody: (req && req.rawBody) ? String(req.rawBody).slice(0, 2000) : ''
+            };
+            fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
+        } catch (e) {
+            console.error('Failed to write malformed JSON log:', e && e.message);
+        }
+        console.error('JSON parse error:', err.message);
+        return res.status(400).json({ error: 'Invalid JSON payload' });
+    }
+    return next(err);
 });
 
 // Start server
