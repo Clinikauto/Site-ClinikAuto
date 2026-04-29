@@ -258,6 +258,28 @@ try {
     console.error('Failed to register CRM routes:', e && e.message);
 }
 
+// Serve OpenAPI spec and Swagger UI (optional if dependency installed)
+try {
+    let swaggerUi = null;
+    try {
+        swaggerUi = require('swagger-ui-express');
+    } catch (err) {
+        console.log('swagger-ui-express not installed; skip /docs UI');
+    }
+
+    const openApiFile = path.join(__dirname, '..', 'docs', 'openapi', 'crm.yaml');
+    app.get('/openapi.yaml', (req, res) => {
+        res.sendFile(openApiFile);
+    });
+
+    if (swaggerUi) {
+        app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, { swaggerOptions: { url: '/openapi.yaml' } }));
+        console.log('Swagger UI available at /docs');
+    }
+} catch (e) {
+    console.error('Error mounting Swagger UI:', e && e.message);
+}
+
 // Normalise les doublons existants puis applique la contrainte d'unicité de créneau actif.
 db.serialize(() => {
     db.run(
