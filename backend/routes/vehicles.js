@@ -4,9 +4,16 @@ module.exports = function (app, db) {
   const router = express.Router();
 
   router.get('/', (req, res) => {
-    db.all('SELECT * FROM vehicles ORDER BY id DESC', [], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows || []);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const perPage = Math.min(200, Math.max(1, Number(req.query.per_page) || 25));
+    const offset = (page - 1) * perPage;
+
+    db.all('SELECT COUNT(*) AS total FROM vehicles', [], (cErr, cRow) => {
+      if (cErr) return res.status(500).json({ error: cErr.message });
+      db.all('SELECT * FROM vehicles ORDER BY id DESC LIMIT ? OFFSET ?', [perPage, offset], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ total: cRow.total || 0, page, per_page: perPage, data: rows || [] });
+      });
     });
   });
 
@@ -20,6 +27,9 @@ module.exports = function (app, db) {
 
   router.post('/', (req, res) => {
     const { client_id, marque, modele, annee, immatriculation, vin, km, notes } = req.body || {};
+    if (client_id && Number.isNaN(Number(client_id))) {
+      return res.status(400).json({ error: 'client_id invalide' });
+    }
     db.run(
       `INSERT INTO vehicles (client_id, marque, modele, annee, immatriculation, vin, km, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [client_id || null, marque || '', modele || '', annee || '', immatriculation || '', vin || '', km || 0, notes || ''],
@@ -35,6 +45,9 @@ module.exports = function (app, db) {
 
   router.put('/:id', (req, res) => {
     const { client_id, marque, modele, annee, immatriculation, vin, km, notes } = req.body || {};
+    if (client_id && Number.isNaN(Number(client_id))) {
+      return res.status(400).json({ error: 'client_id invalide' });
+    }
     db.run(
       `UPDATE vehicles SET client_id = ?, marque = ?, modele = ?, annee = ?, immatriculation = ?, vin = ?, km = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [client_id || null, marque || '', modele || '', annee || '', immatriculation || '', vin || '', km || 0, notes || '', req.params.id],

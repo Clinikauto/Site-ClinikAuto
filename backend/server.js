@@ -2872,35 +2872,46 @@ app.use((err, req, res, next) => {
     return next(err);
 });
 
-// Start server
-app.listen(3000, () => {
-    console.log("Serveur lance sur http://localhost:3000");
-    ensureAdminFromEnv();
+// Start server when invoked directly; export `app` for tests
+function startServer(port = 3000) {
+    const p = Number(process.env.PORT || port) || 3000;
+    const server = app.listen(p, () => {
+        console.log("Serveur lance sur http://localhost:" + p);
+        ensureAdminFromEnv();
 
-    if (GOOGLE_CALENDAR_SYNC_ENABLED) {
-        console.log("Sync Google Calendar activee (intervalle ms):", GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
-        // Lancement initial sans bloquer le démarrage serveur.
-        setTimeout(() => {
-            syncGoogleCalendarToAppointments({ force: true })
-                .then((result) => {
-                    if (result.error) {
-                        console.warn("Sync Google initiale en erreur:", result.error);
-                        return;
-                    }
-                    console.log(`Sync Google initiale OK: ${result.imported} importés / ${result.scanned} lus`);
-                })
-                .catch((err) => console.warn("Sync Google initiale impossible:", err.message));
-        }, 1500);
+        if (GOOGLE_CALENDAR_SYNC_ENABLED) {
+            console.log("Sync Google Calendar activee (intervalle ms):", GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+            // Lancement initial sans bloquer le démarrage serveur.
+            setTimeout(() => {
+                syncGoogleCalendarToAppointments({ force: true })
+                    .then((result) => {
+                        if (result.error) {
+                            console.warn("Sync Google initiale en erreur:", result.error);
+                            return;
+                        }
+                        console.log(`Sync Google initiale OK: ${result.imported} importés / ${result.scanned} lus`);
+                    })
+                    .catch((err) => console.warn("Sync Google initiale impossible:", err.message));
+            }, 1500);
 
-        googleCalendarSyncState.timer = setInterval(() => {
-            syncGoogleCalendarToAppointments({ force: true }).catch((err) => {
-                console.warn("Sync Google periodique impossible:", err.message);
-            });
-        }, GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
-    } else {
-        console.log("Sync Google Calendar desactivee (definir GOOGLE_CALENDAR_ICS_URL).");
-    }
-});
+            googleCalendarSyncState.timer = setInterval(() => {
+                syncGoogleCalendarToAppointments({ force: true }).catch((err) => {
+                    console.warn("Sync Google periodique impossible:", err.message);
+                });
+            }, GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+        } else {
+            console.log("Sync Google Calendar desactivee (definir GOOGLE_CALENDAR_ICS_URL).");
+        }
+    });
+
+    return server;
+}
+
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { app, startServer };
 
 // Proper DB close on exit
 process.on('SIGINT', () => {

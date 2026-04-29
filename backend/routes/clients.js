@@ -4,9 +4,16 @@ module.exports = function (app, db) {
   const router = express.Router();
 
   router.get('/', (req, res) => {
-    db.all('SELECT * FROM clients ORDER BY id DESC', [], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows || []);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const perPage = Math.min(200, Math.max(1, Number(req.query.per_page) || 25));
+    const offset = (page - 1) * perPage;
+
+    db.all('SELECT COUNT(*) AS total FROM clients', [], (cErr, cRow) => {
+      if (cErr) return res.status(500).json({ error: cErr.message });
+      db.all('SELECT * FROM clients ORDER BY id DESC LIMIT ? OFFSET ?', [perPage, offset], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ total: cRow.total || 0, page, per_page: perPage, data: rows || [] });
+      });
     });
   });
 
@@ -20,6 +27,9 @@ module.exports = function (app, db) {
 
   router.post('/', (req, res) => {
     const { nom, prenom, email, tel, adresse, notes } = req.body || {};
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      return res.status(400).json({ error: 'Email invalide' });
+    }
     db.run(
       `INSERT INTO clients (nom, prenom, email, tel, adresse, notes) VALUES (?, ?, ?, ?, ?, ?)`,
       [nom || '', prenom || '', email || '', tel || '', adresse || '', notes || ''],
@@ -35,6 +45,9 @@ module.exports = function (app, db) {
 
   router.put('/:id', (req, res) => {
     const { nom, prenom, email, tel, adresse, notes } = req.body || {};
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      return res.status(400).json({ error: 'Email invalide' });
+    }
     db.run(
       `UPDATE clients SET nom = ?, prenom = ?, email = ?, tel = ?, adresse = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [nom || '', prenom || '', email || '', tel || '', adresse || '', notes || '', req.params.id],
