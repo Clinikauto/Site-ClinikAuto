@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "vercel dev",
-    "test": "node tools/local-runner.js --ci",
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
     "local:start:test": "node tools/local-runner.js",
-    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe"
+    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe",
+    "docs": "cross-env NODE_ENV=development node backend/server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -21,6 +22,13 @@
     "raw-body": "^2.5.1",
     "sqlite3": "^6.0.1",
     "stripe": "^12.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "swagger-ui-express": "^4.6.3",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
   }
 }

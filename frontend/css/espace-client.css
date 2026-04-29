@@ -254,57 +254,6 @@
 .ec-veh-btn--del { background: #FFEBEE; color: var(--red); }
 .ec-veh-btn--del:hover { background: var(--red); color: var(--white); }
 
-/* === TABLEAU MES VEHICULES === */
-.ec-vehicles-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-.ec-vehicles-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 820px;
-}
-.ec-vehicles-table th,
-.ec-vehicles-table td {
-  padding: 12px 10px;
-  text-align: left;
-  border-bottom: 1px solid #eceff3;
-  vertical-align: middle;
-}
-.ec-vehicles-table thead th {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--grey);
-  background: #fafbfc;
-  font-weight: 800;
-}
-.ec-vehicles-table tbody tr:hover {
-  background: #f8fbff;
-}
-.ec-veh-row-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.ec-empty-note--cell {
-  text-align: center;
-  padding: 18px;
-}
-
-/* === GESTION === */
-.ec-gestion__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-
-.ec-gestion__btn {
-  justify-content: center;
-  width: 100%;
-  min-height: 44px;
-}
-
 /* === INFOS DISPLAY === */
 .ec-infos-display {
   display: grid;
@@ -438,5 +387,4 @@
   .ec-cta-rapide__btns { justify-content: center; }
   .ec-dash-header__inner { flex-direction: column; text-align: center; }
   .ec-section { padding: 20px; }
-  .ec-vehicles-table { min-width: 680px; }
 }

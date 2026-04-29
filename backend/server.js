@@ -3,6 +3,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const path = require("path");
+const fs = require('fs');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -57,7 +58,16 @@ app.use(
         }
     })
 );
-app.use(express.json({ limit: '30mb' }));
+app.use(express.json({
+    limit: '30mb',
+    verify: (req, res, buf, encoding) => {
+        try {
+            req.rawBody = buf && buf.toString(encoding || 'utf8');
+        } catch (_) {
+            req.rawBody = '';
+        }
+    }
+}));
 
 // Base de donnees (chemin absolu basé sur __dirname)
 const dbPath = path.join(__dirname, 'database.db');
@@ -231,6 +241,96 @@ CREATE TABLE IF NOT EXISTS login_logs (
 // Index pour accélérer les requêtes par user_id et par date
 db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id)");
 db.run("CREATE INDEX IF NOT EXISTS idx_login_logs_at ON login_logs(logged_at)");
+
+// Run CRM migrations (clients, vehicles)
+try {
+    const runCrm = require('./migrations/crm');
+    runCrm(db).then(() => console.log('CRM migrations applied')).catch((e) => console.error('CRM migrations error:', e && e.message));
+} catch (e) {
+    console.error('CRM migrations load failed:', e && e.message);
+}
+
+// Register simple CRUD routes for CRM entities
+try {
+    require('./routes/clients')(app, db);
+    require('./routes/vehicles')(app, db);
+    try {
+        require('./migrations/interventions')(db).then(() => console.log('Interventions migrations applied')).catch((e) => console.error('Interventions migrations error:', e && e.message));
+    } catch (e) {
+        console.error('Interventions migrations load failed:', e && e.message);
+    }
+    try {
+        require('./routes/interventions')(app, db);
+    } catch (e) {
+        console.error('Failed to register interventions routes:', e && e.message);
+    }
+} catch (e) {
+    console.error('Failed to register CRM routes:', e && e.message);
+}
+
+// Serve OpenAPI spec and Swagger UI (optional if dependency installed)
+try {
+    let swaggerUi = null;
+    try {
+        swaggerUi = require('swagger-ui-express');
+    } catch (err) {
+        console.log('swagger-ui-express not installed; skip /docs UI');
+    }
+
+    const openApiFile = path.join(__dirname, '..', 'docs', 'openapi', 'crm.yaml');
+    // Basic docs auth middleware (optional) - set DOCS_USER and DOCS_PASS to enable
+    function docsAuth(req, res, next) {
+        const user = String(process.env.DOCS_USER || '').trim();
+        const pass = String(process.env.DOCS_PASS || '').trim();
+        if (!user || !pass) return next();
+        const auth = String(req.headers.authorization || '');
+        if (!auth.startsWith('Basic ')) {
+            res.set('WWW-Authenticate', 'Basic realm="Docs"');
+            return res.status(401).send('Authentication required');
+        }
+        try {
+            const creds = Buffer.from(auth.slice(6), 'base64').toString('utf8');
+            const [u, p] = creds.split(':');
+            if (u === user && p === pass) return next();
+        } catch (_) {}
+        res.set('WWW-Authenticate', 'Basic realm="Docs"');
+        return res.status(401).send('Invalid credentials');
+    }
+
+    // Serve YAML (existing)
+    app.get('/openapi.yaml', docsAuth, (req, res) => {
+        res.sendFile(openApiFile);
+    });
+
+    // Serve JSON version by parsing YAML
+    try {
+        const yaml = require('js-yaml');
+        app.get('/openapi.json', docsAuth, (req, res) => {
+            try {
+                const content = fs.readFileSync(openApiFile, 'utf8');
+                const doc = yaml.load(content);
+                res.json(doc);
+            } catch (err) {
+                res.status(500).json({ error: 'Failed to parse OpenAPI YAML' });
+            }
+        });
+    } catch (err) {
+        console.log('js-yaml not available; skip /openapi.json');
+    }
+
+    // ReDoc HTML endpoint
+    app.get('/redoc', docsAuth, (req, res) => {
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>ReDoc</title></head><body><redoc spec-url='/openapi.json'></redoc><script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script></body></html>`;
+        res.type('html').send(html);
+    });
+
+    if (swaggerUi) {
+        app.use('/docs', docsAuth, swaggerUi.serve, swaggerUi.setup(null, { swaggerOptions: { url: '/openapi.yaml' } }));
+        console.log('Swagger UI available at /docs');
+    }
+} catch (e) {
+    console.error('Error mounting Swagger UI:', e && e.message);
+}
 
 // Normalise les doublons existants puis applique la contrainte d'unicité de créneau actif.
 db.serialize(() => {
@@ -2822,35 +2922,70 @@ ensureLoginLogsSchemaAsync().catch((error) => {
     console.error("Erreur initialisation login_logs:", error.message);
 });
 
-// Start server
-app.listen(3000, () => {
-    console.log("Serveur lance sur http://localhost:3000");
-    ensureAdminFromEnv();
-
-    if (GOOGLE_CALENDAR_SYNC_ENABLED) {
-        console.log("Sync Google Calendar activee (intervalle ms):", GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
-        // Lancement initial sans bloquer le démarrage serveur.
-        setTimeout(() => {
-            syncGoogleCalendarToAppointments({ force: true })
-                .then((result) => {
-                    if (result.error) {
-                        console.warn("Sync Google initiale en erreur:", result.error);
-                        return;
-                    }
-                    console.log(`Sync Google initiale OK: ${result.imported} importés / ${result.scanned} lus`);
-                })
-                .catch((err) => console.warn("Sync Google initiale impossible:", err.message));
-        }, 1500);
-
-        googleCalendarSyncState.timer = setInterval(() => {
-            syncGoogleCalendarToAppointments({ force: true }).catch((err) => {
-                console.warn("Sync Google periodique impossible:", err.message);
-            });
-        }, GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
-    } else {
-        console.log("Sync Google Calendar desactivee (definir GOOGLE_CALENDAR_ICS_URL).");
+// Middleware global de gestion des erreurs de parsing JSON
+app.use((err, req, res, next) => {
+    if (err && err.type === 'entity.parse.failed') {
+        try {
+            const logsDir = path.join(__dirname, 'logs');
+            if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+            const logFile = path.join(logsDir, 'malformed-json.log');
+            const entry = {
+                at: new Date().toISOString(),
+                method: req.method,
+                url: req.originalUrl || req.url,
+                message: err.message,
+                rawBody: (req && req.rawBody) ? String(req.rawBody).slice(0, 2000) : ''
+            };
+            fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
+        } catch (e) {
+            console.error('Failed to write malformed JSON log:', e && e.message);
+        }
+        console.error('JSON parse error:', err.message);
+        return res.status(400).json({ error: 'Invalid JSON payload' });
     }
+    return next(err);
 });
+
+// Start server when invoked directly; export `app` for tests
+function startServer(port = 3000) {
+    const p = Number(process.env.PORT || port) || 3000;
+    const server = app.listen(p, () => {
+        console.log("Serveur lance sur http://localhost:" + p);
+        ensureAdminFromEnv();
+
+        if (GOOGLE_CALENDAR_SYNC_ENABLED) {
+            console.log("Sync Google Calendar activee (intervalle ms):", GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+            // Lancement initial sans bloquer le démarrage serveur.
+            setTimeout(() => {
+                syncGoogleCalendarToAppointments({ force: true })
+                    .then((result) => {
+                        if (result.error) {
+                            console.warn("Sync Google initiale en erreur:", result.error);
+                            return;
+                        }
+                        console.log(`Sync Google initiale OK: ${result.imported} importés / ${result.scanned} lus`);
+                    })
+                    .catch((err) => console.warn("Sync Google initiale impossible:", err.message));
+            }, 1500);
+
+            googleCalendarSyncState.timer = setInterval(() => {
+                syncGoogleCalendarToAppointments({ force: true }).catch((err) => {
+                    console.warn("Sync Google periodique impossible:", err.message);
+                });
+            }, GOOGLE_CALENDAR_SYNC_INTERVAL_MS);
+        } else {
+            console.log("Sync Google Calendar desactivee (definir GOOGLE_CALENDAR_ICS_URL).");
+        }
+    });
+
+    return server;
+}
+
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { app, startServer };
 
 // Proper DB close on exit
 process.on('SIGINT', () => {
