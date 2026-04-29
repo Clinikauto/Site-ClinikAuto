@@ -174,6 +174,89 @@ paths:
         '200':
           description: Deletion result
 
+  /api/interventions:
+    get:
+      summary: List interventions (paginated)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Paginated interventions list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Intervention'
+    post:
+      summary: Create an intervention
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionCreate'
+      responses:
+        '201':
+          description: Intervention created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Intervention'
+
+  /api/interventions/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get intervention by id
+      responses:
+        '200':
+          description: Intervention
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Intervention'
+        '404':
+          description: Not found
+    put:
+      summary: Update intervention
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionCreate'
+      responses:
+        '200':
+          description: Updated intervention
+    delete:
+      summary: Delete intervention
+      responses:
+        '200':
+          description: Deletion result
+
 components:
   schemas:
     Client:
@@ -258,3 +341,53 @@ components:
           type: integer
         notes:
           type: string
+        required: [client_id]
+
+      Intervention:
+        type: object
+        properties:
+          id:
+            type: integer
+          client_id:
+            type: integer
+          vehicle_id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
+          status:
+            type: string
+          price:
+            type: number
+            format: float
+          scheduled_at:
+            type: string
+            format: date-time
+          completed_at:
+            type: string
+            format: date-time
+          created_at:
+            type: string
+            format: date-time
+
+      InterventionCreate:
+        type: object
+        properties:
+          client_id:
+            type: integer
+          vehicle_id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
+          status:
+            type: string
+          price:
+            type: number
+            format: float
+          scheduled_at:
+            type: string
+            format: date-time
+        required: [title]
