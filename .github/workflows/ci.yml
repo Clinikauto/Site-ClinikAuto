@@ -2,6 +2,47 @@ name: CI
 
 on:
   push:
+    branches: [ main, "cherry/remote-updates" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Start backend server
+        run: |
+          nohup node backend/server.js > server.out 2>&1 &
+          # wait for server to be up
+          for i in {1..10}; do
+            if curl -sSf http://localhost:3000/ >/dev/null; then
+              echo "server up"; break
+            fi
+            sleep 1
+          done
+
+      - name: Run smoke tests
+        run: |
+          node tools/smoke-test.js
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate || true
+name: CI
+
+on:
+  push:
     branches: [ main ]
   pull_request:
     branches: [ main ]

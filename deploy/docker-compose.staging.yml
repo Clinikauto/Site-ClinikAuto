@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    image: clinikauto/staging:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./backend/database.db:/app/backend/database.db
+      - ./frontend:/app/frontend:ro
+    restart: unless-stopped
