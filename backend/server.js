@@ -254,6 +254,16 @@ try {
 try {
     require('./routes/clients')(app, db);
     require('./routes/vehicles')(app, db);
+    try {
+        require('./migrations/interventions')(db).then(() => console.log('Interventions migrations applied')).catch((e) => console.error('Interventions migrations error:', e && e.message));
+    } catch (e) {
+        console.error('Interventions migrations load failed:', e && e.message);
+    }
+    try {
+        require('./routes/interventions')(app, db);
+    } catch (e) {
+        console.error('Failed to register interventions routes:', e && e.message);
+    }
 } catch (e) {
     console.error('Failed to register CRM routes:', e && e.message);
 }
