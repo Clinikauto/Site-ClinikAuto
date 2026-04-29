@@ -7,7 +7,8 @@
     "start": "vercel dev",
     "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
     "local:start:test": "node tools/local-runner.js",
-    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe"
+    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe",
+    "docs": "cross-env NODE_ENV=development node backend/server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
