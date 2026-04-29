@@ -1,4 +1,5 @@
 const express = require('express');
+const requireRole = require('../middleware/requireRole');
 
 module.exports = function registerInterventions(app, db) {
   const router = express.Router();
@@ -17,8 +18,8 @@ module.exports = function registerInterventions(app, db) {
     }
   });
 
-  // Create
-  router.post('/', (req, res) => {
+  // Create (requires role when PROTECT_API is enabled)
+  router.post('/', requireRole(['admin', 'mechanic', 'reception']), (req, res) => {
     const payload = req.body || {};
     const client_id = payload.client_id || null;
     const vehicle_id = payload.vehicle_id || null;
@@ -60,8 +61,8 @@ module.exports = function registerInterventions(app, db) {
     });
   });
 
-  // Update
-  router.put('/:id', (req, res) => {
+  // Update (requires role when PROTECT_API is enabled)
+  router.put('/:id', requireRole(['admin', 'mechanic', 'reception']), (req, res) => {
     const id = Number(req.params.id || 0);
     const payload = req.body || {};
     const title = payload.title || null;
@@ -95,8 +96,8 @@ module.exports = function registerInterventions(app, db) {
     });
   });
 
-  // Delete
-  router.delete('/:id', (req, res) => {
+  // Delete (requires role when PROTECT_API is enabled)
+  router.delete('/:id', requireRole(['admin', 'mechanic', 'reception']), (req, res) => {
     const id = Number(req.params.id || 0);
     db.run('DELETE FROM interventions WHERE id = ?', [id], function (err) {
       if (err) {
