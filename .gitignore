@@ -8,3 +8,10 @@ backend/*_server_stdout.log
 backend/*_server_stderr.log
 dist/
 *.xlsx
+frontend/node_modules/
+*.db
+backups/
+*.tar.gz
+*.zip
+archives/
+/.history/
