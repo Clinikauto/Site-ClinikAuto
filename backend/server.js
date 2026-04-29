@@ -268,12 +268,54 @@ try {
     }
 
     const openApiFile = path.join(__dirname, '..', 'docs', 'openapi', 'crm.yaml');
-    app.get('/openapi.yaml', (req, res) => {
+    // Basic docs auth middleware (optional) - set DOCS_USER and DOCS_PASS to enable
+    function docsAuth(req, res, next) {
+        const user = String(process.env.DOCS_USER || '').trim();
+        const pass = String(process.env.DOCS_PASS || '').trim();
+        if (!user || !pass) return next();
+        const auth = String(req.headers.authorization || '');
+        if (!auth.startsWith('Basic ')) {
+            res.set('WWW-Authenticate', 'Basic realm="Docs"');
+            return res.status(401).send('Authentication required');
+        }
+        try {
+            const creds = Buffer.from(auth.slice(6), 'base64').toString('utf8');
+            const [u, p] = creds.split(':');
+            if (u === user && p === pass) return next();
+        } catch (_) {}
+        res.set('WWW-Authenticate', 'Basic realm="Docs"');
+        return res.status(401).send('Invalid credentials');
+    }
+
+    // Serve YAML (existing)
+    app.get('/openapi.yaml', docsAuth, (req, res) => {
         res.sendFile(openApiFile);
     });
 
+    // Serve JSON version by parsing YAML
+    try {
+        const yaml = require('js-yaml');
+        app.get('/openapi.json', docsAuth, (req, res) => {
+            try {
+                const content = fs.readFileSync(openApiFile, 'utf8');
+                const doc = yaml.load(content);
+                res.json(doc);
+            } catch (err) {
+                res.status(500).json({ error: 'Failed to parse OpenAPI YAML' });
+            }
+        });
+    } catch (err) {
+        console.log('js-yaml not available; skip /openapi.json');
+    }
+
+    // ReDoc HTML endpoint
+    app.get('/redoc', docsAuth, (req, res) => {
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>ReDoc</title></head><body><redoc spec-url='/openapi.json'></redoc><script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script></body></html>`;
+        res.type('html').send(html);
+    });
+
     if (swaggerUi) {
-        app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, { swaggerOptions: { url: '/openapi.yaml' } }));
+        app.use('/docs', docsAuth, swaggerUi.serve, swaggerUi.setup(null, { swaggerOptions: { url: '/openapi.yaml' } }));
         console.log('Swagger UI available at /docs');
     }
 } catch (e) {

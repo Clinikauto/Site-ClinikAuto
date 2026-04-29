@@ -25,6 +25,10 @@
     "xlsx": "^0.18.5",
     "swagger-ui-express": "^4.6.3"
   }
+  ,
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
 
   ,"devDependencies": {
     "cross-env": "^7.0.3",
