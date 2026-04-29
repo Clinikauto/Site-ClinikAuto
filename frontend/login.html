@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Espace Client | ClinikAuto</title>
+    <meta name="description" content="Connectez-vous à votre espace client ClinikAuto pour gérer vos informations et vos services." />
+    <meta name="robots" content="noindex, follow" />
+    <meta name="author" content="ClinikAuto" />
+    <link rel="canonical" href="https://www.clinikauto.fr/login" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ClinikAuto" />
+    <meta property="og:title" content="Connexion Espace Client | ClinikAuto" />
+    <meta property="og:description" content="Accès sécurisé à l'espace client ClinikAuto." />
+    <meta property="og:url" content="https://www.clinikauto.fr/login" />
+    <meta property="og:image" content="https://www.clinikauto.fr/images/logo.jpg" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Connexion Espace Client | ClinikAuto" />
+    <meta name="twitter:description" content="Accès sécurisé à l'espace client ClinikAuto." />
+    <style>
+        :root {
+            --red: #D32F2F;
+            --red-dark: #B71C1C;
+            --blue: #1565C0;
+            --blue-dark: #0D47A1;
+            --dark: #1A1A1A;
+            --dark2: #2C2C2C;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Nunito', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 50%, #210d0d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+            width: 100%;
+            max-width: 400px;
+            border-top: 4px solid var(--red);
+        }
+        .brand-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 2px auto 14px;
+            border: 3px solid var(--red);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .welcome-note {
+            text-align: center;
+            color: var(--dark);
+            background: var(--light);
+            border: 1px solid #e8e8e8;
+            border-left: 3px solid var(--blue);
+            border-radius: 10px;
+            padding: 12px 10px;
+            margin: -10px 0 18px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
+        }
+            button,
+            .back-btn {
+            width: 100%;
+                display: block;
+            padding: 12px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+            }
+            button {
+            margin-top: 20px;
+        }
+            button:hover,
+            .back-btn:hover {
+            background: var(--red-dark);
+        }
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.show {
+            display: block;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .signup-link a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .admin-access {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(21, 101, 192, 0.06), rgba(211, 47, 47, 0.1));
+            border: 1px solid rgba(21, 101, 192, 0.2);
+        }
+        .admin-access h2 {
+            font-size: 16px;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+        .admin-access p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .helper-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: var(--blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .helper-link:hover {
+            text-decoration: underline;
+        }
+        .reset-panel {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid rgba(21, 101, 192, 0.2);
+            display: none;
+        }
+        .reset-panel.show {
+            display: block;
+        }
+        .reset-panel h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .reset-panel p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .back-btn {
+            margin-bottom: 18px;
+        }
+        .admin-access__btn {
+            margin-top: 12px;
+            background: var(--blue);
+        }
+        .admin-access__btn:hover {
+            background: var(--blue-dark);
+        }
+        .first-login-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 15, 23, 0.62);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+        .first-login-modal.show {
+            display: flex;
+        }
+        .first-login-modal__card {
+            width: 100%;
+            max-width: 540px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+            padding: 24px;
+            border-top: 4px solid var(--blue);
+        }
+        .first-login-modal__title {
+            margin: 0 0 12px;
+            color: var(--dark);
+            font-size: 22px;
+        }
+        .first-login-modal__text {
+            color: #3f3f3f;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .first-login-modal__actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .first-login-modal__actions button {
+            margin-top: 0;
+            flex: 1;
+            min-width: 180px;
+        }
+        .btn-secondary {
+            background: #eceff4;
+            color: #232323;
+        }
+        .btn-secondary:hover {
+            background: #d9dee7;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            input, button {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            input, button {
+                padding: 10px !important;
+                font-size: 14px;
+            }
+            label {
+                font-size: 13px;
+            }
+        }
+    </style>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-922P3Q1MBQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-922P3Q1MBQ');
+    </script>
+</head>
+<body>
+    <script>
+      // login.html est conservé pour compatibilité - l'espace client est sur espace-client.html
+      // Si l'utilisateur arrive ici, on le redirige directement
+      window.location.replace('espace-client.html');
+    </script>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Retour</a>
+        <img src="images/logo.jpg" alt="Logo ClinikAuto" class="brand-logo">
+        <h1>🔐 Connexion</h1>
+        <p class="welcome-note">Bienvenue dans votre espace personnel, entrez vos identifiants pour vous connecter.</p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Se connecter</button>
+        </form>
+        <div class="message" id="message"></div>
+        <a href="#" class="helper-link" id="forgotPasswordLink">Mot de passe oublié ?</a>
+        <div class="reset-panel" id="resetPanel">
+            <h2>Réinitialiser le mot de passe</h2>
+            <p>Saisissez votre email et choisissez un nouveau mot de passe.</p>
+            <form id="resetForm">
+                <div class="form-group">
+                    <label for="resetEmail">Email :</label>
+                    <input type="email" id="resetEmail" name="resetEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="resetPassword">Nouveau mot de passe :</label>
+                    <input type="password" id="resetPassword" name="resetPassword" minlength="8" required>
+                </div>
+                <div class="form-group">
+                    <label for="resetPasswordConfirm">Confirmer le nouveau mot de passe :</label>
+                    <input type="password" id="resetPasswordConfirm" name="resetPasswordConfirm" minlength="8" required>
+                </div>
+                <button type="submit">Réinitialiser mon mot de passe</button>
+            </form>
+        </div>
+        <div class="signup-link">
+            Pas encore inscrit ? <a href="register.html">S'inscrire ici</a>
+        </div>
+        <div class="admin-access">
+            <h2>Accès privé administrateur</h2>
+            <button type="button" class="admin-access__btn" id="adminAccessBtn">Ouvrir le tableau de bord admin</button>
+        </div>
+    </div>
+
+    <div class="first-login-modal" id="firstLoginModal" aria-hidden="true" role="dialog" aria-labelledby="firstLoginTitle">
+        <div class="first-login-modal__card">
+            <h2 class="first-login-modal__title" id="firstLoginTitle">Bienvenue chez ClinikAuto</h2>
+            <p class="first-login-modal__text" id="firstLoginText"></p>
+            <div class="first-login-modal__actions">
+                <button type="button" id="firstLoginCreateNow">Créer mon mot de passe maintenant</button>
+                <button type="button" class="btn-secondary" id="firstLoginLater">Plus tard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/analytics.js"></script>
+    <script src="js/validation-autofill.js"></script>
+    <script>
+        const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const LOGIN_EMAIL_KEY = "clinikauto_login_email";
+        const messageDiv = document.getElementById("message");
+        const resetPanel = document.getElementById("resetPanel");
+        const firstLoginModal = document.getElementById("firstLoginModal");
+        const firstLoginText = document.getElementById("firstLoginText");
+        let dismissedOnboardingEmail = "";
+
+        function isEmailFormatValid(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+        }
+
+        function openFirstLoginModal(name, email) {
+            const person = String(name || "").trim() || email;
+            firstLoginText.textContent = `Bienvenue ${person}, vous êtes déjà client ClinikAuto. Votre compte est créé. Pour votre première connexion, choisissez votre mot de passe pour activer votre espace personnel.`;
+            firstLoginModal.classList.add("show");
+            firstLoginModal.setAttribute("aria-hidden", "false");
+            firstLoginModal.dataset.email = email;
+        }
+
+        function closeFirstLoginModal() {
+            firstLoginModal.classList.remove("show");
+            firstLoginModal.setAttribute("aria-hidden", "true");
+        }
+
+        async function checkOnboardingByEmail(rawEmail) {
+            const email = String(rawEmail || "").trim().toLowerCase();
+            if (!isEmailFormatValid(email) || email === dismissedOnboardingEmail) {
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + "/client-onboarding-status?email=" + encodeURIComponent(email));
+                if (!response.ok) {
+                    return;
+                }
+                const payload = await response.json();
+                if (payload && payload.found && !payload.hasPassword) {
+                    openFirstLoginModal(payload.displayName || "", email);
+                }
+            } catch (_error) {
+                // Vérification optionnelle: ignorer silencieusement en cas d'indisponibilité réseau.
+            }
+        }
+
+        function hasStoredSessionToken() {
+            try {
+                return Boolean(sessionStorage.getItem("token") || localStorage.getItem("token"));
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        function saveLoginEmail(email) {
+            localStorage.setItem(LOGIN_EMAIL_KEY, String(email || "").trim().toLowerCase());
+        }
+
+        function getStoredToken() {
+            const sessionToken = sessionStorage.getItem("token");
+            if (sessionToken) {
+                return sessionToken;
+            }
+            const legacyToken = localStorage.getItem("token");
+            if (legacyToken) {
+                sessionStorage.setItem("token", legacyToken);
+                localStorage.removeItem("token");
+                return legacyToken;
+            }
+            return "";
+        }
+
+        async function doLogin(rawEmail, rawPassword, silent) {
+            const email = String(rawEmail || "").trim().toLowerCase();
+            const password = String(rawPassword || "");
+
+            const response = await fetch(API_BASE + "/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (!silent && data && data.code === "FIRST_LOGIN_SETUP_REQUIRED") {
+                    openFirstLoginModal("", email);
+                }
+                const err = new Error((data && data.error) || "Erreur de connexion");
+                err.code = data && data.code ? data.code : "";
+                throw err;
+            }
+
+            sessionStorage.setItem("token", data.token);
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            saveLoginEmail(email);
+            if (window.ClinikAutoAnalytics) {
+                window.ClinikAutoAnalytics.trackEvent("login_success", { role: data.user.role });
+            }
+
+            return data;
+        }
+
+        document.getElementById("adminAccessBtn").addEventListener("click", () => {
+            if (hasStoredSessionToken()) {
+                window.location.href = "admin.html";
+                return;
+            }
+            document.getElementById("email").focus();
+            messageDiv.textContent = "🔒 Connectez-vous avec votre compte administrateur pour ouvrir le tableau de bord.";
+            messageDiv.className = "message success show";
+        });
+
+        document.getElementById("email").addEventListener("blur", (event) => {
+            checkOnboardingByEmail(event.target.value);
+        });
+
+        document.getElementById("firstLoginCreateNow").addEventListener("click", () => {
+            const email = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+            closeFirstLoginModal();
+            resetPanel.classList.add("show");
+            document.getElementById("resetEmail").value = email;
+            document.getElementById("resetPassword").focus();
+            messageDiv.textContent = "✅ Première connexion détectée : choisissez maintenant votre mot de passe.";
+            messageDiv.className = "message success show";
+        });
+
+        document.getElementById("firstLoginLater").addEventListener("click", () => {
+            dismissedOnboardingEmail = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+            closeFirstLoginModal();
+            messageDiv.textContent = "ℹ️ Vous pourrez créer votre mot de passe plus tard via \"Mot de passe oublié\".";
+            messageDiv.className = "message success show";
+        });
+
+        firstLoginModal.addEventListener("click", (event) => {
+            if (event.target === firstLoginModal) {
+                dismissedOnboardingEmail = String(firstLoginModal.dataset.email || "").trim().toLowerCase();
+                closeFirstLoginModal();
+            }
+        });
+
+        document.getElementById("forgotPasswordLink").addEventListener("click", (event) => {
+            event.preventDefault();
+            resetPanel.classList.toggle("show");
+            const emailValue = document.getElementById("email").value.trim();
+            if (emailValue) {
+                document.getElementById("resetEmail").value = emailValue;
+            }
+            if (resetPanel.classList.contains("show")) {
+                document.getElementById("resetEmail").focus();
+            }
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const data = await doLogin(email, password, false);
+                messageDiv.textContent = "✅ Connexion réussie ! Bienvenue " + data.user.email;
+                messageDiv.className = "message success show";
+
+                setTimeout(() => {
+                    window.location.href = data.user.role === "admin" ? "admin.html" : "espace-client.html";
+                }, 500);
+            } catch (error) {
+                messageDiv.textContent = "❌ " + (error && error.message ? error.message : "Erreur de connexion au serveur");
+                messageDiv.className = "message error show";
+                console.error("Erreur:", error);
+            }
+        });
+
+        document.getElementById("resetForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("resetEmail").value.trim().toLowerCase();
+            const newPassword = document.getElementById("resetPassword").value;
+            const confirmPassword = document.getElementById("resetPasswordConfirm").value;
+
+            if (newPassword.length < 8) {
+                messageDiv.textContent = "❌ Le nouveau mot de passe doit contenir au moins 8 caractères.";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                messageDiv.textContent = "❌ Les mots de passe ne correspondent pas.";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + "/forgot-password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("email").value = email;
+                    document.getElementById("password").value = "";
+                    document.getElementById("resetForm").reset();
+                    resetPanel.classList.remove("show");
+                    if (data && data.emailSent) {
+                        messageDiv.textContent = "✅ Mot de passe réinitialisé. Un email automatique a été envoyé au client.";
+                    } else {
+                        messageDiv.textContent = "✅ Mot de passe réinitialisé. Email non envoyé (SMTP non configuré).";
+                    }
+                    messageDiv.className = "message success show";
+                } else {
+                    messageDiv.textContent = "❌ " + data.error;
+                    messageDiv.className = "message error show";
+                }
+            } catch (error) {
+                messageDiv.textContent = "❌ Erreur de connexion au serveur";
+                messageDiv.className = "message error show";
+                console.error("Erreur:", error);
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            const emailInput = document.getElementById("email");
+            const passwordInput = document.getElementById("password");
+            const savedEmail = String(localStorage.getItem(LOGIN_EMAIL_KEY) || "").trim().toLowerCase();
+            if (savedEmail && !emailInput.value) {
+                emailInput.value = savedEmail;
+            }
+
+            if (hasStoredSessionToken()) {
+                const token = getStoredToken();
+                try {
+                    const tokenPayload = JSON.parse(atob(token.split(".")[1] || ""));
+                    const role = String(tokenPayload && tokenPayload.role || "client").toLowerCase();
+                    const probeUrl = role === "admin" ? "/admin/profile" : "/me/profile";
+                    const meResponse = await fetch(API_BASE + probeUrl, {
+                        headers: { "Authorization": "Bearer " + token }
+                    });
+                    if (meResponse.ok) {
+                        window.location.href = role === "admin" ? "admin.html" : "espace-client.html";
+                        return;
+                    }
+                } catch (_err) {
+                }
+            }
+
+            passwordInput.focus();
+        });
+    </script>
+</body>
+</html>

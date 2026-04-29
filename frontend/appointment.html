@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Prendre Rendez-vous Garage à Scionzier | ClinikAuto</title>
+        <meta name="description" content="Prenez rendez-vous en ligne chez ClinikAuto à Scionzier (74950) pour réparation, entretien, pneus et diagnostic automobile." />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="ClinikAuto" />
+        <link rel="canonical" href="https://www.clinikauto.fr/appointment" />
+        <meta property="og:locale" content="fr_FR" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="ClinikAuto" />
+        <meta property="og:title" content="Prendre Rendez-vous Garage à Scionzier | ClinikAuto" />
+        <meta property="og:description" content="Réservez votre créneau en ligne chez ClinikAuto pour vos besoins automobile." />
+        <meta property="og:url" content="https://www.clinikauto.fr/appointment" />
+        <meta property="og:image" content="https://www.clinikauto.fr/images/logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Prendre Rendez-vous Garage à Scionzier | ClinikAuto" />
+        <meta name="twitter:description" content="Réservation rapide de rendez-vous automobile en ligne." />
+        <meta name="twitter:image" content="https://www.clinikauto.fr/images/logo.jpg" />
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "Prise de rendez-vous atelier ClinikAuto",
+            "provider": {
+                "@type": "AutoRepair",
+                "name": "ClinikAuto",
+                "url": "https://www.clinikauto.fr/"
+            },
+            "areaServed": "Haute-Savoie",
+            "serviceType": "Entretien et réparation automobile",
+            "url": "https://www.clinikauto.fr/appointment"
+        }
+        </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .navbar {
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 {
+            font-size: 24px;
+        }
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: #764ba2;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Calendrier */
+        .calendar {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-header h3 {
+            color: #333;
+        }
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        .calendar-nav button {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .calendar-nav button:hover {
+            background: #764ba2;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            padding: 10px 0;
+            font-size: 12px;
+        }
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            background: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .day-cell:hover {
+            background: #f0f0f0;
+        }
+        .day-cell.other-month {
+            color: #ccc;
+            cursor: default;
+        }
+        .day-cell.other-month:hover {
+            background: white;
+        }
+        .day-cell.selected {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        .day-cell.today {
+            border: 2px solid #667eea;
+        }
+
+        /* Horaires */
+        .times {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .times-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .time-slot {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .time-slot:hover {
+            background: #f0f0f0;
+        }
+        .time-slot.available {
+            cursor: pointer;
+        }
+        .time-slot.booked {
+            background: #f8d7da;
+            color: #721c24;
+            cursor: not-allowed;
+        }
+        .time-slot.selected {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button.submit-btn:hover {
+            background: #764ba2;
+        }
+        button.submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.show {
+            display: block;
+        }
+        .selected-date-display {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .times-empty {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #999;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 15px;
+            }
+            .navbar h1 {
+                font-size: 18px;
+            }
+            .back-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+            .container {
+                padding: 10px;
+            }
+            .form-card {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+            input, select {
+                font-size: 16px;
+            }
+            .times-grid {
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar h1 {
+                font-size: 16px;
+            }
+            .container {
+                padding: 5px;
+            }
+            .form-card {
+                padding: 15px 10px;
+            }
+            h2 {
+                font-size: 16px;
+            }
+            label {
+                font-size: 14px;
+            }
+            input, select {
+                padding: 10px !important;
+                font-size: 14px;
+            }
+            .time-slot {
+                padding: 8px;
+                font-size: 12px;
+            }
+            .times-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            }
+        }
+    </style>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-922P3Q1MBQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-922P3Q1MBQ');
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🚗 Clinik Auto</h1>
+        <a href="dashboard.html" class="back-btn">← Retour</a>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <h2>📅 Prendre un rendez-vous</h2>
+            <form id="appointmentForm">
+                <div class="form-group">
+                    <label for="service">Service :</label>
+                    <select id="service" name="service" required>
+                        <option value="">-- Sélectionne un service --</option>
+                        <option value="Réparation">🔧 Réparation</option>
+                        <option value="Lavage">🧼 Lavage</option>
+                        <option value="Pneus">🛞 Pneus</option>
+                        <option value="Électricité">⚡ Électricité</option>
+                    </select>
+                </div>
+
+                <!-- CALENDRIER -->
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <h3 id="monthYear"></h3>
+                        <div class="calendar-nav">
+                            <button type="button" onclick="previousMonth()">← Mois précédent</button>
+                            <button type="button" onclick="nextMonth()">Mois suivant →</button>
+                        </div>
+                    </div>
+                    <div class="days" id="calendar"></div>
+                </div>
+
+                <input type="hidden" id="date" name="date" required>
+                <div id="selectedDateDisplay" class="selected-date-display"></div>
+
+                <!-- HORAIRES -->
+                <div class="times">
+                    <label>Horaires disponibles :</label>
+                    <div class="times-grid" id="timesContainer">
+                        <p class="times-empty">Sélectionne d'abord une date</p>
+                    </div>
+                </div>
+
+                <input type="hidden" id="time" name="time" required>
+
+                <button type="submit" class="submit-btn">Confirmer le RDV</button>
+            </form>
+            <div class="message" id="message"></div>
+        </div>
+    </div>
+
+    <script src="js/analytics.js"></script>
+    <script src="js/app-data.js"></script>
+    <script src="js/validation-autofill.js"></script>
+    <script>
+        const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        let currentDate = new Date();
+        let selectedDate = null;
+        let selectedTime = null;
+        let appointmentSubmitted = false;
+
+        function hasPendingAppointment() {
+            const service = document.getElementById("service").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+            return !appointmentSubmitted && Boolean(service || date || time);
+        }
+
+        function confirmLeaveAppointment() {
+            if (!hasPendingAppointment()) {
+                return true;
+            }
+            return window.confirm(
+                "Une réservation de rendez-vous est en cours et non validée.\\n\\n"
+                + "Confirmer pour quitter sans enregistrer."
+            );
+        }
+
+        document.querySelectorAll("a[href]").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                const href = link.getAttribute("href") || "";
+                if (!href || href.startsWith("#")) {
+                    return;
+                }
+                if (!confirmLeaveAppointment()) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        window.addEventListener("beforeunload", (event) => {
+            if (!hasPendingAppointment()) {
+                return;
+            }
+            event.preventDefault();
+            event.returnValue = "";
+        });
+
+        function toLocalDateString(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const day = String(dateObj.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function generateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById("monthYear").textContent = 
+                new Date(year, month).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            const calendar = document.getElementById("calendar");
+            calendar.innerHTML = "";
+
+            // En-têtes des jours
+            const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement("div");
+                dayHeader.className = "day-header";
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+
+            // Jours du mois précédent
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+                const dayCell = document.createElement("div");
+                dayCell.className = "day-cell other-month";
+                dayCell.textContent = prevMonthLastDay - i;
+                calendar.appendChild(dayCell);
+            }
+
+            // Jours du mois actuel
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement("div");
+                const cellDate = new Date(year, month, day);
+                const dateStr = toLocalDateString(cellDate);
+
+                dayCell.className = "day-cell";
+                dayCell.textContent = day;
+
+                // Marquer aujourd'hui
+                if (cellDate.toDateString() === today.toDateString()) {
+                    dayCell.classList.add("today");
+                }
+
+                // Sélectionné
+                if (selectedDate === dateStr) {
+                    dayCell.classList.add("selected");
+                }
+
+                // Désactiver les dates passées
+                if (cellDate < today) {
+                    dayCell.classList.add("other-month");
+                    dayCell.style.cursor = "not-allowed";
+                } else {
+                    dayCell.onclick = () => selectDate(dateStr);
+                }
+
+                calendar.appendChild(dayCell);
+            }
+
+            // Jours du mois suivant
+            const totalCells = calendar.children.length - 7; // -7 pour les en-têtes
+            const remainingCells = 42 - totalCells; // 6 lignes * 7 jours
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayCell = document.createElement("div");
+                dayCell.className = "day-cell other-month";
+                dayCell.textContent = day;
+                calendar.appendChild(dayCell);
+            }
+        }
+
+        async function selectDate(dateStr) {
+            selectedDate = dateStr;
+            selectedTime = null;
+            document.getElementById("date").value = dateStr;
+            document.getElementById("time").value = "";
+
+            if (typeof AppData !== 'undefined') {
+                AppData.save('selectedDate', dateStr);
+            }
+
+            const [year, month, day] = dateStr.split("-").map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            document.getElementById("selectedDateDisplay").textContent = 
+                "📅 " + dateObj.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+            generateCalendar();
+            await loadAvailableTimes(dateStr);
+        }
+
+        async function loadAvailableTimes(date) {
+            try {
+                const response = await fetch(`/available-times/${date}`);
+                const data = await response.json();
+
+                const timesContainer = document.getElementById("timesContainer");
+                timesContainer.innerHTML = "";
+
+                if (data.available.length === 0) {
+                    timesContainer.innerHTML = '<p class="text-center muted">❌ Aucun créneau disponible ce jour</p>';
+                    return;
+                }
+
+                data.all.forEach(time => {
+                    const timeSlot = document.createElement("div");
+                    timeSlot.className = "time-slot";
+                    timeSlot.dataset.time = time;
+
+                    if (data.available.includes(time)) {
+                        timeSlot.classList.add("available");
+                        timeSlot.textContent = time;
+                        timeSlot.onclick = () => selectTime(time, timeSlot);
+                    } else {
+                        timeSlot.classList.add("booked");
+                        timeSlot.textContent = time + " ❌";
+                    }
+
+                    if (selectedTime === time) {
+                        timeSlot.classList.add("selected");
+                    }
+
+                    timesContainer.appendChild(timeSlot);
+                });
+            } catch (error) {
+                console.error("Erreur:", error);
+            }
+        }
+
+        function selectTime(time, element) {
+            selectedTime = time;
+            document.getElementById("time").value = time;
+
+            if (typeof AppData !== 'undefined' && selectedDate) {
+                AppData.save('selectedDate', selectedDate + ' ' + time);
+            }
+
+            // Désélectionner tous les créneaux
+            document.querySelectorAll(".time-slot").forEach(slot => {
+                slot.classList.remove("selected");
+            });
+
+            // Sélectionner le créneau cliqué
+            element.classList.add("selected");
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar();
+        }
+
+        document.getElementById("appointmentForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const service = document.getElementById("service").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+            const messageDiv = document.getElementById("message");
+
+            if (!date || !time) {
+                messageDiv.textContent = "❌ Sélectionne une date et une heure";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            try {
+                if (typeof AppData !== 'undefined') {
+                    AppData.save('selectedService', service || '');
+                    AppData.save('selectedDate', (date || '') + (time ? (' ' + time) : ''));
+                }
+
+                const response = await fetch(API_BASE + "/appointment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        service,
+                        date,
+                        time
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    appointmentSubmitted = true;
+                    messageDiv.textContent = "✅ Rendez-vous confirmé ! RDV #" + data.appointment_id;
+                    messageDiv.className = "message success show";
+                    document.getElementById("appointmentForm").reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = "dashboard.html";
+                    }, 2000);
+                } else {
+                    messageDiv.textContent = "❌ " + data.error;
+                    messageDiv.className = "message error show";
+                }
+            } catch (error) {
+                messageDiv.textContent = "❌ Erreur de connexion au serveur";
+                messageDiv.className = "message error show";
+                console.error("Erreur:", error);
+            }
+        });
+
+        // Initialiser le calendrier au chargement
+        generateCalendar();
+
+        if (typeof AppData !== 'undefined') {
+            const savedService = AppData.get('selectedService');
+            if (savedService) {
+                const serviceSelect = document.getElementById('service');
+                if (serviceSelect) {
+                    Array.from(serviceSelect.options).forEach((option) => {
+                        if (option.value === savedService) {
+                            serviceSelect.value = savedService;
+                        }
+                    });
+                }
+            }
+        }
+
+        // Prefill date+heure si on arrive depuis agenda.html (?date=YYYY-MM-DD&time=HH:MM)
+        (function prefillFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const dateParam = params.get('date');
+            const timeParam = params.get('time');
+            if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+                const [y, m, d] = dateParam.split('-').map(Number);
+                currentDate = new Date(y, m - 1, d);
+                selectDate(dateParam).then(() => {
+                    if (timeParam) {
+                        const slot = document.querySelector(`.time-slot[data-time="${timeParam}"]`);
+                        if (slot && !slot.classList.contains('booked')) {
+                            selectTime(timeParam, slot);
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

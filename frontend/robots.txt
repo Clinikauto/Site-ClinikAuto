@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Zones privees hors indexation
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /login
+Disallow: /login.html
+Disallow: /register
+Disallow: /register.html
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /espace-client
+Disallow: /espace-client.html
+
+Sitemap: https://www.clinikauto.fr/sitemap.xml

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Compte Client | ClinikAuto</title>
+    <meta name="description" content="Créez votre compte client ClinikAuto pour faciliter vos rendez-vous et le suivi de vos véhicules." />
+    <meta name="robots" content="noindex, follow" />
+    <meta name="author" content="ClinikAuto" />
+    <link rel="canonical" href="https://www.clinikauto.fr/register" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ClinikAuto" />
+    <meta property="og:title" content="Créer un Compte Client | ClinikAuto" />
+    <meta property="og:description" content="Inscription rapide à l'espace client ClinikAuto." />
+    <meta property="og:url" content="https://www.clinikauto.fr/register" />
+    <meta property="og:image" content="https://www.clinikauto.fr/images/logo.jpg" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Créer un Compte Client | ClinikAuto" />
+    <meta name="twitter:description" content="Inscription à l'espace client ClinikAuto." />
+    <style>
+        :root {
+            --red: #D32F2F;
+            --red-dark: #B71C1C;
+            --blue: #1565C0;
+            --blue-dark: #0D47A1;
+            --dark: #1A1A1A;
+            --dark2: #2C2C2C;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Nunito', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 50%, #210d0d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+            width: 100%;
+            max-width: 400px;
+            border-top: 4px solid var(--red);
+        }
+        .brand-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 2px auto 14px;
+            border: 3px solid var(--red);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--blue);
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: var(--red-dark);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.show {
+            display: block;
+        }
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .welcome-note {
+            text-align: center;
+            color: var(--dark);
+            background: var(--light);
+            border: 1px solid #e8e8e8;
+            border-left: 3px solid var(--blue);
+            border-radius: 10px;
+            padding: 12px 10px;
+            margin: 0 0 14px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .links a {
+            color: var(--blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: var(--blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            input {
+                padding: 10px;
+                font-size: 14px;
+            }
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-922P3Q1MBQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-922P3Q1MBQ');
+    </script>
+</head>
+<body>
+    <div class="container">
+    <a href="espace-client.html" class="back-link">← Retour à la connexion</a>
+    <img src="images/logo.jpg" alt="Logo ClinikAuto" class="brand-logo">
+        <h1>🚗 Clinik Auto</h1>
+        <h2 class="subtitle">S'inscrire</h2>
+    <p class="welcome-note">Bienvenue dans votre espace personnel, entrez vos identifiants pour vous connecter.</p>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nom">Nom :</label>
+                <input type="text" id="nom" name="nom" required autocomplete="family-name">
+            </div>
+
+            <div class="form-group">
+                <label for="prenom">Prénom :</label>
+                <input type="text" id="prenom" name="prenom" required autocomplete="given-name">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required autocomplete="new-password">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirmer le mot de passe :</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
+            </div>
+            
+            <button type="submit">S'inscrire</button>
+        </form>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="links">
+            <p>Si votre espace est déjà créé, <a href="espace-client.html">connectez-vous ici</a>.</p>
+        </div>
+    </div>
+
+    <script src="js/analytics.js"></script>
+    <script src="js/validation-autofill.js"></script>
+    <script>
+        const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+        const REGISTER_PREFILL_KEY = "clinikauto_register_prefill";
+        const registerForm = document.getElementById("registerForm");
+        const nomInput = document.getElementById("nom");
+        const prenomInput = document.getElementById("prenom");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const confirmPasswordInput = document.getElementById("confirmPassword");
+        let registerDirty = false;
+        let registerSubmitted = false;
+        let passwordSuggestionShown = false;
+
+        function generateSecurePassword(length = 14) {
+            const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+            const lowercase = "abcdefghijkmnopqrstuvwxyz";
+            const digits = "23456789";
+            const symbols = "!@#$%*_-+?";
+            const all = uppercase + lowercase + digits + symbols;
+
+            const out = [
+                uppercase[Math.floor(Math.random() * uppercase.length)],
+                lowercase[Math.floor(Math.random() * lowercase.length)],
+                digits[Math.floor(Math.random() * digits.length)],
+                symbols[Math.floor(Math.random() * symbols.length)]
+            ];
+
+            for (let i = out.length; i < length; i++) {
+                out.push(all[Math.floor(Math.random() * all.length)]);
+            }
+
+            for (let i = out.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = out[i];
+                out[i] = out[j];
+                out[j] = tmp;
+            }
+
+            return out.join("");
+        }
+
+        function applyRegisterPrefill() {
+            let prefill = null;
+            try {
+                prefill = JSON.parse(sessionStorage.getItem(REGISTER_PREFILL_KEY) || "null");
+            } catch (_err) {
+                prefill = null;
+            }
+
+            if (!prefill) {
+                return;
+            }
+
+            if (prefill.nom && !nomInput.value.trim()) {
+                nomInput.value = prefill.nom;
+            }
+            if (prefill.prenom && !prenomInput.value.trim()) {
+                prenomInput.value = prefill.prenom;
+            }
+            if (prefill.email && !emailInput.value.trim()) {
+                emailInput.value = prefill.email;
+            }
+
+            sessionStorage.removeItem(REGISTER_PREFILL_KEY);
+        }
+
+        applyRegisterPrefill();
+
+        function hasPendingRegister() {
+            return registerDirty && !registerSubmitted;
+        }
+
+        function confirmLeaveRegister() {
+            if (!hasPendingRegister()) {
+                return true;
+            }
+            return window.confirm(
+                "Une création de compte est en cours et n'a pas été validée.\\n\\n"
+                + "Confirmer pour quitter sans enregistrer."
+            );
+        }
+
+        document.querySelectorAll("a[href]").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                const href = link.getAttribute("href") || "";
+                if (!href || href.startsWith("#")) {
+                    return;
+                }
+                if (!confirmLeaveRegister()) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        window.addEventListener("beforeunload", (event) => {
+            if (!hasPendingRegister()) {
+                return;
+            }
+            event.preventDefault();
+            event.returnValue = "";
+        });
+
+        registerForm.querySelectorAll("input").forEach((el) => {
+            el.addEventListener("input", () => {
+                registerDirty = true;
+                registerSubmitted = false;
+            });
+        });
+
+        passwordInput.addEventListener("focus", () => {
+            if (passwordSuggestionShown) {
+                return;
+            }
+            passwordSuggestionShown = true;
+            const wantsGenerated = window.confirm(
+                "Voulez-vous générer automatiquement un mot de passe sécurisé ?"
+            );
+            if (!wantsGenerated) {
+                return;
+            }
+
+            const generated = generateSecurePassword();
+            passwordInput.value = generated;
+            confirmPasswordInput.value = generated;
+            registerDirty = true;
+            registerSubmitted = false;
+            window.alert("Mot de passe sécurisé généré automatiquement. Vous pouvez le modifier si besoin.");
+        });
+
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const nom = nomInput.value.trim();
+            const prenom = prenomInput.value.trim();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const messageDiv = document.getElementById("message");
+
+            if (!nom || !prenom) {
+                messageDiv.textContent = "❌ Nom et prénom sont obligatoires";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            // Vérifier que les mots de passe correspondent
+            if (password !== confirmPassword) {
+                messageDiv.textContent = "❌ Les mots de passe ne correspondent pas";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            // Vérifier que le mot de passe a au moins 6 caractères
+            if (password.length < 6) {
+                messageDiv.textContent = "❌ Le mot de passe doit avoir au moins 6 caractères";
+                messageDiv.className = "message error show";
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + "/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, password, name: nom + " " + prenom })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (window.ClinikAutoAnalytics) {
+                        window.ClinikAutoAnalytics.trackEvent("register_success", { email });
+                    }
+
+                    registerSubmitted = true;
+                    registerDirty = false;
+                    messageDiv.textContent = "✅ Inscription réussie ! Redirection...";
+                    messageDiv.className = "message success show";
+                    
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 2000);
+                } else {
+                    messageDiv.textContent = "❌ " + data.error;
+                    messageDiv.className = "message error show";
+                }
+            } catch (error) {
+                messageDiv.textContent = "❌ Erreur de connexion au serveur";
+                messageDiv.className = "message error show";
+                console.error("Erreur:", error);
+            }
+        });
+    </script>
+</body>
+</html>

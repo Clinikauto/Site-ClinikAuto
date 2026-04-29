@@ -1,0 +1,10 @@
+node_modules/
+backend/database.db
+backend/database.db.bak
+.env
+.vscode/
+clinikauto-agenda/
+backend/*_server_stdout.log
+backend/*_server_stderr.log
+dist/
+*.xlsx

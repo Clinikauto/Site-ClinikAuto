@@ -1,0 +1,531 @@
+// ========== CLINIKAUTO — occasions.js ==========
+
+const GARAGE_LAT     = 46.0452;
+const GARAGE_LNG     = 6.5134;
+const GARAGE_ADRESSE = '118 Clos des Teppes, 74950 Scionzier';
+let annoncesState    = [];
+const API_BASE       = window.CLINIKAUTO_API_BASE || (window.location.protocol === 'file:' ? 'http://localhost:3000' : '');
+let selectedVehicleState = null;
+
+function getStoredValue(key) {
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw) return '';
+    try {
+      var parsed = JSON.parse(raw);
+      return parsed == null ? '' : String(parsed).trim();
+    } catch (_err) {
+      return String(raw).trim();
+    }
+  } catch (_err2) {
+    return '';
+  }
+}
+
+function prefillReservationClientFields() {
+  var nom = getStoredValue('nom');
+  var prenom = getStoredValue('prenom');
+  var email = getStoredValue('email');
+  var telephone = getStoredValue('telephone');
+
+  var nomField = document.getElementById('rNomClient');
+  var telField = document.getElementById('rTelClient');
+  var emailField = document.getElementById('rEmailClient');
+
+  if (nomField && !nomField.value.trim()) {
+    nomField.value = [prenom, nom].filter(Boolean).join(' ').trim();
+  }
+  if (telField && !telField.value.trim() && telephone) {
+    telField.value = telephone;
+  }
+  if (emailField && !emailField.value.trim() && email) {
+    emailField.value = email;
+  }
+}
+
+// ===== UTILS =====
+async function chargerAnnonces() {
+  try {
+    const response = await fetch(API_BASE + '/occasions-data', { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error('Erreur de chargement');
+    }
+    annoncesState = await response.json();
+  } catch (_err) {
+    annoncesState = [];
+  }
+  return annoncesState;
+}
+
+function getAnnonces() {
+  return Array.isArray(annoncesState) ? annoncesState : [];
+}
+
+function escapeHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatPrix(prix) {
+  if (!prix || prix === '0') return 'Prix sur demande';
+  return Number(prix).toLocaleString('fr-FR') + ' \u20ac';
+}
+
+// Retourne le tableau de photos d'une annonce (compatibilité ancien format)
+function getPhotos(a) {
+  let photos = [];
+  if (Array.isArray(a.photos) && a.photos.length > 0) {
+    photos = a.photos.filter(Boolean);
+  } else if (a.image) {
+    photos = [a.image];
+  }
+  return photos;
+}
+
+// ===== GALERIE =====
+const galState = {};
+
+function genGalerie(photos, id) {
+  if (!photos || photos.length === 0) {
+    return '<div class="gal-placeholder"><i class="fa-solid fa-image"></i></div>';
+  }
+  if (photos.length === 1) {
+    return '<div class="gal-single"><img src="' + escapeHtml(photos[0]) + '" alt="Photo" onerror="this.parentElement.innerHTML=\'<div class=gal-placeholder><i class=fa-solid\\ fa-image></i></div>\'" /></div>';
+  }
+  var slides = photos.map(function(p, i) {
+    return '<img src="' + escapeHtml(p) + '" alt="Photo ' + (i+1) + '" class="gal-slide" onerror="this.style.display=\'none\'" />';
+  }).join('');
+  var dots = photos.map(function(_, i) {
+    return '<span class="gal-dot' + (i === 0 ? ' active' : '') + '" data-gal="' + id + '" data-idx="' + i + '"></span>';
+  }).join('');
+  galState[id] = 0;
+  return '<div class="gal-slider" id="' + id + '">' +
+    '<div class="gal-track" id="' + id + '-track">' + slides + '</div>' +
+    '<button class="gal-btn gal-btn--prev" data-gal="' + id + '" data-dir="-1"><i class="fa-solid fa-chevron-left"></i></button>' +
+    '<button class="gal-btn gal-btn--next" data-gal="' + id + '" data-dir="1"><i class="fa-solid fa-chevron-right"></i></button>' +
+    '<div class="gal-dots" id="' + id + '-dots">' + dots + '</div>' +
+    '</div>';
+}
+
+function slideGal(id, dir) {
+  var track = document.getElementById(id + '-track');
+  if (!track) return;
+  var total = track.children.length;
+  if (!galState[id]) galState[id] = 0;
+  galState[id] = (galState[id] + dir + total) % total;
+  track.style.transform = 'translateX(-' + (galState[id] * 100) + '%)';
+  document.querySelectorAll('#' + id + '-dots .gal-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === galState[id]);
+  });
+}
+
+function goSlide(id, idx) {
+  galState[id] = idx;
+  var track = document.getElementById(id + '-track');
+  if (!track) return;
+  track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+  document.querySelectorAll('#' + id + '-dots .gal-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function setModalOpen(modalId, isOpen) {
+  var modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.toggle('occ-hidden', !isOpen);
+  modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+// Délégation d'événements pour les galeries (évite les problèmes onclick dans innerHTML)
+document.addEventListener('click', function(e) {
+  // Bouton prev/next galerie
+  var btn = e.target.closest('.gal-btn');
+  if (btn) {
+    var galId = btn.dataset.gal;
+    var dir   = parseInt(btn.dataset.dir);
+    slideGal(galId, dir);
+    return;
+  }
+  // Point de navigation galerie
+  var dot = e.target.closest('.gal-dot');
+  if (dot) {
+    goSlide(dot.dataset.gal, parseInt(dot.dataset.idx));
+    return;
+  }
+});
+
+// ===== CARTE ANNONCE =====
+function genererCarte(a) {
+  var vendu  = a.statut === 'vendu';
+  var photos = getPhotos(a);
+  var titreSafe = escapeHtml(a.titre);
+  var descSafe = escapeHtml(a.description || 'Contactez-nous pour plus d\'informations.');
+
+  var imgHtml = photos.length > 0
+    ? '<img src="' + escapeHtml(photos[0]) + '" alt="' + titreSafe + '" loading="lazy" onerror="this.style.display=\'none\'" />'
+    : '<div class="occ-card__img-placeholder"><i class="fa-solid fa-' + (a.type === 'voiture' ? 'car' : 'gears') + '"></i></div>';
+
+  var metaHtml = '';
+  if (a.type === 'voiture') {
+    if (a.annee)     metaHtml += '<span><i class="fa-solid fa-calendar"></i> ' + escapeHtml(a.annee) + '</span>';
+    if (a.km)        metaHtml += '<span><i class="fa-solid fa-road"></i> ' + Number(a.km).toLocaleString('fr-FR') + ' km</span>';
+    if (a.carburant) metaHtml += '<span><i class="fa-solid fa-gas-pump"></i> ' + escapeHtml(a.carburant) + '</span>';
+    if (a.boite)     metaHtml += '<span><i class="fa-solid fa-gear"></i> ' + escapeHtml(a.boite) + '</span>';
+  } else {
+    if (a.etat)      metaHtml += '<span><i class="fa-solid fa-star"></i> ' + escapeHtml(a.etat) + '</span>';
+    if (a.reference) metaHtml += '<span><i class="fa-solid fa-barcode"></i> R\u00e9f: ' + escapeHtml(a.reference) + '</span>';
+  }
+
+  var photoBadge = photos.length > 1
+    ? '<span class="occ-card__photo-count"><i class="fa-solid fa-images"></i> ' + photos.length + '</span>'
+    : '';
+
+  var btnReserv = !vendu
+    ? '<button class="occ-card__btn occ-card__btn--reserv" data-reserv="' + a.id + '"><i class="fa-solid fa-calendar-check"></i> R\u00e9server</button>'
+    : '';
+
+  return '<div class="occ-card" data-id="' + a.id + '" data-type="' + a.type + '">' +
+    '<div class="occ-card__img" data-modal="' + a.id + '">' +
+    imgHtml +
+    '<span class="occ-card__badge occ-card__badge--' + a.type + '">' + (a.type === 'voiture' ? 'V\u00e9hicule' : 'Pi\u00e8ce') + '</span>' +
+    (vendu ? '<span class="occ-card__badge occ-card__badge--vendu">VENDU</span>' : '') +
+    photoBadge +
+    '</div>' +
+    '<div class="occ-card__body">' +
+    '<h2 class="occ-card__title">' + titreSafe + '</h2>' +
+    '<p class="occ-card__desc">' + descSafe + '</p>' +
+    '<div class="occ-card__meta">' + metaHtml + '</div>' +
+    '<div class="occ-card__footer">' +
+    '<span class="occ-card__price' + (vendu ? ' occ-card__price--vendu' : '') + '">' + formatPrix(a.prix) + '</span>' +
+    '<div class="occ-card__btns">' +
+    '<button class="occ-card__btn occ-card__btn--detail" data-modal="' + a.id + '"><i class="fa-solid fa-eye"></i> Voir</button>' +
+    btnReserv +
+    '</div></div></div></div>';
+}
+
+// ===== GPS =====
+function genGPS(small) {
+  var h = small ? 16 : 18;
+  return '<div class="modal-gps">' +
+    '<span><i class="fa-solid fa-location-dot"></i> ' + GARAGE_ADRESSE + '</span>' +
+    '<a href="https://waze.com/ul?ll=' + GARAGE_LAT + ',' + GARAGE_LNG + '&navigate=yes" target="_blank" rel="noopener" class="gps-btn gps-btn--waze">' +
+    '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Waze_logo.svg/40px-Waze_logo.svg.png" alt="Waze" height="' + h + '" /> Waze</a>' +
+    '<a href="https://www.google.com/maps/dir/?api=1&destination=' + GARAGE_LAT + ',' + GARAGE_LNG + '" target="_blank" rel="noopener" class="gps-btn gps-btn--google">' +
+    '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Google_Maps_icon_%282015-2020%29.svg/30px-Google_Maps_icon_%282015-2020%29.svg.png" alt="Google Maps" height="' + h + '" /> Google Maps</a>' +
+    '<a href="https://maps.apple.com/?daddr=' + GARAGE_LAT + ',' + GARAGE_LNG + '" target="_blank" rel="noopener" class="gps-btn gps-btn--apple">' +
+    '<i class="fa-brands fa-apple"></i> Plans</a></div>';
+}
+
+// ===== MODAL DÉTAIL =====
+function ouvrirModal(id) {
+  var annonces = getAnnonces();
+  var a = annonces.find(function(x) { return x.id === id; });
+  if (!a) return;
+
+  selectedVehicleState = {
+    id: a.id,
+    type: a.type,
+    title: a.titre,
+    price: a.prix,
+    status: a.statut
+  };
+  if (typeof AppData !== 'undefined') {
+    AppData.save('selectedVehicle', selectedVehicleState);
+  }
+
+  var photos  = getPhotos(a);
+  var vendu   = a.statut === 'vendu';
+  var galHtml = genGalerie(photos, 'modal-gal');
+  var titreSafe = escapeHtml(a.titre);
+  var descSafe = escapeHtml(a.description || 'Contactez-nous pour plus d\'informations.');
+
+  var specsHtml = '';
+  if (a.type === 'voiture') {
+    if (a.annee)     specsHtml += '<div class="modal-spec"><span>Ann\u00e9e</span><strong>' + escapeHtml(a.annee) + '</strong></div>';
+    if (a.km)        specsHtml += '<div class="modal-spec"><span>Kilom\u00e9trage</span><strong>' + Number(a.km).toLocaleString('fr-FR') + ' km</strong></div>';
+    if (a.carburant) specsHtml += '<div class="modal-spec"><span>Carburant</span><strong>' + escapeHtml(a.carburant) + '</strong></div>';
+    if (a.boite)     specsHtml += '<div class="modal-spec"><span>Bo\u00eete</span><strong>' + escapeHtml(a.boite) + '</strong></div>';
+    if (a.couleur)   specsHtml += '<div class="modal-spec"><span>Couleur</span><strong>' + escapeHtml(a.couleur) + '</strong></div>';
+    if (a.puissance) specsHtml += '<div class="modal-spec"><span>Puissance</span><strong>' + escapeHtml(a.puissance) + ' ch</strong></div>';
+  } else {
+    if (a.etat)       specsHtml += '<div class="modal-spec"><span>\u00c9tat</span><strong>' + escapeHtml(a.etat) + '</strong></div>';
+    if (a.reference)  specsHtml += '<div class="modal-spec"><span>R\u00e9f\u00e9rence</span><strong>' + escapeHtml(a.reference) + '</strong></div>';
+    if (a.compatible) specsHtml += '<div class="modal-spec"><span>Compatible</span><strong>' + escapeHtml(a.compatible) + '</strong></div>';
+  }
+
+  var btnReserv = !vendu
+    ? '<button class="btn btn--primary" data-reserv="' + a.id + '" onclick="fermerModal()"><i class="fa-solid fa-calendar-check"></i> ' + (a.type === 'voiture' ? 'R\u00e9server / Essayer' : 'R\u00e9server &amp; Acompte') + '</button>'
+    : '';
+
+  document.getElementById('modalContent').innerHTML =
+    '<div class="modal-galerie">' + galHtml + '</div>' +
+    '<div class="modal-body">' +
+    '<span class="modal-badge modal-badge--' + a.type + '">' + (a.type === 'voiture' ? 'V\u00e9hicule' : 'Pi\u00e8ce d\u00e9tach\u00e9e') + '</span>' +
+    '<h2 class="modal-title">' + titreSafe + '</h2>' +
+    '<p class="modal-price">' + (vendu ? '<s class="muted">VENDU</s>' : formatPrix(a.prix)) + '</p>' +
+    '<p class="modal-desc">' + descSafe + '</p>' +
+    (specsHtml ? '<div class="modal-specs">' + specsHtml + '</div>' : '') +
+    genGPS(false) +
+    '<div class="modal-actions">' +
+    btnReserv +
+    '<a href="tel:+33620185627" class="btn btn--outline neutral"><i class="fa-solid fa-phone"></i> Appeler</a>' +
+    '</div></div>';
+
+  setModalOpen('occModal', true);
+}
+
+function fermerModal() {
+  setModalOpen('occModal', false);
+}
+
+// ===== MODAL RÉSERVATION =====
+function ouvrirReservation(id) {
+  var annonces = getAnnonces();
+  var a = annonces.find(function(x) { return x.id === id; });
+  if (!a) return;
+  selectedVehicleState = {
+    id: a.id,
+    type: a.type,
+    title: a.titre,
+    price: a.prix,
+    status: a.statut
+  };
+  if (typeof AppData !== 'undefined') {
+    AppData.save('selectedVehicle', selectedVehicleState);
+  }
+  var titreSafe = escapeHtml(a.titre);
+
+
+  var isVoiture = a.type === 'voiture';
+  var prix      = Number(a.prix) || 0;
+  var acompte   = prix > 0 ? Math.round(prix * 0.30) : 0;
+  var reste     = prix - acompte;
+
+  var acompteHtml = '';
+  if (!isVoiture) {
+    acompteHtml =
+      '<div class="reserv-acompte">' +
+      '<h4><i class="fa-solid fa-euro-sign"></i> Acompte par virement (30%)</h4>' +
+      '<p>Pour r\u00e9server cette pi\u00e8ce, versez un acompte de <strong>30%</strong> par virement :</p>' +
+      '<div class="virement-info">' +
+      '<div class="virement-info__row"><span>B\u00e9n\u00e9ficiaire</span><strong>ClinikAuto</strong></div>' +
+      '<div class="virement-info__row"><span>IBAN</span><strong>\u00c0 renseigner</strong></div>' +
+      '<div class="virement-info__row"><span>BIC</span><strong>\u00c0 renseigner</strong></div>' +
+      '<div class="virement-info__row"><span>R\u00e9f\u00e9rence</span><strong>' + titreSafe + '</strong></div>' +
+      (prix > 0
+        ? '<div class="virement-info__row virement-info__row--highlight"><span>Acompte \u00e0 verser (30%)</span><strong>' + acompte.toLocaleString('fr-FR') + ' \u20ac</strong></div>' +
+          '<div class="virement-info__row"><span>Reste \u00e0 payer au retrait</span><strong>' + reste.toLocaleString('fr-FR') + ' \u20ac</strong></div>' +
+          '<div class="virement-info__row"><span>Prix total</span><strong>' + prix.toLocaleString('fr-FR') + ' \u20ac</strong></div>'
+        : '<div class="virement-info__row virement-info__row--highlight"><span>Acompte (30%)</span><strong>\u00c0 convenir</strong></div>') +
+      '</div>' +
+      '<p class="reserv-note"><i class="fa-solid fa-circle-info"></i> L\'acompte est d\u00e9duit du prix final lors du retrait.</p>' +
+      '</div>';
+  }
+
+  var today = new Date().toISOString().split('T')[0];
+
+  document.getElementById('reservationContent').innerHTML =
+    '<div class="reserv-header">' +
+    '<h3><i class="fa-solid fa-calendar-check"></i> ' + (isVoiture ? 'R\u00e9server / Essayer' : 'R\u00e9server cette pi\u00e8ce') + '</h3>' +
+    '<div class="reserv-annonce"><strong>' + titreSafe + '</strong><span>' + formatPrix(a.prix) + '</span></div>' +
+    '</div>' +
+    '<div class="reserv-body">' +
+    acompteHtml +
+    '<div class="reserv-form">' +
+    '<h4><i class="fa-solid fa-clock"></i> ' + (isVoiture ? 'Demander un rendez-vous essai' : 'Choisir un cr\u00e9neau de retrait') + '</h4>' +
+    '<p class="reserv-horaires"><i class="fa-solid fa-calendar"></i> Lundi \u2013 Vendredi : 9h\u201312h / 14h\u201318h</p>' +
+    genGPS(true) +
+    '<div class="reserv-fields">' +
+    '<div class="reserv-field"><label>Nom &amp; Pr\u00e9nom *</label><input type="text" id="rNomClient" placeholder="Votre nom et pr\u00e9nom" /></div>' +
+    '<div class="reserv-field"><label>T\u00e9l\u00e9phone *</label><input type="tel" id="rTelClient" placeholder="06 XX XX XX XX" /></div>' +
+    '<div class="reserv-field"><label>Email *</label><input type="email" id="rEmailClient" placeholder="votre@email.fr" /></div>' +
+    '<div class="reserv-field"><label>Date souhait\u00e9e *</label><input type="date" id="rDate" min="' + today + '" /></div>' +
+    '<div class="reserv-field"><label for="creneau">Choisir un cr\u00e9neau de retrait *</label>' +
+    '<select id="creneau" name="creneau" required><option value="">--S\u00e9lectionnez un cr\u00e9neau--</option>' +
+    '<option value="9-11">9h - 11h</option><option value="11-13">11h - 13h</option><option value="14-16">14h - 16h</option><option value="16-18">16h - 18h</option>' +
+    '</select></div>' +
+    '<div class="reserv-field reserv-field--full"><label>Message (optionnel)</label>' +
+    '<textarea id="rMessage" rows="2" placeholder="' + (isVoiture ? 'Questions sur le v\u00e9hicule, reprise...' : 'Pr\u00e9cisions sur votre commande...') + '"></textarea></div>' +
+    '</div>' +
+    '<div class="reserv-error hidden" id="reservError"><i class="fa-solid fa-circle-exclamation"></i> <span id="reservErrorMsg"></span></div>' +
+    '<div class="reserv-actions">' +
+    '<button class="btn btn--primary" id="btnEnvoyerReserv"><i class="fa-solid fa-paper-plane"></i> Envoyer ma demande</button>' +
+    '<button class="btn btn--light" onclick="fermerReservation()">Annuler</button>' +
+    '</div>' +
+    '<p class="text-small muted mt-sm">* Champs obligatoires</p>' +
+    '</div></div>';
+
+  // Attacher l'événement sur le bouton envoyer
+  document.getElementById('btnEnvoyerReserv').addEventListener('click', function() {
+    envoyerReservation(a.id, a.type, a.titre);
+  });
+
+  prefillReservationClientFields();
+
+  setModalOpen('modalReservation', true);
+}
+
+function fermerReservation() {
+  setModalOpen('modalReservation', false);
+}
+
+function envoyerReservation(id, type, titre) {
+  var nom   = document.getElementById('rNomClient').value.trim();
+  var tel   = document.getElementById('rTelClient').value.trim();
+  var email = document.getElementById('rEmailClient').value.trim();
+  var date  = document.getElementById('rDate').value;
+  var creneau = document.getElementById('creneau').value;
+  var errEl  = document.getElementById('reservError');
+  var errMsg = document.getElementById('reservErrorMsg');
+
+  if (!nom || !tel || !email || !date || !creneau) {
+    errMsg.textContent = 'Veuillez remplir tous les champs obligatoires.';
+    errEl.style.display = 'flex'; return;
+  }
+
+  var message = document.getElementById('rMessage').value.trim();
+
+  if (typeof AppData !== 'undefined') {
+    AppData.save('nom', nom);
+    AppData.save('email', email.toLowerCase());
+    AppData.save('telephone', tel);
+    AppData.save('selectedDate', date + ' ' + creneau);
+    if (selectedVehicleState) {
+      AppData.save('selectedVehicle', selectedVehicleState);
+    }
+  }
+  localStorage.setItem('nom', nom);
+  localStorage.setItem('email', email.toLowerCase());
+  localStorage.setItem('telephone', tel);
+
+  var sujet   = encodeURIComponent('Demande de RDV \u2014 ' + titre);
+  var corps   = encodeURIComponent(
+    'Demande de rendez-vous ClinikAuto\n\n' +
+    'Annonce : ' + titre + '\n' +
+    'Type : ' + (type === 'voiture' ? 'V\u00e9hicule' : 'Pi\u00e8ce d\u00e9tach\u00e9e') + '\n\n' +
+    'Client : ' + nom + '\n' +
+    'T\u00e9l\u00e9phone : ' + tel + '\n' +
+    'Email : ' + email + '\n\n' +
+    'Date souhait\u00e9e : ' + new Date(date).toLocaleDateString('fr-FR') + ' (cr\u00e9neau ' + creneau + ')\n\n' +
+    (message ? 'Message : ' + message : '')
+  );
+
+  window.location.href = 'mailto:clinikauto74@gmail.com?subject=' + sujet + '&body=' + corps;
+
+  document.getElementById('reservationContent').innerHTML =
+    '<div class="modal-confirm">' +
+    '<div class="big-emoji">\u2705</div>' +
+    '<h3>Demande envoy\u00e9e !</h3>' +
+    '<p class="muted mb-sm">Votre client mail va s\'ouvrir. Sinon contactez-nous :</p>' +
+    '<a href="tel:+33620185627" class="btn btn--primary center-inline"><i class="fa-solid fa-phone"></i> 06 20 18 56 27</a>' +
+    '</div>';
+
+  setTimeout(fermerReservation, 5000);
+}
+
+// ===== AFFICHER ANNONCES =====
+function afficherAnnonces(filtre, recherche) {
+  filtre    = filtre    || 'tous';
+  recherche = recherche || '';
+
+  var annonces = getAnnonces();
+  var grid     = document.getElementById('occGrid');
+  var empty    = document.getElementById('occEmpty');
+  var compteur = document.getElementById('compteur');
+
+  var filtrees = annonces.filter(function(a) {
+    var matchType = filtre === 'tous' || a.type === filtre;
+    var matchRech = recherche === '' ||
+      a.titre.toLowerCase().indexOf(recherche.toLowerCase()) !== -1 ||
+      (a.description || '').toLowerCase().indexOf(recherche.toLowerCase()) !== -1;
+    return matchType && matchRech;
+  });
+
+  filtrees.sort(function(a, b) {
+    if (a.statut === 'vendu' && b.statut !== 'vendu') return 1;
+    if (a.statut !== 'vendu' && b.statut === 'vendu') return -1;
+    return new Date(b.date) - new Date(a.date);
+  });
+
+  if (filtrees.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('occ-hidden');
+    compteur.textContent = 'Aucune annonce trouv\u00e9e';
+  } else {
+    empty.classList.add('occ-hidden');
+    grid.innerHTML = filtrees.map(genererCarte).join('');
+    var dispo = filtrees.filter(function(a) { return a.statut !== 'vendu'; }).length;
+    compteur.textContent = filtrees.length + ' annonce' + (filtrees.length > 1 ? 's' : '') + ' \u2014 ' + dispo + ' disponible' + (dispo > 1 ? 's' : '');
+  }
+}
+
+// ===== DÉLÉGATION ÉVÉNEMENTS PRINCIPALE =====
+document.addEventListener('DOMContentLoaded', async function() {
+  ['nom', 'prenom', 'email', 'telephone'].forEach(function(champ) {
+    var valeur = getStoredValue(champ);
+    if (!valeur) return;
+    var field = document.getElementById(champ);
+    if (field) {
+      field.value = valeur;
+    }
+  });
+
+  setModalOpen('occModal', false);
+  setModalOpen('modalReservation', false);
+  await chargerAnnonces();
+  afficherAnnonces();
+
+  // Filtres
+  document.querySelectorAll('.filtre-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filtre-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      afficherAnnonces(btn.dataset.filtre, document.getElementById('searchInput').value);
+    });
+  });
+
+  // Recherche
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+    var filtre = document.querySelector('.filtre-btn.active').dataset.filtre;
+    afficherAnnonces(filtre, e.target.value);
+  });
+
+  // Délégation pour ouvrir modal et réservation depuis la grille
+  document.getElementById('occGrid').addEventListener('click', function(e) {
+    var modalBtn = e.target.closest('[data-modal]');
+    if (modalBtn) { ouvrirModal(modalBtn.dataset.modal); return; }
+    var reservBtn = e.target.closest('[data-reserv]');
+    if (reservBtn) { ouvrirReservation(reservBtn.dataset.reserv); return; }
+  });
+
+  // Fermer modals
+  document.getElementById('modalClose').addEventListener('click', fermerModal);
+  document.getElementById('modalOverlay').addEventListener('click', fermerModal);
+
+  // Bouton réserver depuis modal détail (délégation)
+  document.getElementById('modalContent').addEventListener('click', function(e) {
+    var reservBtn = e.target.closest('[data-reserv]');
+    if (reservBtn) { fermerModal(); ouvrirReservation(reservBtn.dataset.reserv); }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { fermerModal(); fermerReservation(); }
+  });
+
+  document.querySelectorAll('a[href="index.html#contact"]').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (typeof AppData === 'undefined') return;
+      if (selectedVehicleState) {
+        AppData.save('selectedVehicle', selectedVehicleState);
+      }
+      AppData.save('contactMessageHint', selectedVehicleState && selectedVehicleState.title
+        ? 'Vehicule occasion: ' + selectedVehicleState.title
+        : 'Demande concernant une occasion');
+    });
+  });
+});

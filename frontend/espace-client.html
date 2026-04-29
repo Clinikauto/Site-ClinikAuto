@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Espace Client — ClinikAuto Scionzier 74950</title>
+  <meta name="description" content="Accédez à votre espace client ClinikAuto. Gérez vos véhicules et vos informations personnelles." />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="author" content="ClinikAuto" />
+  <link rel="canonical" href="https://www.clinikauto.fr/espace-client" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="ClinikAuto" />
+  <meta property="og:title" content="Espace Client — ClinikAuto" />
+  <meta property="og:description" content="Gérez vos véhicules et vos informations personnelles depuis votre espace client ClinikAuto." />
+  <meta property="og:url" content="https://www.clinikauto.fr/espace-client" />
+  <meta property="og:image" content="https://www.clinikauto.fr/images/logo.jpg" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Espace Client — ClinikAuto" />
+  <meta name="twitter:description" content="Gestion de votre compte client ClinikAuto." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Espace Client ClinikAuto",
+    "url": "https://www.clinikauto.fr/espace-client",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "ClinikAuto",
+      "url": "https://www.clinikauto.fr/"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/espace-client.css" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-922P3Q1MBQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-922P3Q1MBQ');
+  </script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">
+        <img src="images/logo.jpg" alt="ClinikAuto" width="80" height="80" />
+      </a>
+      <nav class="nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="index.html" class="nav__link">Accueil</a></li>
+          <li><a href="index.html#services" class="nav__link">Services</a></li>
+          <li><a href="index.html#tarifs" class="nav__link">Tarifs</a></li>
+          <li><a href="index.html#avis" class="nav__link">Avis clients</a></li>
+          <li><a href="occasions.html" class="nav__link">Occasions</a></li>
+          <li><a href="index.html#contact" class="nav__link">Contact</a></li>
+          <li><a href="agenda.html" class="nav__link">Agenda</a></li>
+          <li><a href="espace-client.html" class="nav__link nav__link--cta nav__link--active">Mon espace</a></li>
+          <li><a href="index.html#contact" class="nav__link nav__link--cta">Rendez-vous</a></li>
+        </ul>
+      </nav>
+      <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== ÉCRAN CONNEXION ===== -->
+  <div class="ec-screen" id="screenConnexion">
+    <div class="ec-hero">
+      <div class="ec-hero__content">
+        <span class="section__label">Bienvenue</span>
+        <h1 class="ec-hero__title">Votre Espace<br><span>Client</span></h1>
+        <p>Gérez vos véhicules et informations en toute simplicité.</p>
+      </div>
+    </div>
+
+    <div class="ec-auth">
+      <!-- Onglets -->
+      <div class="ec-tabs">
+        <button class="ec-tab active" id="tabLogin" onclick="setAuthTab('login')">
+          <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+        </button>
+        <button class="ec-tab" id="tabRegister" onclick="setAuthTab('register')">
+          <i class="fa-solid fa-user-plus"></i> Créer un compte
+        </button>
+      </div>
+
+      <!-- CONNEXION -->
+      <div id="panelLogin">
+        <p class="ec-auth__subtitle">Connectez-vous avec votre email et mot de passe.</p>
+        <p class="ec-notice is-hidden"><i class="fa-solid fa-shield-halved"></i> Accès admin réservé au compte propriétaire: clinikauto74@gmail.com.</p>
+        <div class="ec-field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="votre@email.fr" />
+        </div>
+        <div class="ec-field mt-12">
+          <label for="loginPwd">Mot de passe</label>
+          <div class="pwd-input">
+            <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter') seConnecter()" />
+            <button type="button" onclick="togglePwd('loginPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="ec-error is-hidden" id="loginError">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="loginErrorMsg">Email ou mot de passe incorrect.</span>
+        </div>
+        <button class="btn btn--primary btn--full mt-20" onclick="seConnecter()">
+          <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+        </button>
+        <p class="ec-muted-line">
+          <a href="#" onclick="motDePasseOublie()" class="ec-link-red">Mot de passe oublié ?</a>
+        </p>
+      </div>
+
+      <!-- INSCRIPTION -->
+      <div id="panelRegister" class="is-hidden">
+        <p class="ec-auth__subtitle">Créez votre compte en quelques secondes.</p>
+        <div class="ec-form-grid">
+          <div class="ec-field">
+            <label for="rNom">Nom *</label>
+            <input type="text" id="rNom" placeholder="Votre nom" />
+          </div>
+          <div class="ec-field">
+            <label for="rPrenom">Prénom *</label>
+            <input type="text" id="rPrenom" placeholder="Votre prénom" />
+          </div>
+          <div class="ec-field">
+            <label for="rTel">Portable *</label>
+            <input type="tel" id="rTel" placeholder="06 XX XX XX XX" />
+          </div>
+          <div class="ec-field">
+            <label for="rEmail">Email *</label>
+            <input type="email" id="rEmail" placeholder="votre@email.fr" />
+          </div>
+          <div class="ec-field ec-field--full">
+            <label for="rAdresse">Adresse *</label>
+            <input type="text" id="rAdresse" placeholder="Numéro, rue, code postal, ville" />
+          </div>
+          <div class="ec-field">
+            <label for="rPwd">Mot de passe * <small class="ec-small-note">(6 caractères min)</small></label>
+            <div class="pwd-input">
+              <input type="password" id="rPwd" placeholder="••••••••" />
+              <button type="button" onclick="togglePwd('rPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="ec-field">
+            <label for="rPwd2">Confirmer le mot de passe *</label>
+            <div class="pwd-input">
+              <input type="password" id="rPwd2" placeholder="••••••••" />
+              <button type="button" onclick="togglePwd('rPwd2', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
+            </div>
+          </div>
+
+          <div class="ec-field ec-field--full">
+            <label><i class="fa-solid fa-car"></i> Votre véhicule</label>
+          </div>
+          <div class="ec-field">
+            <label for="rImmat">Immatriculation *</label>
+            <input type="text" id="rImmat" class="text-uppercase" placeholder="AB-123-CD" />
+          </div>
+          <div class="ec-field">
+            <label for="rMarque">Marque *</label>
+            <input type="text" id="rMarque" placeholder="Peugeot, Renault..." />
+          </div>
+          <div class="ec-field">
+            <label for="rModele">Modèle *</label>
+            <input type="text" id="rModele" placeholder="208, Clio..." />
+          </div>
+          <div class="ec-field">
+            <label for="rAnnee">Année</label>
+            <input type="number" id="rAnnee" placeholder="2019" min="1970" max="2030" />
+          </div>
+          <div class="ec-field">
+            <label for="rCarburant">Carburant</label>
+            <select id="rCarburant">
+              <option value="">— Choisir —</option>
+              <option>Essence</option><option>Diesel</option>
+              <option>Hybride</option><option>Électrique</option><option>GPL</option>
+            </select>
+          </div>
+          <div class="ec-field">
+            <label for="rKm">Kilométrage</label>
+            <input type="number" id="rKm" placeholder="85000" />
+          </div>
+        </div>
+
+        <div class="ec-error is-hidden" id="registerError">
+          <i class="fa-solid fa-circle-exclamation"></i> <span id="registerErrorMsg"></span>
+        </div>
+
+        <button class="btn btn--primary btn--full mt-20" onclick="sInscrire()">
+          <i class="fa-solid fa-user-plus"></i> Créer mon compte
+        </button>
+        <p class="ec-notice">* Champs obligatoires</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TABLEAU DE BORD ===== -->
+  <div class="ec-screen is-hidden" id="screenDashboard">
+
+    <!-- HEADER DASHBOARD -->
+    <div class="ec-dash-header">
+      <div class="container">
+        <div class="ec-dash-header__inner">
+          <div class="ec-dash-header__welcome">
+            <h1>Bonjour, <span id="dashPrenom"></span> 👋</h1>
+            <p>Bienvenue dans votre espace client ClinikAuto</p>
+          </div>
+          <button class="btn btn--outline btn--outline-white" onclick="seDeconnecter()">
+            <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container ec-dash-body">
+
+      <!-- MES VÉHICULES -->
+      <section class="ec-section mes-vehicules" id="mes-vehicules">
+        <div class="ec-section__header">
+          <h2><i class="fa-solid fa-car"></i> Mes véhicules</h2>
+          <button class="btn btn--primary btn--sm" onclick="ouvrirModalVehicule()">
+            <i class="fa-solid fa-plus"></i> Ajouter un véhicule
+          </button>
+        </div>
+        <div class="ec-vehicles-table-wrap">
+          <table class="ec-vehicles-table" aria-label="Mes véhicules">
+            <thead>
+              <tr>
+                <th>Immatriculation</th>
+                <th>Marque</th>
+                <th>Modèle</th>
+                <th>Année</th>
+                <th>Carburant</th>
+                <th>Kilométrage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dashVehiculesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="ec-section ec-gestion" id="gestion-section">
+        <div class="ec-section__header">
+          <h2><i class="fa-solid fa-sliders"></i> Gestion</h2>
+        </div>
+        <div class="ec-gestion__grid">
+          <a class="btn btn--outline btn--outline-gray ec-gestion__btn" href="service.html" onclick="prepareGestionNavigation('service')">
+            <i class="fa-solid fa-screwdriver-wrench"></i> Choisir un service
+          </a>
+          <a class="btn btn--primary ec-gestion__btn" href="agenda.html" onclick="prepareGestionNavigation('agenda')">
+            <i class="fa-solid fa-calendar-check"></i> Prendre rendez-vous
+          </a>
+          <a class="btn btn--outline btn--outline-gray ec-gestion__btn" href="occasions.html" onclick="prepareGestionNavigation('occasions')">
+            <i class="fa-solid fa-car-side"></i> Voir les occasions
+          </a>
+          <a class="btn btn--outline btn--outline-gray ec-gestion__btn" href="index.html#contact" onclick="prepareGestionNavigation('contact')">
+            <i class="fa-solid fa-envelope"></i> Nous écrire
+          </a>
+        </div>
+      </section>
+
+      <!-- MES INFORMATIONS -->
+      <section class="ec-section">
+        <div class="ec-section__header">
+          <h2><i class="fa-solid fa-user"></i> Mes informations</h2>
+          <button class="btn btn--outline btn--sm btn--outline-gray" id="btnEditInfos" onclick="toggleEditInfos()">
+            <i class="fa-solid fa-pen"></i> Modifier
+          </button>
+        </div>
+
+        <!-- Affichage -->
+        <div class="ec-infos-display" id="infosDisplay"></div>
+
+        <!-- Formulaire modification -->
+        <div class="ec-infos-form is-hidden" id="infosForm">
+          <div class="ec-form-grid">
+            <div class="ec-field">
+              <label for="eNom">Nom *</label>
+              <input type="text" id="eNom" />
+            </div>
+            <div class="ec-field">
+              <label for="ePrenom">Prénom *</label>
+              <input type="text" id="ePrenom" />
+            </div>
+            <div class="ec-field">
+              <label for="eTel">Portable *</label>
+              <input type="tel" id="eTel" />
+            </div>
+            <div class="ec-field">
+              <label for="eEmail">Email *</label>
+              <input type="email" id="eEmail" />
+            </div>
+            <div class="ec-field ec-field--full">
+              <label for="eAdresse">Adresse *</label>
+              <input type="text" id="eAdresse" />
+            </div>
+            <div class="ec-field">
+              <label for="eNewPwd">Nouveau mot de passe <small class="ec-small-note">(laisser vide = inchangé)</small></label>
+              <div class="pwd-input">
+                <input type="password" id="eNewPwd" placeholder="••••••••" />
+                <button type="button" onclick="togglePwd('eNewPwd', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="ec-field">
+              <label for="eNewPwd2">Confirmer le nouveau mot de passe</label>
+              <div class="pwd-input">
+                <input type="password" id="eNewPwd2" placeholder="••••••••" />
+                <button type="button" onclick="togglePwd('eNewPwd2', this)" tabindex="-1" title="Afficher ou masquer le mot de passe" aria-label="Afficher ou masquer le mot de passe"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="ec-form-actions">
+            <button class="btn btn--primary btn--sm" id="btnEnregistrer" onclick="sauvegarderInfos()">
+              <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+            </button>
+            <button class="btn btn--sm btn--light-dark" onclick="toggleEditInfos()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ec-section">
+        <div class="ec-section__header">
+          <h2><i class="fa-solid fa-wrench"></i> Suivi des interventions</h2>
+        </div>
+        <div class="ec-interventions" id="dashInterventions"></div>
+      </section>
+
+      <!-- CONTACT RAPIDE -->
+      <section class="ec-section ec-section--cta">
+        <div class="ec-cta-rapide">
+          <div>
+            <h3>Besoin d'un rendez-vous ?</h3>
+            <p>Appelez-nous ou envoyez-nous un message directement.</p>
+          </div>
+          <div class="ec-cta-rapide__btns">
+            <a href="tel:+33620185627" class="btn btn--primary"><i class="fa-solid fa-phone"></i> 06 20 18 56 27</a>
+            <a href="index.html#contact" class="btn btn--outline btn--outline-gray"><i class="fa-solid fa-envelope"></i> Nous écrire</a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ===== MODAL AJOUT VÉHICULE ===== -->
+  <div class="ec-modal is-hidden" id="modalVehicule">
+    <div class="ec-modal__overlay" onclick="fermerModalVehicule()"></div>
+    <div class="ec-modal__box">
+      <button class="ec-modal__close" onclick="fermerModalVehicule()" title="Fermer" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+      <h3 id="modalVehTitre"><i class="fa-solid fa-car"></i> Ajouter un véhicule</h3>
+      <input type="hidden" id="modalVehId" />
+      <div class="ec-form-grid">
+        <div class="ec-field">
+          <label for="vImmat">Immatriculation *</label>
+          <input type="text" id="vImmat" class="text-uppercase" placeholder="AB-123-CD" />
+        </div>
+        <div class="ec-field">
+          <label for="vMarque">Marque *</label>
+          <input type="text" id="vMarque" placeholder="Peugeot, Renault..." />
+        </div>
+        <div class="ec-field">
+          <label for="vModele">Modèle *</label>
+          <input type="text" id="vModele" placeholder="208, Clio..." />
+        </div>
+        <div class="ec-field">
+          <label for="vAnnee">Année</label>
+          <input type="number" id="vAnnee" placeholder="2019" min="1970" max="2030" />
+        </div>
+        <div class="ec-field">
+          <label for="vCarburant">Carburant</label>
+          <select id="vCarburant">
+            <option value="">— Choisir —</option>
+            <option>Essence</option><option>Diesel</option>
+            <option>Hybride</option><option>Électrique</option><option>GPL</option>
+          </select>
+        </div>
+        <div class="ec-field">
+          <label for="vKm">Kilométrage</label>
+          <input type="number" id="vKm" placeholder="85000" />
+        </div>
+      </div>
+      <div class="ec-form-actions mt-20">
+        <button class="btn btn--primary" onclick="sauvegarderVehicule()">
+          <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+        </button>
+        <button class="btn btn--light-dark" onclick="fermerModalVehicule()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="ec-toast" id="ecToast"></div>
+
+  <script src="js/analytics.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/app-data.js"></script>
+  <script src="js/validation-autofill.js"></script>
+  <script src="js/espace-client.js?v=20260428-2"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

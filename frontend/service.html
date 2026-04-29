@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choisir un service | ClinikAuto</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .service-shell { max-width: 980px; margin: 0 auto; padding: 40px 16px 60px; }
+    .service-head { margin-bottom: 18px; }
+    .service-head h1 { font-size: 2rem; margin-bottom: 8px; }
+    .service-head p { color: #58606c; }
+    .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .service-card { background: #fff; border: 1px solid #e7ebf0; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+    .service-card h2 { font-size: 1.1rem; }
+    .service-card p { color: #666; font-size: .92rem; min-height: 40px; }
+    .service-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .service-current { margin: 16px 0; padding: 10px 14px; border-radius: 10px; background: #f7fafc; border: 1px solid #dbe7f3; color: #314457; }
+  </style>
+</head>
+<body>
+  <main class="service-shell">
+    <header class="service-head">
+      <h1>Choisir un service</h1>
+      <p>Sélectionnez votre besoin. Le choix est conservé et préremplira le formulaire de contact.</p>
+    </header>
+
+    <section class="service-current" id="serviceCurrent">Service sélectionné: aucun</section>
+
+    <section class="service-grid" aria-label="Liste des services">
+      <article class="service-card">
+        <h2>Vidange essentielle</h2>
+        <p>Huile + filtre + contrôle visuel complet.</p>
+        <button class="btn btn--primary" data-service="Vidange essentielle">Choisir</button>
+      </article>
+      <article class="service-card">
+        <h2>Entretien complet</h2>
+        <p>Révision périodique constructeur multimarque.</p>
+        <button class="btn btn--primary" data-service="Entretien complet">Choisir</button>
+      </article>
+      <article class="service-card">
+        <h2>Freinage & sécurité</h2>
+        <p>Plaquettes, disques et vérification globale.</p>
+        <button class="btn btn--primary" data-service="Freinage et sécurité">Choisir</button>
+      </article>
+      <article class="service-card">
+        <h2>Diagnostic électronique</h2>
+        <p>Lecture défauts et plan d'intervention.</p>
+        <button class="btn btn--primary" data-service="Diagnostic électronique">Choisir</button>
+      </article>
+      <article class="service-card">
+        <h2>Pneumatiques</h2>
+        <p>Montage, équilibrage, permutation et pression.</p>
+        <button class="btn btn--primary" data-service="Pneumatiques">Choisir</button>
+      </article>
+      <article class="service-card">
+        <h2>Climatisation</h2>
+        <p>Recharge, contrôle étanchéité et performance.</p>
+        <button class="btn btn--primary" data-service="Climatisation">Choisir</button>
+      </article>
+    </section>
+
+    <div class="service-actions">
+      <a class="btn btn--primary" href="agenda.html">Prendre rendez-vous</a>
+      <a class="btn btn--outline" href="index.html#contact">Nous écrire</a>
+      <a class="btn btn--outline" href="espace-client.html">Retour espace client</a>
+    </div>
+  </main>
+
+  <script src="js/app-data.js"></script>
+  <script>
+    function updateCurrentLabel() {
+      var current = AppData.get('selectedService');
+      var el = document.getElementById('serviceCurrent');
+      el.textContent = 'Service sélectionné: ' + (current || 'aucun');
+    }
+
+    document.querySelectorAll('[data-service]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        AppData.save('selectedService', btn.dataset.service || '');
+        updateCurrentLabel();
+      });
+    });
+
+    updateCurrentLabel();
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Google – Créneaux disponibles | ClinikAuto</title>
+  <meta name="description" content="Visualisez les créneaux disponibles chez ClinikAuto à Scionzier et prenez rendez-vous en ligne." />
+  <meta name="robots" content="index, follow" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1b2a;
+      --surface:  #17212b;
+      --card:     #1e2d3d;
+      --border:   #2b3d53;
+      --accent:   #4a9eff;
+      --green:    #1b9a6d;
+      --red:      #b94453;
+      --text:     #cfe0f4;
+      --muted:    #7a95b0;
+      --radius:   12px;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* NAV */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--accent); text-decoration: none; }
+    .nav-links  { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: .875rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary   { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .btn-success   { background: var(--green); color: #fff; }
+    .btn-sm        { padding: 5px 11px; font-size: .8rem; }
+
+    /* SHELL */
+    .shell { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    /* HERO */
+    .hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .hero h1 { font-size: 1.3rem; }
+    .hero p  { color: var(--muted); font-size: .875rem; margin-top: 4px; }
+    .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .pref-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: .84rem;
+      color: var(--muted);
+    }
+    .pref-date input {
+      background: #12202f;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+    }
+
+    #adminBadge {
+      background: rgba(74,158,255,.15);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: .75rem;
+      font-weight: 700;
+      display: none;
+    }
+
+    /* INFO PARTAGE (public) */
+    .info-bar {
+      background: rgba(74,158,255,.08);
+      border: 1px solid rgba(74,158,255,.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .info-bar strong { color: var(--text); }
+
+    /* ALERTE ADMIN partage */
+    #adminPrivacyNote {
+      display: none;
+      background: rgba(224,140,42,.1);
+      border: 1px solid rgba(224,140,42,.4);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: .84rem;
+      color: #f5c470;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    #adminPrivacyNote a { color: var(--accent); }
+
+    /* BOITE IFRAME */
+    .cal-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .cal-container iframe {
+      width: 100%;
+      min-height: 620px;
+      border: solid 1px #777;
+      display: block;
+    }
+
+    /* ADMIN — actions directes */
+    #adminActions {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 20px;
+    }
+    #adminActions h3 { font-size: .95rem; margin-bottom: 14px; color: var(--text); }
+    .admin-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: .875rem;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+    }
+    #toast.show  { opacity: 1; transform: translateY(0); }
+    #toast.ok    { border-color: var(--green); }
+    #toast.err   { border-color: var(--red); }
+
+    @media (max-width: 600px) {
+      .cal-container iframe { min-height: 480px; }
+      .hero { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-922P3Q1MBQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-922P3Q1MBQ');
+  </script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="dashboard.html">🚗 ClinikAuto</a>
+  <div class="nav-links">
+    <a class="btn btn-secondary" href="index.html">🏠 Retour Accueil</a>
+    <a class="btn btn-secondary" href="dashboard.html">← Tableau de bord</a>
+    <a class="btn btn-primary"   href="appointment.html" id="bookBtn">📋 Prendre RDV</a>
+    <a class="btn btn-secondary" href="admin.html" id="adminLink" class="hidden">⚙️ Admin</a>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div>
+      <h1>📅 Agenda ClinikAuto</h1>
+      <p>Consultez les disponibilités de l'atelier et réservez votre créneau.</p>
+    </div>
+    <div class="hero-actions">
+      <label class="pref-date" for="prefDate">
+        Date souhaitée
+        <input type="date" id="prefDate" />
+      </label>
+      <span id="adminBadge">👑 Mode Admin</span>
+    </div>
+  </div>
+
+  <!-- Note vie privée pour le public -->
+  <div class="info-bar" id="publicInfo">
+    <strong>🔒 Confidentialité</strong> — Les détails des rendez-vous existants ne sont pas visibles ici.
+    Seuls les créneaux libres et occupés sont affichés. Pour réserver, cliquez sur <strong>Prendre RDV</strong>.
+  </div>
+
+  <!-- Alerte paramètres partage (admin seulement) -->
+  <div id="adminPrivacyNote">
+    ⚠️ <strong>Vérifiez les paramètres de partage de votre Google Agenda</strong> — Pour que vos clients
+    voient uniquement les disponibilités <em>sans lire le contenu des RDV</em>, allez dans
+    <a href="https://calendar.google.com/calendar/r/settings" target="_blank" rel="noopener">Paramètres de l'agenda</a>
+    → sélectionnez votre agenda → <em>Autorisations et partage</em> → cochez
+    <strong>« Afficher les informations des événements »</strong> désactivé / régler sur
+    <strong>« Afficher seulement disponible/occupé »</strong>.
+  </div>
+
+  <!-- Panel actions admin (export ICS, lien direct gestion) -->
+  <div id="adminActions">
+    <h3>⚙️ Gestion — Administration</h3>
+    <div class="admin-btns">
+      <a class="btn btn-primary"
+         href="https://calendar.google.com/calendar/u/0/r"
+         target="_blank" rel="noopener">
+        🗓 Ouvrir Google Agenda (plein accès)
+      </a>
+      <button class="btn btn-success" onclick="exportICS('confirmed')">⬇ ICS confirmés → Vroomly</button>
+      <button class="btn btn-secondary" onclick="exportICS('all')">⬇ ICS tous statuts</button>
+    </div>
+  </div>
+
+  <!-- Google Agenda iframe -->
+  <div class="cal-container">
+    <iframe
+      src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FParis&showPrint=0&mode=WEEK&title=Clnik-Auto&src=Y2xpbmlrYXV0bzc0QGdtYWlsLmNvbQ&src=ZnIuY2hyaXN0aWFuI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&src=ZnIuZnJlbmNoI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&src=aHQzamxmYWFjNWxmZDYyNjN1bGZoNHRxbDhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%23039be5&color=%234285f4&color=%230b8043&color=%23b39ddb"
+      width="100%"
+      height="600"
+      frameborder="0"
+      scrolling="no"
+      title="Google Agenda ClinikAuto">
+    </iframe>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="js/app-data.js"></script>
+<script>
+const API   = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const token = localStorage.getItem('token');
+const bookBtn = document.getElementById('bookBtn');
+const prefDateInput = document.getElementById('prefDate');
+
+// Détection rôle admin depuis JWT
+function initRole() {
+  if (!token) return;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.role === 'admin') {
+      document.getElementById('adminBadge').style.display     = 'inline-block';
+      document.getElementById('adminLink').style.display      = 'inline-flex';
+      document.getElementById('adminActions').style.display   = 'block';
+      document.getElementById('adminPrivacyNote').style.display = 'block';
+      document.getElementById('publicInfo').style.display     = 'none';
+    }
+  } catch (_) {}
+}
+
+// Export ICS → Vroomly
+async function exportICS(scope) {
+  const res = await fetch(`${API}/admin/appointments/export-ics?status=${scope}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) { toast('❌ Erreur export ICS', 'err'); return; }
+  const blob = await res.blob();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `clinikauto-${scope}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ ICS téléchargé — importez-le dans Vroomly', 'ok');
+  setTimeout(() => window.open('https://pro.vroomly.com', '_blank'), 800);
+}
+
+// Toast
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+initRole();
+
+if (typeof AppData !== 'undefined') {
+  const savedDate = AppData.get('selectedDate');
+  if (savedDate && prefDateInput) {
+    prefDateInput.value = String(savedDate).slice(0, 10);
+  }
+}
+
+if (prefDateInput) {
+  prefDateInput.addEventListener('change', () => {
+    if (typeof AppData !== 'undefined') {
+      AppData.save('selectedDate', prefDateInput.value || '');
+    }
+  });
+}
+
+if (bookBtn) {
+  bookBtn.addEventListener('click', (event) => {
+    if (typeof AppData !== 'undefined' && prefDateInput && prefDateInput.value) {
+      AppData.save('selectedDate', prefDateInput.value);
+      event.preventDefault();
+      window.location.href = 'appointment.html?date=' + encodeURIComponent(prefDateInput.value);
+    }
+  });
+}
+</script>
+  <script src="js/main.js"></script>
+</body>
+</html>

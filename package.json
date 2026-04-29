@@ -1,0 +1,26 @@
+{
+  "name": "clinikauto-backend",
+  "version": "1.0.0",
+  "description": "Fonctions serverless pour Clinik-Auto (book, stripe, google reviews)",
+  "main": "index.js",
+  "scripts": {
+    "start": "vercel dev",
+    "test": "node tools/local-runner.js --ci",
+    "local:start:test": "node tools/local-runner.js",
+    "local:build-exe": "pkg tools/local-runner.js --targets node18-win-x64 --output dist/ClinikAutoLocalRunner.exe"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^2.6.7",
+    "nodemailer": "^8.0.7",
+    "raw-body": "^2.5.1",
+    "sqlite3": "^6.0.1",
+    "stripe": "^12.0.0",
+    "xlsx": "^0.18.5"
+  }
+}

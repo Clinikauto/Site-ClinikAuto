@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+.env
+*.tar.gz
+.git
+deploy/mon_projet.tar.gz
+clinikauto-deploy.tar.gz
+backups/**
+*.log
