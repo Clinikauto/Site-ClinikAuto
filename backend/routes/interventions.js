@@ -32,9 +32,15 @@ module.exports = function registerInterventions(app, db) {
       `INSERT INTO interventions (client_id, vehicle_id, title, description, status, price, scheduled_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [client_id, vehicle_id, title, description, status, price, scheduled_at],
       function (err) {
-        if (err) return res.status(500).json({ error: 'Erreur insertion' });
+        if (err) {
+          console.error('Interventions INSERT error:', err && err.message);
+          return res.status(500).json({ error: 'Erreur insertion', detail: String(err && err.message) });
+        }
         db.get('SELECT * FROM interventions WHERE id = ?', [this.lastID], (e, row) => {
-          if (e) return res.status(500).json({ error: 'Erreur lecture' });
+          if (e) {
+            console.error('Interventions SELECT after insert error:', e && e.message);
+            return res.status(500).json({ error: 'Erreur lecture', detail: String(e && e.message) });
+          }
           res.status(201).json(row);
         });
       }
@@ -45,7 +51,10 @@ module.exports = function registerInterventions(app, db) {
   router.get('/:id', (req, res) => {
     const id = Number(req.params.id || 0);
     db.get('SELECT * FROM interventions WHERE id = ?', [id], (err, row) => {
-      if (err) return res.status(500).json({ error: 'Erreur serveur' });
+      if (err) {
+        console.error('Interventions GET error:', err && err.message);
+        return res.status(500).json({ error: 'Erreur serveur', detail: String(err && err.message) });
+      }
       if (!row) return res.status(404).json({ error: 'Non trouvé' });
       res.json(row);
     });
@@ -72,9 +81,15 @@ module.exports = function registerInterventions(app, db) {
     params.push(id);
 
     db.run(`UPDATE interventions SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, params, function (err) {
-      if (err) return res.status(500).json({ error: 'Erreur mise à jour' });
+      if (err) {
+        console.error('Interventions UPDATE error:', err && err.message);
+        return res.status(500).json({ error: 'Erreur mise à jour', detail: String(err && err.message) });
+      }
       db.get('SELECT * FROM interventions WHERE id = ?', [id], (e, row) => {
-        if (e) return res.status(500).json({ error: 'Erreur lecture' });
+        if (e) {
+          console.error('Interventions SELECT after update error:', e && e.message);
+          return res.status(500).json({ error: 'Erreur lecture', detail: String(e && e.message) });
+        }
         res.json(row);
       });
     });
@@ -84,7 +99,10 @@ module.exports = function registerInterventions(app, db) {
   router.delete('/:id', (req, res) => {
     const id = Number(req.params.id || 0);
     db.run('DELETE FROM interventions WHERE id = ?', [id], function (err) {
-      if (err) return res.status(500).json({ error: 'Erreur suppression' });
+      if (err) {
+        console.error('Interventions DELETE error:', err && err.message);
+        return res.status(500).json({ error: 'Erreur suppression', detail: String(err && err.message) });
+      }
       res.json({ deleted: this.changes });
     });
   });
